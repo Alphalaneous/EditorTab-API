@@ -18,6 +18,6 @@ void EditorTabs::setTag(std::string id, int tag){
     }
 }
 
-std::list<TabData> EditorTabs::getTabs(){
+std::vector<TabData> EditorTabs::getTabs(){
     return m_tabs;
 }

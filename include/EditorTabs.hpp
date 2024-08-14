@@ -25,10 +25,10 @@ class EDITOR_TABS_API_DLL EditorTabs {
 
 protected:
     static EditorTabs* instance;
-    std::list<TabData> m_tabs;
+    std::vector<TabData> m_tabs;
 
 public:
-    std::list<TabData> getTabs();
+    std::vector<TabData> getTabs();
 
     void setTag(std::string id, int tag);
 

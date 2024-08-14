@@ -27,7 +27,7 @@ class $modify(MyEditorUI, EditorUI) {
 
         for(TabData data : EditorTabs::get()->getTabs()){
             if(data.tabTag != tag && data.onToggle){
-                if(EditButtonBar* buttonBar = static_cast<EditButtonBar*>(m_createButtonBars->objectAtIndex(data.tabTag))) {
+                if(EditButtonBar* buttonBar = typeinfo_cast<EditButtonBar*>(m_createButtonBars->objectAtIndex(data.tabTag))) {
                     data.onToggle(this, buttonBar);
                 }
                 break;
@@ -42,9 +42,10 @@ class $modify(MyEditorUI, EditorUI) {
 
         for(TabData data : EditorTabs::get()->getTabs()){
             
-            data.tabTag = m_tabsArray->count();
+            int tab = m_tabsArray->count();
+            std::string id = data.id;
 
-            EditorTabs::get()->setTag(data.id, data.tabTag);
+            EditorTabs::get()->setTag(id, tab);
 
             auto onBg = CCSprite::createWithSpriteFrameName("GJ_tabOn_001.png");
             auto offBg = CCSprite::createWithSpriteFrameName("GJ_tabOff_001.png");
@@ -56,14 +57,15 @@ class $modify(MyEditorUI, EditorUI) {
                     static_cast<CCMenuItemToggler*>(sender)->setClickable(false);
                 }
             );
-            tabToggler->setID(data.id);
-            tabToggler->setTag(data.tabTag);
+            
+            tabToggler->setID(id);
+            tabToggler->setTag(tab);
 
             m_tabsMenu->addChild(tabToggler);
             m_tabsMenu->updateLayout();
 
             EditButtonBar* bar = data.onCreate(this, tabToggler);
-            bar->setID(fmt::format("{}-bar", data.id));
+            bar->setID(fmt::format("{}-bar", id));
             bar->setZOrder(10);
             bar->setVisible(false);
 

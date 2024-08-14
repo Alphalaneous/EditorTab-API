@@ -2,8 +2,6 @@
 
 #include <Geode/Geode.hpp>
 
-using namespace geode::prelude;
-
 #ifdef GEODE_IS_WINDOWS
     #ifdef ALPHALANEOUS_EDITOR_TABS_API_EXPORTING
         #define EDITOR_TABS_API_DLL __declspec(dllexport)
@@ -14,7 +12,7 @@ using namespace geode::prelude;
         #define EDITOR_TABS_API_DLL __attribute__((visibility("default")))
 #endif
 
-struct EDITOR_TABS_API_DLL TabData {
+struct TabData {
     std::string id;
     std::function<EditButtonBar*(EditorUI*, CCMenuItemToggler*)> onCreate;
     std::function<void(EditorUI*, EditButtonBar*)> onToggle;
@@ -46,17 +44,17 @@ public:
 class EDITOR_TABS_API_DLL EditorTabUtils {
     public:
     
-    static EditButtonBar* createEditButtonBar(CCArray* arr, EditorUI* ui){
-        auto winSize = CCDirector::get()->getWinSize();
-        auto winBottom = CCDirector::get()->getScreenBottom();
-        auto offset = ccp(winSize.width / 2 - 5.f, winBottom + ui->m_toolbarHeight - 6.f);
+    static EditButtonBar* createEditButtonBar(cocos2d::CCArray* arr, EditorUI* ui){
+        auto winSize = cocos2d::CCDirector::get()->getWinSize();
+        auto winBottom = cocos2d::CCDirector::get()->getScreenBottom();
+        auto offset = cocos2d::CCPoint(winSize.width / 2 - 5.f, winBottom + ui->m_toolbarHeight - 6.f);
         auto rows = GameManager::get()->getIntGameVariable("0050");
         auto cols = GameManager::get()->getIntGameVariable("0049");
 
         return EditButtonBar::create(arr, offset, 0, false, cols, rows);
     }
 
-    static void setTabIcons(CCMenuItemToggler* toggler, CCNode* on, CCNode* off){
+    static void setTabIcons(CCMenuItemToggler* toggler, cocos2d::CCNode* on, cocos2d::CCNode* off){
 
         auto offBtnSprite = toggler->m_offButton->getNormalImage();
         auto onBtnSprite = toggler->m_onButton->getNormalImage();
@@ -64,11 +62,11 @@ class EDITOR_TABS_API_DLL EditorTabUtils {
         offBtnSprite->removeAllChildren();
         onBtnSprite->removeAllChildren();
 
-        onBtnSprite->addChildAtPosition(on, Anchor::Center, ccp(0, 0));
+        onBtnSprite->addChildAtPosition(on, cocos2d::Anchor::Center, ccp(0, 0));
 
-        if(auto rgba = typeinfo_cast<CCRGBAProtocol*>(off)){
+        if(auto rgba = geode::cast::typeinfo_cast<cocos2d::CCRGBAProtocol*>(off)){
             rgba->setOpacity(150); 
         }
-        offBtnSprite->addChildAtPosition(off, Anchor::Center, ccp(0, 0));
+        offBtnSprite->addChildAtPosition(off, cocos2d::Anchor::Center, ccp(0, 0));
     }
 };

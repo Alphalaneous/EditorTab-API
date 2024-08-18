@@ -1,3 +1,6 @@
+# 1.0.0-alpha.4
+- Fix a crash where BetterEdit expects an EditButtonBar to have children
+
 # 1.0.0-alpha.3
 - Add ability to add tabs to Edit and Delete categories, no more EditButtonBar requirement, just add and modify a node instead if you want :P
 

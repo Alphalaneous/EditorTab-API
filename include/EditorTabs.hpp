@@ -57,6 +57,7 @@ class EDITOR_TABS_API_DLL EditorTabUtils {
 
         EditButtonBar* bar = EditButtonBar::create(cocos2d::CCArray::create(), {0, 0}, 0, false, 0, 0);
         bar->removeAllChildren();
+        bar->addChild(cocos2d::CCNode::create()); //fix betteredit crash
         return bar;
     }
 

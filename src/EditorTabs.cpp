@@ -4,8 +4,8 @@
 
 EditorTabs* EditorTabs::instance = nullptr;
 
-void EditorTabs::registerTab(std::string id, std::function<EditButtonBar*(EditorUI*, CCMenuItemToggler*)> onCreate, std::function<void(EditorUI*, EditButtonBar*)> onToggle){
-    TabData data {id, onCreate, onToggle, -1};
+void EditorTabs::registerTab(TabType type, std::string id, std::function<cocos2d::CCNode*(EditorUI*, CCMenuItemToggler*)> onCreate, std::function<void(EditorUI*, bool, cocos2d::CCNode*)> onToggle){
+    TabData data {type, id, onCreate, onToggle, -1};
     m_tabs.push_back(data);
 }
 

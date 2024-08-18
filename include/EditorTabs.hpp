@@ -12,10 +12,19 @@
         #define EDITOR_TABS_API_DLL __attribute__((visibility("default")))
 #endif
 
+#undef DELETE
+
+enum TabType {
+    BUILD,
+    EDIT,
+    DELETE
+};
+
 struct TabData {
+    TabType type;
     std::string id;
-    std::function<EditButtonBar*(EditorUI*, CCMenuItemToggler*)> onCreate;
-    std::function<void(EditorUI*, EditButtonBar*)> onToggle;
+    std::function<cocos2d::CCNode*(EditorUI*, CCMenuItemToggler*)> onCreate;
+    std::function<void(EditorUI*, bool, cocos2d::CCNode*)> onToggle;
     int tabTag;
 };
 
@@ -30,7 +39,7 @@ public:
 
     void setTag(std::string id, int tag);
 
-    void registerTab(std::string id, std::function<EditButtonBar*(EditorUI*, CCMenuItemToggler*)>, std::function<void(EditorUI*, EditButtonBar*)> = nullptr);
+    void registerTab(TabType type, std::string id, std::function<cocos2d::CCNode*(EditorUI*, CCMenuItemToggler*)>, std::function<void(EditorUI*, bool, cocos2d::CCNode*)> = nullptr);
 
     static EditorTabs* get(){
 
@@ -44,6 +53,14 @@ public:
 class EDITOR_TABS_API_DLL EditorTabUtils {
     public:
     
+    static EditButtonBar* createDummyBar(){
+
+        EditButtonBar* bar = EditButtonBar::create(cocos2d::CCArray::create(), {0, 0}, 0, false, 0, 0);
+        bar->removeAllChildren();
+        return bar;
+    }
+
+
     static EditButtonBar* createEditButtonBar(cocos2d::CCArray* arr, EditorUI* ui){
         auto winSize = cocos2d::CCDirector::get()->getWinSize();
         auto winBottom = cocos2d::CCDirector::get()->getScreenBottom();
@@ -62,11 +79,11 @@ class EDITOR_TABS_API_DLL EditorTabUtils {
         offBtnSprite->removeAllChildren();
         onBtnSprite->removeAllChildren();
 
-        onBtnSprite->addChildAtPosition(on, cocos2d::Anchor::Center, ccp(0, 0));
+        onBtnSprite->addChildAtPosition(on, cocos2d::Anchor::Center, ccp(0, -1));
 
         if(auto rgba = geode::cast::typeinfo_cast<cocos2d::CCRGBAProtocol*>(off)){
             rgba->setOpacity(150); 
         }
-        offBtnSprite->addChildAtPosition(off, cocos2d::Anchor::Center, ccp(0, 0));
+        offBtnSprite->addChildAtPosition(off, cocos2d::Anchor::Center, ccp(0, -1));
     }
 };

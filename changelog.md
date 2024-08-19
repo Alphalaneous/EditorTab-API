@@ -1,3 +1,6 @@
+# 1.0.0-alpha.6
+- Fixed a bug where BetterEdit recenters all EditButtonBars, solution: do the same thing when I need to
+
 # 1.0.0-alpha.5
 - Fixed a bug where params are different on nightly geode, so the tab BG was wrong
 

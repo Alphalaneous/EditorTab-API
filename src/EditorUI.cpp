@@ -1,5 +1,7 @@
 #include <Geode/Geode.hpp>
 #include <Geode/modify/EditorUI.hpp>
+#include <Geode/modify/EditorPauseLayer.hpp>
+#include <Geode/modify/EditButtonBar.hpp>
 #include "../include/EditorTabs.hpp"
 
 using namespace geode::prelude;
@@ -89,6 +91,12 @@ class $modify(MyEditorUI, EditorUI) {
                     }
                 }
             }
+        }
+        if (tag == 3 && m_fields->m_selectedEditTab != 0) {
+            if (CCNode* node = getChildByID("hjfod.betteredit/custom-move-menu")) {
+                node->setVisible(false);
+            }
+            m_editButtonBar->setVisible(false);
         }
     }
 
@@ -334,6 +342,17 @@ class $modify(MyEditorUI, EditorUI) {
             this->addChild(bar);
         }
 
+        this->centerBuildTabs();
+        for (auto c : CCArrayExt<CCNode*>(this->getChildren())) {
+            if (auto bar = typeinfo_cast<EditButtonBar*>(c)) {
+                bar->reloadItems(
+                    GameManager::get()->getIntGameVariable("0049"),
+                    GameManager::get()->getIntGameVariable("0050")
+                );
+            }
+        }
+        this->centerBuildTabs();
+
         return true;
     }
 
@@ -390,6 +409,69 @@ class $modify(MyEditorUI, EditorUI) {
         if (m_selectedMode == 1 && m_fields->m_selectedDeleteTab > 0) {
             m_deleteMenu->setVisible(false);
         }
+    }
+
+    void centerBuildTabs() {
+        // This centers the build tab
+        auto winSize = CCDirector::get()->getWinSize();
+        for (auto c : CCArrayExt<CCNode*>(this->getChildren())) {
+            if (auto bar = typeinfo_cast<EditButtonBar*>(c)) {
+                if (bar->getChildrenCount() > 0) {
+                    getChild(bar, 0)->setPositionX(-winSize.width / 2 + 5);
+                    if (auto menu = getChildOfType<CCMenu>(bar, 0)) {
+                        menu->setPositionX(winSize.width / 2 + 5);
+                    }
+                }
+                bar->setPositionX(winSize.width / 2);
+            }
+        }
+    }
+    
+
+};
+
+class $modify(EditorPauseLayer) {
+    
+    void onResume(CCObject* pSender) {
+        EditorPauseLayer::onResume(pSender);
+
+        MyEditorUI* ui = static_cast<MyEditorUI*>(EditorUI::get());
+
+        ui->centerBuildTabs();
+
+        for (auto c : CCArrayExt<CCNode*>(ui->getChildren())) {
+            if (auto bar = typeinfo_cast<EditButtonBar*>(c)) {
+                bar->reloadItems(
+                    GameManager::get()->getIntGameVariable("0049"),
+                    GameManager::get()->getIntGameVariable("0050")
+                );
+            }
+        }
+
+        ui->centerBuildTabs();
+
+        if (ui->m_selectedMode == 3 && ui->m_fields->m_selectedEditTab != 0) {
+            if (CCNode* node = ui->getChildByID("hjfod.betteredit/custom-move-menu")) {
+                node->setVisible(false);
+            }
+        }
+    }
+};
+
+//so BetterEdit doesn't do me dirty as it likes to do
+
+class $modify(EditButtonBar) {
+    
+    void loadFromItems(CCArray* items, int c, int r, bool unkBool) {
+
+        if(CCInteger* rows = typeinfo_cast<CCInteger*>(getUserObject("force-rows"))) {
+            r = rows->getValue();
+        }
+        if(CCInteger* cols = typeinfo_cast<CCInteger*>(getUserObject("force-columns"))) {
+            c = cols->getValue();
+        }
+
+        EditButtonBar::loadFromItems(items, c, r, unkBool);
     }
 };
 

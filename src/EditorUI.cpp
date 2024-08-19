@@ -6,6 +6,27 @@
 
 using namespace geode::prelude;
 
+//so BetterEdit doesn't do me dirty as it likes to do
+
+class $modify(MyEditButtonBar, EditButtonBar) {
+    
+    void loadFromItems(CCArray* items, int c, int r, bool unkBool) {
+
+        if(CCInteger* rows = typeinfo_cast<CCInteger*>(getUserObject("force-rows"))) {
+            r = rows->getValue();
+        }
+        if(CCInteger* cols = typeinfo_cast<CCInteger*>(getUserObject("force-columns"))) {
+            c = cols->getValue();
+        }
+
+        EditButtonBar::loadFromItems(items, c, r, unkBool);
+    }
+
+    void reloadItemsA(int rowCount, int columnCount) {
+		if (m_buttonArray) this->loadFromItems(m_buttonArray, rowCount, columnCount, false);
+	}
+};
+
 class $modify(MyEditorUI, EditorUI) {
 
     static void onModify(auto& self) {
@@ -345,7 +366,7 @@ class $modify(MyEditorUI, EditorUI) {
         this->centerBuildTabs();
         for (auto c : CCArrayExt<CCNode*>(this->getChildren())) {
             if (auto bar = typeinfo_cast<EditButtonBar*>(c)) {
-                bar->reloadItems(
+                static_cast<MyEditButtonBar*>(bar)->reloadItemsA(
                     GameManager::get()->getIntGameVariable("0049"),
                     GameManager::get()->getIntGameVariable("0050")
                 );
@@ -441,7 +462,7 @@ class $modify(EditorPauseLayer) {
 
         for (auto c : CCArrayExt<CCNode*>(ui->getChildren())) {
             if (auto bar = typeinfo_cast<EditButtonBar*>(c)) {
-                bar->reloadItems(
+                static_cast<MyEditButtonBar*>(bar)->reloadItemsA(
                     GameManager::get()->getIntGameVariable("0049"),
                     GameManager::get()->getIntGameVariable("0050")
                 );
@@ -458,22 +479,7 @@ class $modify(EditorPauseLayer) {
     }
 };
 
-//so BetterEdit doesn't do me dirty as it likes to do
 
-class $modify(EditButtonBar) {
-    
-    void loadFromItems(CCArray* items, int c, int r, bool unkBool) {
-
-        if(CCInteger* rows = typeinfo_cast<CCInteger*>(getUserObject("force-rows"))) {
-            r = rows->getValue();
-        }
-        if(CCInteger* cols = typeinfo_cast<CCInteger*>(getUserObject("force-columns"))) {
-            c = cols->getValue();
-        }
-
-        EditButtonBar::loadFromItems(items, c, r, unkBool);
-    }
-};
 
 $execute {
 

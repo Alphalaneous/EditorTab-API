@@ -251,7 +251,7 @@ class $modify(MyEditorUI, EditorUI) {
             offBg->setOpacity(150);
 
             auto tabToggler = CCMenuItemExt::createToggler(
-                onBg, offBg, [this, data](CCObject* sender) {
+                offBg, onBg, [this, data](CCObject* sender) {
                     switch (data.type) {
                         case TabType::BUILD: {
                             this->onSelectBuildTab(sender);

@@ -1,3 +1,6 @@
+# 1.0.0-alpha.5
+- Fixed a bug where params are different on nightly geode, so the tab BG was wrong
+
 # 1.0.0-alpha.4
 - Fix a crash where BetterEdit expects an EditButtonBar to have children
 

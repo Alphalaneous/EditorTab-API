@@ -101,21 +101,21 @@ class $modify(MyEditorUI, EditorUI) {
             switch (data.type) {
                 case TabType::BUILD: {
                     if (CCNode* buttonBar = typeinfo_cast<CCNode*>(m_createButtonBars->objectAtIndex(data.tabTag))) {
-                        data.onToggle(this, isTab, buttonBar);
+                        if (data.onToggle) data.onToggle(this, isTab, buttonBar);
                     }
                     break;
                 }
                 case TabType::EDIT: {
                     if (CCNode* buttonBar = typeinfo_cast<CCNode*>(m_fields->m_editButtonBars->objectAtIndex(data.tabTag))) {
                         if (isTab) buttonBar->setVisible(true);
-                        data.onToggle(this, isTab, buttonBar);
+                        if (data.onToggle) data.onToggle(this, isTab, buttonBar);
                     }
                     break;
                 }
                 case TabType::DELETE: {
                     if (CCNode* buttonBar = typeinfo_cast<CCNode*>(m_fields->m_deleteButtonBars->objectAtIndex(data.tabTag))) {
                         if (isTab) buttonBar->setVisible(true);
-                        data.onToggle(this, isTab, buttonBar);
+                        if (data.onToggle) data.onToggle(this, isTab, buttonBar);
                     }
                     break;
                 }

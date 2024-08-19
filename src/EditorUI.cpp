@@ -236,6 +236,9 @@ class $modify(MyEditorUI, EditorUI) {
 
         CCNode* modeMenu = m_swipeBtn->getParent();
 
+        m_tabsMenu->setPosition({winSize.width/2, modeMenu->getScaledContentSize().height});
+        m_tabsMenu->setAnchorPoint({0.5, 0});
+
         m_fields->m_editTabsMenu->setPosition({winSize.width/2, modeMenu->getScaledContentSize().height});
         m_fields->m_editTabsMenu->setAnchorPoint({0.5, 0});
         m_fields->m_editTabsMenu->setContentSize(m_tabsMenu->getContentSize());
@@ -345,11 +348,9 @@ class $modify(MyEditorUI, EditorUI) {
                 m_fields->m_deleteTabsMenu->setVisible(false);
             }
 
-            if(!typeinfo_cast<EditButtonBar*>(bar)){
-                float scale = m_createButtonBar->getScale();
-                bar->setScale(scale);
-                bar->setPositionY(bar->getPositionY() * scale);
-            }
+            float scaleBar = m_createButtonBar->getScale();
+            bar->setScale(scaleBar);
+            bar->setPositionY(bar->getPositionY() * scaleBar);
 
             float scale = m_tabsMenu->getScale();
             m_fields->m_editTabsMenu->setScale(scale);
@@ -430,13 +431,19 @@ class $modify(MyEditorUI, EditorUI) {
 
     void centerBuildTabs() {
         // This centers the build tab
+
+        int offset = 0;
+        if(Loader::get()->isModLoaded("hjfod.betteredit")){
+            offset = 5;
+        }
+
         auto winSize = CCDirector::get()->getWinSize();
         for (auto c : CCArrayExt<CCNode*>(this->getChildren())) {
             if (auto bar = typeinfo_cast<EditButtonBar*>(c)) {
                 if (bar->getChildrenCount() > 0) {
-                    getChild(bar, 0)->setPositionX(-winSize.width / 2 + 5);
+                    getChild(bar, 0)->setPositionX(-winSize.width / 2 + offset);
                     if (auto menu = getChildOfType<CCMenu>(bar, 0)) {
-                        menu->setPositionX(winSize.width / 2 + 5);
+                        menu->setPositionX(winSize.width / 2 + offset);
                     }
                 }
                 bar->setPositionX(winSize.width / 2);

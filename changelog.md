@@ -1,3 +1,8 @@
+# 1.0.0-alpha.8
+- Fix another BetterEdit scaling bug
+- Fix misalignment when BetterEdit isn't installed
+- Fix vanilla bug where build tabs aren't centered :3
+
 # 1.0.0-alpha.7
 - You'd have never guessed that a memory leak slipped through, but it did, and has been fixed!
 

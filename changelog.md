@@ -1,3 +1,6 @@
+# 1.0.0-alpha.7
+- You'd have never guessed that a memory leak slipped through, but it did, and has been fixed!
+
 # 1.0.0-alpha.6
 - Fixed a bug where BetterEdit recenters all EditButtonBars, solution: do the same thing when I need to
 

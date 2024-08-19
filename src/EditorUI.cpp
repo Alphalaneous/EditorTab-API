@@ -34,13 +34,13 @@ class $modify(MyEditorUI, EditorUI) {
     }
 
     struct Fields {
-        CCArray* m_editTabsArray;
-        CCArray* m_editButtonBars;
+        Ref<CCArray> m_editTabsArray;
+        Ref<CCArray> m_editButtonBars;
         CCMenu* m_editTabsMenu;
         int m_selectedEditTab;
 
-        CCArray* m_deleteTabsArray;
-        CCArray* m_deleteButtonBars;
+        Ref<CCArray> m_deleteTabsArray;
+        Ref<CCArray> m_deleteButtonBars;
         CCMenu* m_deleteTabsMenu;
         int m_selectedDeleteTab;
     };
@@ -225,14 +225,10 @@ class $modify(MyEditorUI, EditorUI) {
         m_fields->m_deleteTabsMenu->ignoreAnchorPointForPosition(false);
 
         m_fields->m_editTabsArray = CCArray::create();
-        m_fields->m_editTabsArray->retain();
         m_fields->m_deleteTabsArray = CCArray::create();
-        m_fields->m_deleteTabsArray->retain();
 
         m_fields->m_editButtonBars = CCArray::create();
-        m_fields->m_editButtonBars->retain();
         m_fields->m_deleteButtonBars = CCArray::create();
-        m_fields->m_deleteButtonBars->retain();
 
         if (!EditorUI::init(editorLayer)) return false;
 
@@ -447,8 +443,6 @@ class $modify(MyEditorUI, EditorUI) {
             }
         }
     }
-    
-
 };
 
 class $modify(EditorPauseLayer) {

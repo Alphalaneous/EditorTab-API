@@ -65,7 +65,7 @@ class EDITOR_TABS_API_DLL EditorTabUtils {
     static EditButtonBar* createEditButtonBar(cocos2d::CCArray* arr, EditorUI* ui){
         auto winSize = cocos2d::CCDirector::get()->getWinSize();
         auto winBottom = cocos2d::CCDirector::get()->getScreenBottom();
-        auto offset = cocos2d::CCPoint(winSize.width / 2 - 5.f, winBottom + ui->m_toolbarHeight - 6.f);
+        auto offset = cocos2d::CCPoint(winSize.width / 2 - 5.f, winBottom + ui->m_toolbarHeight / (ui->m_toolbarHeight/92) - 6.f);
         auto rows = GameManager::get()->getIntGameVariable("0050");
         auto cols = GameManager::get()->getIntGameVariable("0049");
 

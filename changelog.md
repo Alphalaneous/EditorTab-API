@@ -1,3 +1,6 @@
+# 1.0.0-alpha.9
+- Preemptively fix positioning issues for potential BetterEdit changes
+
 # 1.0.0-alpha.8
 - Fix another BetterEdit scaling bug
 - Fix misalignment when BetterEdit isn't installed

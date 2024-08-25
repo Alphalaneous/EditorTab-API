@@ -1,3 +1,7 @@
+# 1.0.0-alpha.10
+- Fix positioning if Node IDs is disabled (why)
+- Fix toggleMode hook prio
+
 # 1.0.0-alpha.9
 - Preemptively fix positioning issues for potential BetterEdit changes
 

@@ -30,7 +30,9 @@ class $modify(MyEditButtonBar, EditButtonBar) {
 class $modify(MyEditorUI, EditorUI) {
 
     static void onModify(auto& self) {
-        (void) self.setHookPriority("EditorUI::init", INT_MIN/2);
+        (void) self.setHookPriority("EditorUI::init", -1000);
+        (void) self.setHookPriority("EditorUI::toggleMode", -1000);
+        (void) self.setHookPriority("EditorUI::onSelectBuildTab", 1000);
     }
 
     struct Fields {
@@ -234,17 +236,21 @@ class $modify(MyEditorUI, EditorUI) {
 
         CCSize winSize = CCDirector::get()->getWinSize();
 
-        CCNode* modeMenu = m_swipeBtn->getParent();
+        float height = m_toolbarHeight;
 
-        m_tabsMenu->setPosition({winSize.width/2, modeMenu->getScaledContentSize().height});
+        if (!Loader::get()->isModLoaded("geode.node-ids")){
+            height += 7;
+        }
+
+        m_tabsMenu->setPosition({winSize.width/2, height});
         m_tabsMenu->setAnchorPoint({0.5, 0});
 
-        m_fields->m_editTabsMenu->setPosition({winSize.width/2, modeMenu->getScaledContentSize().height});
+        m_fields->m_editTabsMenu->setPosition({winSize.width/2, height});
         m_fields->m_editTabsMenu->setAnchorPoint({0.5, 0});
         m_fields->m_editTabsMenu->setContentSize(m_tabsMenu->getContentSize());
         m_fields->m_editTabsMenu->setVisible(false);
 
-        m_fields->m_deleteTabsMenu->setPosition({winSize.width/2, modeMenu->getScaledContentSize().height});
+        m_fields->m_deleteTabsMenu->setPosition({winSize.width/2, height});
         m_fields->m_deleteTabsMenu->setAnchorPoint({0.5, 0});
         m_fields->m_deleteTabsMenu->setContentSize(m_tabsMenu->getContentSize());
         m_fields->m_deleteTabsMenu->setVisible(false);

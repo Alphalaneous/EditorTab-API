@@ -6,7 +6,6 @@
 
 using namespace geode::prelude;
 
-//so BetterEdit doesn't do me dirty as it likes to do
 
 class $modify(MyEditButtonBar, EditButtonBar) {
     
@@ -20,6 +19,51 @@ class $modify(MyEditButtonBar, EditButtonBar) {
         }
 
         EditButtonBar::loadFromItems(items, c, r, unkBool);
+
+        if (auto ui = typeinfo_cast<EditorUI*>(getParent())) {
+
+            auto winSize = CCDirector::get()->getWinSize();
+
+            setPositionX(winSize.width / 2);
+
+            if (auto scrollLayer = getChildOfType<BoomScrollLayer>(this, 0)) {
+                scrollLayer->setPositionX(-winSize.width / 2 + 5);
+            }
+
+            if (auto menu = getChildOfType<CCMenu>(this, 0)) {
+                menu->setVisible(false);
+
+                //easier to create a new menu than work with the old one
+                CCMenu* navMenu = CCMenu::create();
+
+                navMenu->setPosition({-winSize.width / 2, 0});
+                navMenu->setContentSize(menu->getContentSize());
+                navMenu->setScale(menu->getScale());
+
+                float xOffset = 180 / getScale();
+                float yOffset = 2;
+
+                CCSprite* prevSpr = CCSprite::createWithSpriteFrameName("GJ_arrow_02_001.png");
+                prevSpr->setScale(0.6f);
+                CCSprite* nextSpr = CCSprite::createWithSpriteFrameName("GJ_arrow_02_001.png");
+                nextSpr->setFlipX(true);
+                nextSpr->setScale(0.6f);
+
+                CCMenuItemSpriteExtra* prevButton = CCMenuItemSpriteExtra::create(prevSpr, this, menu_selector(EditButtonBar::onLeft));
+                CCMenuItemSpriteExtra* nextButton = CCMenuItemSpriteExtra::create(nextSpr, this, menu_selector(EditButtonBar::onRight));
+
+                prevButton->setPositionX(menu->getContentWidth()/2 - xOffset);
+                prevButton->setPositionY((ui->m_toolbarHeight/2 + yOffset) / getScale());
+
+                nextButton->setPositionX(menu->getContentWidth()/2 + xOffset);
+                nextButton->setPositionY((ui->m_toolbarHeight/2 + yOffset) / getScale());
+
+                navMenu->addChild(prevButton);
+                navMenu->addChild(nextButton);
+
+                addChild(navMenu);
+            }
+        }
     }
 
     void reloadItemsA(int rowCount, int columnCount) {
@@ -30,9 +74,9 @@ class $modify(MyEditButtonBar, EditButtonBar) {
 class $modify(MyEditorUI, EditorUI) {
 
     static void onModify(auto& self) {
-        (void) self.setHookPriority("EditorUI::init", -1000);
-        (void) self.setHookPriority("EditorUI::toggleMode", -1000);
-        (void) self.setHookPriority("EditorUI::onSelectBuildTab", 1000);
+        (void) self.setHookPriority("EditorUI::init", 10000); 
+        (void) self.setHookPriority("EditorUI::toggleMode", 10000);
+        (void) self.setHookPriority("EditorUI::onSelectBuildTab", 10000);
     }
 
     struct Fields {
@@ -45,6 +89,8 @@ class $modify(MyEditorUI, EditorUI) {
         Ref<CCArray> m_deleteButtonBars;
         CCMenu* m_deleteTabsMenu;
         int m_selectedDeleteTab;
+
+        std::vector<TabData> tabs;
     };
 
     void toggleMode(CCObject* sender) {
@@ -86,7 +132,7 @@ class $modify(MyEditorUI, EditorUI) {
         EditorUI::toggleMode(sender);
 
         if (prevMode != tag) {
-            for (TabData data : EditorTabs::get()->getTabs()) {
+            for (TabData data : m_fields->tabs) {
                 if (data.onToggle && data.tabTag != -1 && m_createButtonBars->count() > data.tabTag) {
                     CCNode* buttonBar;
                     switch (data.type) {
@@ -125,7 +171,7 @@ class $modify(MyEditorUI, EditorUI) {
 
     void toggleAll(TabType type, int tag){
 
-        for (TabData data : EditorTabs::get()->getTabs()) {
+        for (TabData data : m_fields->tabs) {
 
             bool isTab = data.type == type && data.tabTag == tag;
 
@@ -234,139 +280,47 @@ class $modify(MyEditorUI, EditorUI) {
 
         if (!EditorUI::init(editorLayer)) return false;
 
-        CCSize winSize = CCDirector::get()->getWinSize();
-
-        float height = m_toolbarHeight;
-
-        if (!Loader::get()->isModLoaded("geode.node-ids")){
-            height += 7;
-        }
-
-        m_tabsMenu->setPosition({winSize.width/2, height});
-        m_tabsMenu->setAnchorPoint({0.5, 0});
-
-        m_fields->m_editTabsMenu->setPosition({winSize.width/2, height});
-        m_fields->m_editTabsMenu->setAnchorPoint({0.5, 0});
-        m_fields->m_editTabsMenu->setContentSize(m_tabsMenu->getContentSize());
-        m_fields->m_editTabsMenu->setVisible(false);
-
-        m_fields->m_deleteTabsMenu->setPosition({winSize.width/2, height});
-        m_fields->m_deleteTabsMenu->setAnchorPoint({0.5, 0});
-        m_fields->m_deleteTabsMenu->setContentSize(m_tabsMenu->getContentSize());
-        m_fields->m_deleteTabsMenu->setVisible(false);
-
         addChild(m_fields->m_editTabsMenu);
         addChild(m_fields->m_deleteTabsMenu);
 
-        for(TabData data : EditorTabs::get()->getTabs()){
+        EditorTabs::get()->addTab(this, TabType::EDIT, "edit-tab", [](EditorUI* ui, CCMenuItemToggler* toggler) -> CCNode* {
+            EditButtonBar* editTabBar = ui->m_editButtonBar;
+            editTabBar->removeFromParentAndCleanup(false);
+
+            CCSprite* sprOn = CCSprite::createWithSpriteFrameName("GJ_hammerIcon_001.png");
+            sprOn->setScale(0.45f);
+            CCSprite* sprOff = CCSprite::createWithSpriteFrameName("GJ_hammerIcon_001.png");
+            sprOff->setScale(0.45f);
+
+            EditorTabUtils::setTabIcons(toggler, sprOn, sprOff);
+
+            return editTabBar;
+        }, [](EditorUI* ui, bool state, CCNode* bar) {
+            if (CCNode* node = ui->getChildByID("hjfod.betteredit/custom-move-menu")) {
+                node->setVisible(state);
+                bar->setVisible(false);
+            }
+            else bar->setVisible(state);
+        });
+
+        EditorTabs::get()->addTab(this, TabType::DELETE, "delete-tab", [](EditorUI* ui, CCMenuItemToggler* toggler) -> CCNode* {
             
-            int tab = 0;
+            CCSprite* sprOn = CCSprite::createWithSpriteFrameName("edit_delBtn_001.png");
+            sprOn->setScale(0.5f);
+            CCSprite* sprOff = CCSprite::createWithSpriteFrameName("edit_delBtn_001.png");
+            sprOff->setScale(0.5f);
 
-            switch (data.type) {
-                case TabType::BUILD: {
-                    tab = m_tabsArray->count();
-                    break;
-                }
-                case TabType::EDIT: {
-                    tab = m_fields->m_editTabsArray->count();
-                    break;
-                }
-                case TabType::DELETE: {
-                    tab = m_fields->m_deleteTabsArray->count();
-                    break;
-                }
-            }
-
-            std::string id = data.id;
-            EditorTabs::get()->setTag(id, tab);
-
-            auto onBg = CCSprite::createWithSpriteFrameName("GJ_tabOn_001.png");
-            auto offBg = CCSprite::createWithSpriteFrameName("GJ_tabOff_001.png");
-            offBg->setOpacity(150);
-
-            auto tabToggler = CCMenuItemExt::createToggler(
-                offBg, onBg, [this, data](CCObject* sender) {
-                    switch (data.type) {
-                        case TabType::BUILD: {
-                            this->onSelectBuildTab(sender);
-                            break;
-                        }
-                        case TabType::EDIT: {
-                            this->onSelectEditTab(sender);
-                            break;
-                        }
-                        case TabType::DELETE: {
-                            this->onSelectDeleteTab(sender);
-                            break;
-                        }
-                    }
-                    static_cast<CCMenuItemToggler*>(sender)->setClickable(false);
-                }
-            );
+            EditorTabUtils::setTabIcons(toggler, sprOn, sprOff);
             
-            tabToggler->setID(id);
-            tabToggler->setTag(tab);
+            return EditorTabUtils::createDummyBar();
+        }, [](EditorUI* ui, bool state, CCNode* bar) {
+            ui->m_deleteMenu->setVisible(state);
+        });
 
-            CCNode* bar = data.onCreate(this, tabToggler);
-            bar->setID(fmt::format("{}-bar", id));
-            bar->setZOrder(10);
-            bar->setVisible(false);
-
-            switch (data.type) {
-                case TabType::BUILD: {
-                    m_tabsMenu->addChild(tabToggler);
-                    m_tabsMenu->updateLayout();
-                    m_tabsArray->addObject(tabToggler);
-                    m_createButtonBars->addObject(bar);
-                    break;
-                }
-                case TabType::EDIT: {
-                    m_fields->m_editTabsMenu->addChild(tabToggler);
-                    m_fields->m_editTabsMenu->updateLayout();
-                    m_fields->m_editTabsArray->addObject(tabToggler);
-                    m_fields->m_editButtonBars->addObject(bar);
-                    bar->setVisible(false);
-                    break;
-                }
-                case TabType::DELETE: {
-                    m_fields->m_deleteTabsMenu->addChild(tabToggler);
-                    m_fields->m_deleteTabsMenu->updateLayout();
-                    m_fields->m_deleteTabsArray->addObject(tabToggler);
-                    m_fields->m_deleteButtonBars->addObject(bar);
-                    bar->setVisible(false);
-                    break;
-                }
-            }
-
-            if (m_fields->m_editTabsArray->count() > 0) {
-                static_cast<CCMenuItemToggler*>(m_fields->m_editTabsArray->objectAtIndex(0))->toggle(true);
-            }
-
-            if (m_fields->m_deleteTabsArray->count() > 0) {
-                static_cast<CCMenuItemToggler*>(m_fields->m_deleteTabsArray->objectAtIndex(0))->toggle(true);
-            }
-           
-            if (m_fields->m_editTabsMenu->getChildrenCount() == 1) {
-                m_fields->m_editTabsMenu->setVisible(false);
-            }
-
-            if (m_fields->m_deleteTabsMenu->getChildrenCount() == 1) {
-                m_fields->m_deleteTabsMenu->setVisible(false);
-            }
-
-            float scaleBar = m_createButtonBar->getScale();
-            bar->setScale(scaleBar);
-            bar->setPositionY(bar->getPositionY() * scaleBar);
-
-            float scale = m_tabsMenu->getScale();
-            m_fields->m_editTabsMenu->setScale(scale);
-            m_fields->m_deleteTabsMenu->setScale(scale);
-
-
-            this->addChild(bar);
+        for(TabData data : EditorTabs::get()->getRegisteredTabs()){
+            EditorTabs::get()->addTab(this, data);
         }
 
-        this->centerBuildTabs();
         for (auto c : CCArrayExt<CCNode*>(this->getChildren())) {
             if (auto bar = typeinfo_cast<EditButtonBar*>(c)) {
                 static_cast<MyEditButtonBar*>(bar)->reloadItemsA(
@@ -375,7 +329,6 @@ class $modify(MyEditorUI, EditorUI) {
                 );
             }
         }
-        this->centerBuildTabs();
 
         return true;
     }
@@ -434,28 +387,51 @@ class $modify(MyEditorUI, EditorUI) {
             m_deleteMenu->setVisible(false);
         }
     }
+};
 
-    void centerBuildTabs() {
-        // This centers the build tab
+class $modify(EditorUI) {
 
-        int offset = 0;
-        if(Loader::get()->isModLoaded("hjfod.betteredit")){
-            offset = 5;
-        }
-
-        auto winSize = CCDirector::get()->getWinSize();
-        for (auto c : CCArrayExt<CCNode*>(this->getChildren())) {
-            if (auto bar = typeinfo_cast<EditButtonBar*>(c)) {
-                if (bar->getChildrenCount() > 0) {
-                    getChild(bar, 0)->setPositionX(-winSize.width / 2 + offset);
-                    if (auto menu = getChildOfType<CCMenu>(bar, 0)) {
-                        menu->setPositionX(winSize.width / 2 + offset);
-                    }
-                }
-                bar->setPositionX(winSize.width / 2);
-            }
-        }
+    static void onModify(auto& self) {
+        (void) self.setHookPriority("EditorUI::init", INT_MIN/2);
     }
+
+    bool init(LevelEditorLayer* editorLayer) {
+
+        if (!EditorUI::init(editorLayer)) return false;
+
+        EditorUI* editorUI = static_cast<EditorUI*>(this);
+        MyEditorUI* myEditorUI = static_cast<MyEditorUI*>(editorUI);
+
+        CCSize winSize = CCDirector::get()->getWinSize();
+
+        float height = m_toolbarHeight;
+
+        if (!Loader::get()->isModLoaded("geode.node-ids")){
+            height += 7;
+        }
+
+        m_tabsMenu->setPosition({winSize.width/2, height});
+        m_tabsMenu->setAnchorPoint({0.5, 0});
+
+        myEditorUI->m_fields->m_editTabsMenu->setPosition({winSize.width/2, height});
+        myEditorUI->m_fields->m_editTabsMenu->setAnchorPoint({0.5, 0});
+        myEditorUI->m_fields->m_editTabsMenu->setContentSize(m_tabsMenu->getContentSize());
+        myEditorUI->m_fields->m_editTabsMenu->setScale(m_tabsMenu->getScale());
+        myEditorUI->m_fields->m_editTabsMenu->setVisible(false);
+
+        myEditorUI->m_fields->m_editTabsMenu->updateLayout();
+
+        myEditorUI->m_fields->m_deleteTabsMenu->setPosition({winSize.width/2, height});
+        myEditorUI->m_fields->m_deleteTabsMenu->setAnchorPoint({0.5, 0});
+        myEditorUI->m_fields->m_deleteTabsMenu->setContentSize(m_tabsMenu->getContentSize());
+        myEditorUI->m_fields->m_deleteTabsMenu->setScale(m_tabsMenu->getScale());
+        myEditorUI->m_fields->m_deleteTabsMenu->setVisible(false);
+
+        myEditorUI->m_fields->m_deleteTabsMenu->updateLayout();
+
+        return true;
+    }
+
 };
 
 class $modify(EditorPauseLayer) {
@@ -464,8 +440,6 @@ class $modify(EditorPauseLayer) {
         EditorPauseLayer::onResume(pSender);
 
         MyEditorUI* ui = static_cast<MyEditorUI*>(EditorUI::get());
-
-        ui->centerBuildTabs();
 
         for (auto c : CCArrayExt<CCNode*>(ui->getChildren())) {
             if (auto bar = typeinfo_cast<EditButtonBar*>(c)) {
@@ -476,8 +450,6 @@ class $modify(EditorPauseLayer) {
             }
         }
 
-        ui->centerBuildTabs();
-
         if (ui->m_selectedMode == 3 && ui->m_fields->m_selectedEditTab != 0) {
             if (CCNode* node = ui->getChildByID("hjfod.betteredit/custom-move-menu")) {
                 node->setVisible(false);
@@ -485,42 +457,3 @@ class $modify(EditorPauseLayer) {
         }
     }
 };
-
-
-
-$execute {
-
-    EditorTabs::get()->registerTab(TabType::EDIT, "edit-tab", [](EditorUI* ui, CCMenuItemToggler* toggler) -> CCNode* {
-        EditButtonBar* editTabBar = ui->m_editButtonBar;
-        editTabBar->removeFromParentAndCleanup(false);
-
-        CCSprite* sprOn = CCSprite::createWithSpriteFrameName("GJ_hammerIcon_001.png");
-        sprOn->setScale(0.45f);
-        CCSprite* sprOff = CCSprite::createWithSpriteFrameName("GJ_hammerIcon_001.png");
-        sprOff->setScale(0.45f);
-
-        EditorTabUtils::setTabIcons(toggler, sprOn, sprOff);
-
-        return editTabBar;
-    }, [](EditorUI* ui, bool state, CCNode* bar) {
-        if (CCNode* node = ui->getChildByID("hjfod.betteredit/custom-move-menu")) {
-            node->setVisible(state);
-            bar->setVisible(false);
-        }
-        else bar->setVisible(state);
-    });
-
-    EditorTabs::get()->registerTab(TabType::DELETE, "delete-tab", [](EditorUI* ui, CCMenuItemToggler* toggler) -> CCNode* {
-        
-        CCSprite* sprOn = CCSprite::createWithSpriteFrameName("edit_delBtn_001.png");
-        sprOn->setScale(0.5f);
-        CCSprite* sprOff = CCSprite::createWithSpriteFrameName("edit_delBtn_001.png");
-        sprOff->setScale(0.5f);
-
-        EditorTabUtils::setTabIcons(toggler, sprOn, sprOff);
-        
-        return EditorTabUtils::createDummyBar();
-    }, [](EditorUI* ui, bool state, CCNode* bar) {
-        ui->m_deleteMenu->setVisible(state);
-    });
-}

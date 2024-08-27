@@ -1,3 +1,6 @@
+# 1.0.0-alpha.11
+- Introduce non-registry based tab adding
+
 # 1.0.0-alpha.10
 - Fix positioning if Node IDs is disabled (why)
 - Fix toggleMode hook prio

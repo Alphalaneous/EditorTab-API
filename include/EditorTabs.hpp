@@ -28,18 +28,21 @@ struct TabData {
     int tabTag;
 };
 
-class EDITOR_TABS_API_DLL EditorTabs {
+#define create_tab_callback(method) std::bind(&method, this, std::placeholders::_1, std::placeholders::_2)
+#define toggle_tab_callback(method) std::bind(&method, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
+
+class EDITOR_TABS_API_DLL EditorTabs { 
 
 protected:
     static EditorTabs* instance;
     std::vector<TabData> m_tabs;
 
 public:
-    std::vector<TabData> getTabs();
-
-    void setTag(std::string id, int tag);
+    std::vector<TabData> getRegisteredTabs();
 
     void registerTab(TabType type, std::string id, std::function<cocos2d::CCNode*(EditorUI*, CCMenuItemToggler*)>, std::function<void(EditorUI*, bool, cocos2d::CCNode*)> = nullptr);
+    void addTab(EditorUI* ui, TabType type, std::string id, std::function<cocos2d::CCNode*(EditorUI*, CCMenuItemToggler*)>, std::function<void(EditorUI*, bool, cocos2d::CCNode*)> = nullptr);
+    void addTab(EditorUI* ui, TabData data);
 
     static EditorTabs* get(){
 

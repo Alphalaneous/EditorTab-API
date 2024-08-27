@@ -33,6 +33,9 @@ class $modify(MyEditButtonBar, EditButtonBar) {
             if (auto menu = getChildOfType<CCMenu>(this, 0)) {
                 menu->setVisible(false);
 
+                CCMenuItemSpriteExtra* prevButtonOld = getChildOfType<CCMenuItemSpriteExtra>(menu, 0);
+                CCMenuItemSpriteExtra* nextButtonOld = getChildOfType<CCMenuItemSpriteExtra>(menu, 1);
+
                 //easier to create a new menu than work with the old one
                 CCMenu* navMenu = CCMenu::create();
 
@@ -49,8 +52,8 @@ class $modify(MyEditButtonBar, EditButtonBar) {
                 nextSpr->setFlipX(true);
                 nextSpr->setScale(0.6f);
 
-                CCMenuItemSpriteExtra* prevButton = CCMenuItemSpriteExtra::create(prevSpr, this, menu_selector(EditButtonBar::onLeft));
-                CCMenuItemSpriteExtra* nextButton = CCMenuItemSpriteExtra::create(nextSpr, this, menu_selector(EditButtonBar::onRight));
+                CCMenuItemSpriteExtra* prevButton = CCMenuItemSpriteExtra::create(prevSpr, this, prevButtonOld->m_pfnSelector);
+                CCMenuItemSpriteExtra* nextButton = CCMenuItemSpriteExtra::create(nextSpr, this, nextButtonOld->m_pfnSelector);
 
                 prevButton->setPositionX(menu->getContentWidth()/2 - xOffset);
                 prevButton->setPositionY((ui->m_toolbarHeight/2 + yOffset) / getScale());

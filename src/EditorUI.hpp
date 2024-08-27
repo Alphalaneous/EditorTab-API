@@ -164,12 +164,7 @@ class $modify(MyEditorUI, EditorUI) {
                 }
             }
         }
-        if (tag == 3 && m_fields->m_selectedEditTab != 0) {
-            if (CCNode* node = getChildByID("hjfod.betteredit/custom-move-menu")) {
-                node->setVisible(false);
-            }
-            m_editButtonBar->setVisible(false);
-        }
+        
     }
 
     void toggleAll(TabType type, int tag){
@@ -395,7 +390,8 @@ class $modify(MyEditorUI, EditorUI) {
 class $modify(EditorUI) {
 
     static void onModify(auto& self) {
-        (void) self.setHookPriority("EditorUI::init", INT_MIN/2);
+        (void) self.setHookPriority("EditorUI::init", -10000);
+        (void) self.setHookPriority("EditorUI::toggleMode", -10000);
     }
 
     bool init(LevelEditorLayer* editorLayer) {
@@ -435,6 +431,21 @@ class $modify(EditorUI) {
         return true;
     }
 
+    void toggleMode(CCObject* sender) {
+        EditorUI::toggleMode(sender);
+
+        int tag = sender->getTag();
+
+        EditorUI* editorUI = static_cast<EditorUI*>(this);
+        MyEditorUI* myEditorUI = static_cast<MyEditorUI*>(editorUI);
+
+        if (tag == 3 && myEditorUI->m_fields->m_selectedEditTab != 0) {
+            if (CCNode* node = getChildByID("hjfod.betteredit/custom-move-menu")) {
+                node->setVisible(false);
+            }
+            m_editButtonBar->setVisible(false);
+        }
+    }
 };
 
 class $modify(EditorPauseLayer) {

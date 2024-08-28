@@ -408,6 +408,10 @@ class $modify(EditorUI) {
         if (!Loader::get()->isModLoaded("geode.node-ids")){
             height += 7;
         }
+        else {
+            height -= 2*m_tabsMenu->getScale();
+        }
+
 
         m_tabsMenu->setPosition({winSize.width/2, height});
         m_tabsMenu->setAnchorPoint({0.5, 0});

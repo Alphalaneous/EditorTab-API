@@ -15,7 +15,6 @@ void EditorTabs::registerTab(TabType type, std::string id, std::function<cocos2d
 void EditorTabs::addTab(EditorUI* ui, TabData data){
     MyEditorUI* myEditorUI = static_cast<MyEditorUI*>(ui);
 
-
     int tab = 0;
 
     switch (data.type) {
@@ -43,7 +42,7 @@ void EditorTabs::addTab(EditorUI* ui, TabData data){
     offBg->setOpacity(150);
 
     auto tabToggler = CCMenuItemExt::createToggler(
-        offBg, onBg, [this, myEditorUI, data](CCObject* sender) {
+        offBg, onBg, [myEditorUI, data](CCObject* sender) {
             switch (data.type) {
                 case TabType::BUILD: {
                     myEditorUI->onSelectBuildTab(sender);

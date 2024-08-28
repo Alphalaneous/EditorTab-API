@@ -1,3 +1,6 @@
+# 1.0.0-alpha.12
+- Unstupid something
+
 # 1.0.0-alpha.11
 - Introduce non-registry based tab adding
 

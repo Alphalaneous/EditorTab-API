@@ -18,7 +18,7 @@ class $modify(EditorUI) {
     bool init(LevelEditorLayer* editorLayer) {
         if (!EditorUI::init(editorLayer)) return false;
 
-        EditorTabs::get()->addTab(this /*The EditorUI*/, TabType::EDIT, "rawr"_spr, [](EditorUI* ui, CCMenuItemToggler* toggler) -> CCNode* { //create the tab
+        EditorTabs::addTab(this /*The EditorUI*/, TabType::EDIT, "rawr"_spr, [](EditorUI* ui, CCMenuItemToggler* toggler) -> CCNode* { //create the tab
 
             auto arr = CCArray::create();
             auto label = CCLabelBMFont::create("meow", "bigFont.fnt");
@@ -50,7 +50,7 @@ class $modify(MyEditorUI, EditorUI) {
     bool init(LevelEditorLayer* editorLayer) {
         if (!EditorUI::init(editorLayer)) return false;
 
-        EditorTabs::get()->addTab(this, TabType::EDIT, "rawr"_spr, create_tab_callback(MyEditorUI::createMeowBar), toggle_tab_callback(MyEditorUI::toggleMeowBar));
+        EditorTabs::addTab(this, TabType::EDIT, "rawr"_spr, create_tab_callback(MyEditorUI::createMeowBar), toggle_tab_callback(MyEditorUI::toggleMeowBar));
 
         return true;
     }

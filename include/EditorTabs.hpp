@@ -41,8 +41,8 @@ public:
     std::vector<TabData> getRegisteredTabs();
 
     void registerTab(TabType type, std::string id, std::function<cocos2d::CCNode*(EditorUI*, CCMenuItemToggler*)>, std::function<void(EditorUI*, bool, cocos2d::CCNode*)> = nullptr);
-    void addTab(EditorUI* ui, TabType type, std::string id, std::function<cocos2d::CCNode*(EditorUI*, CCMenuItemToggler*)>, std::function<void(EditorUI*, bool, cocos2d::CCNode*)> = nullptr);
-    void addTab(EditorUI* ui, TabData data);
+    static void addTab(EditorUI* ui, TabType type, std::string id, std::function<cocos2d::CCNode*(EditorUI*, CCMenuItemToggler*)>, std::function<void(EditorUI*, bool, cocos2d::CCNode*)> = nullptr);
+    static void addTab(EditorUI* ui, TabData data);
 
     static EditorTabs* get(){
 

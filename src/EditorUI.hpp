@@ -281,7 +281,7 @@ class $modify(MyEditorUI, EditorUI) {
         addChild(m_fields->m_editTabsMenu);
         addChild(m_fields->m_deleteTabsMenu);
 
-        EditorTabs::get()->addTab(this, TabType::EDIT, "edit-tab", [](EditorUI* ui, CCMenuItemToggler* toggler) -> CCNode* {
+        EditorTabs::addTab(this, TabType::EDIT, "edit-tab", [](EditorUI* ui, CCMenuItemToggler* toggler) -> CCNode* {
             EditButtonBar* editTabBar = ui->m_editButtonBar;
             editTabBar->removeFromParentAndCleanup(false);
 
@@ -301,7 +301,7 @@ class $modify(MyEditorUI, EditorUI) {
             else bar->setVisible(state);
         });
 
-        EditorTabs::get()->addTab(this, TabType::DELETE, "delete-tab", [](EditorUI* ui, CCMenuItemToggler* toggler) -> CCNode* {
+        EditorTabs::addTab(this, TabType::DELETE, "delete-tab", [](EditorUI* ui, CCMenuItemToggler* toggler) -> CCNode* {
             
             CCSprite* sprOn = CCSprite::createWithSpriteFrameName("edit_delBtn_001.png");
             sprOn->setScale(0.5f);
@@ -316,7 +316,7 @@ class $modify(MyEditorUI, EditorUI) {
         });
 
         for(TabData data : EditorTabs::get()->getRegisteredTabs()){
-            EditorTabs::get()->addTab(this, data);
+            EditorTabs::addTab(this, data);
         }
 
         for (auto c : CCArrayExt<CCNode*>(this->getChildren())) {

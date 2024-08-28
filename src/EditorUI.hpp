@@ -31,14 +31,15 @@ class $modify(MyEditButtonBar, EditButtonBar) {
             }
 
             if (auto menu = getChildOfType<CCMenu>(this, 0)) {
-                menu->setVisible(false);
 
-                CCMenuItemSpriteExtra* prevButtonOld = getChildOfType<CCMenuItemSpriteExtra>(menu, 0);
-                CCMenuItemSpriteExtra* nextButtonOld = getChildOfType<CCMenuItemSpriteExtra>(menu, 1);
-
-                //easier to create a new menu than work with the old one
-
+               
                 if(!Loader::get()->isModLoaded("hjfod.betteredit")){
+                    menu->setVisible(false);
+
+                    CCMenuItemSpriteExtra* prevButtonOld = getChildOfType<CCMenuItemSpriteExtra>(menu, 0);
+                    CCMenuItemSpriteExtra* nextButtonOld = getChildOfType<CCMenuItemSpriteExtra>(menu, 1);
+
+                    //easier to create a new menu than work with the old one
 
                     CCMenu* navMenu = CCMenu::create();
 

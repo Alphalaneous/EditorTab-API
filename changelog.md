@@ -1,3 +1,6 @@
+# 1.0.0-alpha.15
+- Fix navigation buttons being invisible
+
 # 1.0.0-alpha.14
 - Fix navigation button positions
 

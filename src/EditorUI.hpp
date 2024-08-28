@@ -37,34 +37,38 @@ class $modify(MyEditButtonBar, EditButtonBar) {
                 CCMenuItemSpriteExtra* nextButtonOld = getChildOfType<CCMenuItemSpriteExtra>(menu, 1);
 
                 //easier to create a new menu than work with the old one
-                CCMenu* navMenu = CCMenu::create();
 
-                navMenu->setPosition({-winSize.width / 2, 0});
-                navMenu->setContentSize(menu->getContentSize());
-                navMenu->setScale(menu->getScale());
+                if(!Loader::get()->isModLoaded("hjfod.betteredit")){
 
-                float xOffset = 180 / getScale();
-                float yOffset = 2;
+                    CCMenu* navMenu = CCMenu::create();
 
-                CCSprite* prevSpr = CCSprite::createWithSpriteFrameName("GJ_arrow_02_001.png");
-                prevSpr->setScale(0.6f);
-                CCSprite* nextSpr = CCSprite::createWithSpriteFrameName("GJ_arrow_02_001.png");
-                nextSpr->setFlipX(true);
-                nextSpr->setScale(0.6f);
+                    navMenu->setPosition({-winSize.width / 2, 0});
+                    navMenu->setContentSize(menu->getContentSize());
+                    navMenu->setScale(menu->getScale());
 
-                CCMenuItemSpriteExtra* prevButton = CCMenuItemSpriteExtra::create(prevSpr, this, prevButtonOld->m_pfnSelector);
-                CCMenuItemSpriteExtra* nextButton = CCMenuItemSpriteExtra::create(nextSpr, this, nextButtonOld->m_pfnSelector);
+                    float xOffset = (winSize.width / getScale())/2 - 104;
+                    float yOffset = 2;
 
-                prevButton->setPositionX(menu->getContentWidth()/2 - xOffset);
-                prevButton->setPositionY((ui->m_toolbarHeight/2 + yOffset) / getScale());
+                    CCSprite* prevSpr = CCSprite::createWithSpriteFrameName("GJ_arrow_02_001.png");
+                    prevSpr->setScale(0.6f);
+                    CCSprite* nextSpr = CCSprite::createWithSpriteFrameName("GJ_arrow_02_001.png");
+                    nextSpr->setFlipX(true);
+                    nextSpr->setScale(0.6f);
 
-                nextButton->setPositionX(menu->getContentWidth()/2 + xOffset);
-                nextButton->setPositionY((ui->m_toolbarHeight/2 + yOffset) / getScale());
+                    CCMenuItemSpriteExtra* prevButton = CCMenuItemSpriteExtra::create(prevSpr, this, prevButtonOld->m_pfnSelector);
+                    CCMenuItemSpriteExtra* nextButton = CCMenuItemSpriteExtra::create(nextSpr, this, nextButtonOld->m_pfnSelector);
 
-                navMenu->addChild(prevButton);
-                navMenu->addChild(nextButton);
+                    prevButton->setPositionX(menu->getContentWidth()/2 - xOffset);
+                    prevButton->setPositionY((ui->m_toolbarHeight/2 + yOffset) / getScale());
 
-                addChild(navMenu);
+                    nextButton->setPositionX(menu->getContentWidth()/2 + xOffset);
+                    nextButton->setPositionY((ui->m_toolbarHeight/2 + yOffset) / getScale());
+
+                    navMenu->addChild(prevButton);
+                    navMenu->addChild(nextButton);
+
+                    addChild(navMenu);
+                }
             }
         }
     }

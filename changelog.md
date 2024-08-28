@@ -1,3 +1,6 @@
+# 1.0.0-alpha.14
+- Fix navigation button positions
+
 # 1.0.0-alpha.13
 - Fix tab menu Y position
 

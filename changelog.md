@@ -1,3 +1,6 @@
+# 1.0.0-alpha.17
+- Fix pausing showing first edit tab (hopefully, can't reproduce myself but has been reported)
+
 # 1.0.0-alpha.16
 - Fix tab height again (darn hook prio)
 

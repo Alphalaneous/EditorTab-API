@@ -388,6 +388,7 @@ class $modify(EditorUI) {
     static void onModify(auto& self) {
         (void) self.setHookPriority("EditorUI::init", INT_MIN/2-100);
         (void) self.setHookPriority("EditorUI::toggleMode", -10000);
+        (void) self.setHookPriority("EditorUI::onPause", -10000);
     }
 
     bool init(LevelEditorLayer* editorLayer) {
@@ -438,19 +439,27 @@ class $modify(EditorUI) {
 
     void toggleMode(CCObject* sender) {
         EditorUI::toggleMode(sender);
+        resolveTabIssue();
+    }
 
-        int tag = sender->getTag();
+    void onPause(CCObject* sender) {
+        EditorUI::onPause(sender);
+        resolveTabIssue();
+    }
+
+    void resolveTabIssue() {
 
         EditorUI* editorUI = static_cast<EditorUI*>(this);
         MyEditorUI* myEditorUI = static_cast<MyEditorUI*>(editorUI);
 
-        if (tag == 3 && myEditorUI->m_fields->m_selectedEditTab != 0) {
+        if (m_selectedMode == 3 && myEditorUI->m_fields->m_selectedEditTab != 0) {
             if (CCNode* node = getChildByID("hjfod.betteredit/custom-move-menu")) {
                 node->setVisible(false);
             }
             m_editButtonBar->setVisible(false);
         }
     }
+
 };
 
 class $modify(EditorPauseLayer) {

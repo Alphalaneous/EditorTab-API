@@ -119,6 +119,10 @@ void EditorTabs::addTab(EditorUI* ui, TabData data){
     myEditorUI->m_fields->m_editTabsMenu->setScale(scale);
     myEditorUI->m_fields->m_deleteTabsMenu->setScale(scale);
 
+    myEditorUI->m_tabsMenu->updateLayout();
+    myEditorUI->m_fields->m_editTabsMenu->updateLayout();
+    myEditorUI->m_fields->m_deleteTabsMenu->updateLayout();
+
     myEditorUI->addChild(bar);
 }
 

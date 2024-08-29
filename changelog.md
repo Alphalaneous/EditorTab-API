@@ -1,3 +1,6 @@
+# 1.0.0-alpha.16
+- Fix tab height again (darn hook prio)
+
 # 1.0.0-alpha.15
 - Fix navigation buttons being invisible
 

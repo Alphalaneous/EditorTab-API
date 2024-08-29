@@ -324,15 +324,6 @@ class $modify(MyEditorUI, EditorUI) {
             EditorTabs::addTab(this, data);
         }
 
-        for (auto c : CCArrayExt<CCNode*>(this->getChildren())) {
-            if (auto bar = typeinfo_cast<EditButtonBar*>(c)) {
-                static_cast<MyEditButtonBar*>(bar)->reloadItemsA(
-                    GameManager::get()->getIntGameVariable("0049"),
-                    GameManager::get()->getIntGameVariable("0050")
-                );
-            }
-        }
-
         return true;
     }
 
@@ -395,7 +386,7 @@ class $modify(MyEditorUI, EditorUI) {
 class $modify(EditorUI) {
 
     static void onModify(auto& self) {
-        (void) self.setHookPriority("EditorUI::init", -10000);
+        (void) self.setHookPriority("EditorUI::init", INT_MIN/2-100);
         (void) self.setHookPriority("EditorUI::toggleMode", -10000);
     }
 
@@ -407,16 +398,14 @@ class $modify(EditorUI) {
         MyEditorUI* myEditorUI = static_cast<MyEditorUI*>(editorUI);
 
         CCSize winSize = CCDirector::get()->getWinSize();
-
         float height = m_toolbarHeight;
 
         if (!Loader::get()->isModLoaded("geode.node-ids")){
             height += 7;
         }
         else {
-            height -= 2*m_tabsMenu->getScale();
+            height = m_tabsMenu->getPositionY();
         }
-
 
         m_tabsMenu->setPosition({winSize.width/2, height});
         m_tabsMenu->setAnchorPoint({0.5, 0});
@@ -426,7 +415,6 @@ class $modify(EditorUI) {
         myEditorUI->m_fields->m_editTabsMenu->setContentSize(m_tabsMenu->getContentSize());
         myEditorUI->m_fields->m_editTabsMenu->setScale(m_tabsMenu->getScale());
         myEditorUI->m_fields->m_editTabsMenu->setVisible(false);
-
         myEditorUI->m_fields->m_editTabsMenu->updateLayout();
 
         myEditorUI->m_fields->m_deleteTabsMenu->setPosition({winSize.width/2, height});
@@ -434,8 +422,16 @@ class $modify(EditorUI) {
         myEditorUI->m_fields->m_deleteTabsMenu->setContentSize(m_tabsMenu->getContentSize());
         myEditorUI->m_fields->m_deleteTabsMenu->setScale(m_tabsMenu->getScale());
         myEditorUI->m_fields->m_deleteTabsMenu->setVisible(false);
-
         myEditorUI->m_fields->m_deleteTabsMenu->updateLayout();
+
+        for (auto c : CCArrayExt<CCNode*>(this->getChildren())) {
+            if (auto bar = typeinfo_cast<EditButtonBar*>(c)) {
+                static_cast<MyEditButtonBar*>(bar)->reloadItemsA(
+                    GameManager::get()->getIntGameVariable("0049"),
+                    GameManager::get()->getIntGameVariable("0050")
+                );
+            }
+        }
 
         return true;
     }

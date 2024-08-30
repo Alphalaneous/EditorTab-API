@@ -1,3 +1,6 @@
+# 1.0.0-alpha.18
+- Fix Positioning of arrows until BetterEdit fixes it
+
 # 1.0.0-alpha.17
 - Fix pausing showing first edit tab (hopefully, can't reproduce myself but has been reported)
 

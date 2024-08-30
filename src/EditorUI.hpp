@@ -33,7 +33,7 @@ class $modify(MyEditButtonBar, EditButtonBar) {
             if (auto menu = getChildOfType<CCMenu>(this, 0)) {
 
                
-                if(!Loader::get()->isModLoaded("hjfod.betteredit")){
+                if(!Loader::get()->isModLoaded("hjfod.betteredit") || Loader::get()->getLoadedMod("hjfod.betteredit")->getVersion() <= VersionInfo{6, 7, 0}){
                     menu->setVisible(false);
 
                     CCMenuItemSpriteExtra* prevButtonOld = getChildOfType<CCMenuItemSpriteExtra>(menu, 0);
@@ -59,11 +59,20 @@ class $modify(MyEditButtonBar, EditButtonBar) {
                     CCMenuItemSpriteExtra* prevButton = CCMenuItemSpriteExtra::create(prevSpr, this, prevButtonOld->m_pfnSelector);
                     CCMenuItemSpriteExtra* nextButton = CCMenuItemSpriteExtra::create(nextSpr, this, nextButtonOld->m_pfnSelector);
 
+                    float height;
+
+                    if (!Loader::get()->isModLoaded("geode.node-ids")){
+                        height = ui->m_toolbarHeight;
+                    }
+                    else {
+                        height = ui->m_tabsMenu->getPositionY();
+                    }
+
                     prevButton->setPositionX(menu->getContentWidth()/2 - xOffset);
-                    prevButton->setPositionY((ui->m_toolbarHeight/2 + yOffset) / getScale());
+                    prevButton->setPositionY((height/2 + yOffset) / getScale());
 
                     nextButton->setPositionX(menu->getContentWidth()/2 + xOffset);
-                    nextButton->setPositionY((ui->m_toolbarHeight/2 + yOffset) / getScale());
+                    nextButton->setPositionY((height/2 + yOffset) / getScale());
 
                     navMenu->addChild(prevButton);
                     navMenu->addChild(nextButton);

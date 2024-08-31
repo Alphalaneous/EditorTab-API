@@ -417,18 +417,23 @@ class $modify(EditorUI) {
             height = m_tabsMenu->getPositionY();
         }
 
+        if (!Loader::get()->isModLoaded("alphalaneous.pages_api")) {
+            m_tabsMenu->setAnchorPoint({0.5, 0.5});
+            height -= 1;
+        }
+        else m_tabsMenu->setAnchorPoint({0.5, 0});
+
         m_tabsMenu->setPosition({winSize.width/2, height});
-        m_tabsMenu->setAnchorPoint({0.5, 0});
 
         myEditorUI->m_fields->m_editTabsMenu->setPosition({winSize.width/2, height});
-        myEditorUI->m_fields->m_editTabsMenu->setAnchorPoint({0.5, 0});
+        myEditorUI->m_fields->m_editTabsMenu->setAnchorPoint(m_tabsMenu->getAnchorPoint());
         myEditorUI->m_fields->m_editTabsMenu->setContentSize(m_tabsMenu->getContentSize());
         myEditorUI->m_fields->m_editTabsMenu->setScale(m_tabsMenu->getScale());
         myEditorUI->m_fields->m_editTabsMenu->setVisible(false);
         myEditorUI->m_fields->m_editTabsMenu->updateLayout();
 
         myEditorUI->m_fields->m_deleteTabsMenu->setPosition({winSize.width/2, height});
-        myEditorUI->m_fields->m_deleteTabsMenu->setAnchorPoint({0.5, 0});
+        myEditorUI->m_fields->m_deleteTabsMenu->setAnchorPoint(m_tabsMenu->getAnchorPoint());
         myEditorUI->m_fields->m_deleteTabsMenu->setContentSize(m_tabsMenu->getContentSize());
         myEditorUI->m_fields->m_deleteTabsMenu->setScale(m_tabsMenu->getScale());
         myEditorUI->m_fields->m_deleteTabsMenu->setVisible(false);

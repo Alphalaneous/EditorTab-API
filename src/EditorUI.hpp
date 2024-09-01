@@ -418,7 +418,7 @@ class $modify(EditorUI) {
         }
 
         if (!Loader::get()->isModLoaded("alphalaneous.pages_api")) {
-            m_tabsMenu->setAnchorPoint({0.5, 0.5});
+            //m_tabsMenu->setAnchorPoint({0.5, 0.5});
             height -= 1;
         }
         else m_tabsMenu->setAnchorPoint({0.5, 0});

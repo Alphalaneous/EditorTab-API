@@ -1,3 +1,6 @@
+# 1.0.0-alpha.20
+- Fix tab positioning again
+
 # 1.0.0-alpha.19
 - Fix tab positioning again
 

@@ -413,16 +413,13 @@ class $modify(EditorUI) {
         if (!Loader::get()->isModLoaded("geode.node-ids")){
             height += 7;
         }
-        else {
-            height = m_tabsMenu->getPositionY();
+        else if (Loader::get()->isModLoaded("hjfod.betteredit")){
+            if (CCNode* menu = getChildByID("toolbar-toggles-menu")){
+                height = menu->getScaledContentSize().height;
+            }
         }
 
-        if (!Loader::get()->isModLoaded("alphalaneous.pages_api")) {
-            //m_tabsMenu->setAnchorPoint({0.5, 0.5});
-            height -= 1;
-        }
-        else m_tabsMenu->setAnchorPoint({0.5, 0});
-
+        m_tabsMenu->setAnchorPoint({0.5, 0});
         m_tabsMenu->setPosition({winSize.width/2, height});
 
         myEditorUI->m_fields->m_editTabsMenu->setPosition({winSize.width/2, height});

@@ -119,6 +119,12 @@ class $modify(MyEditorUI, EditorUI) {
         m_fields->m_editTabsMenu->setVisible(false);
         m_fields->m_deleteTabsMenu->setVisible(false);
 
+        for (CCNode* node : CCArrayExt<CCNode*>(m_createButtonBars)) {
+            if (CCNode* real = typeinfo_cast<CCNode*>(node->getUserObject("real-node"_spr))) {
+                real->setVisible(false);
+            }
+        }
+
         for (CCNode* node : CCArrayExt<CCNode*>(m_fields->m_editButtonBars)) {
             node->setVisible(false);
         }
@@ -135,6 +141,13 @@ class $modify(MyEditorUI, EditorUI) {
                     m_fields->m_editTabsMenu->setVisible(true);
                 }
                 typeinfo_cast<CCNode*>(m_fields->m_editButtonBars->objectAtIndex(m_fields->m_selectedEditTab))->setVisible(true);
+                break;
+            }
+            case 2: {
+                auto buttonBar = typeinfo_cast<CCNode*>(m_createButtonBars->objectAtIndex(m_selectedTab));
+                if (CCNode* real = typeinfo_cast<CCNode*>(buttonBar->getUserObject("real-node"_spr))) {
+                    real->setVisible(true);
+                }
                 break;
             }
             case 1: {
@@ -156,7 +169,12 @@ class $modify(MyEditorUI, EditorUI) {
                         case TabType::BUILD: {
                             if (m_createButtonBars->count() > data.tabTag) {
                                 buttonBar = typeinfo_cast<CCNode*>(m_createButtonBars->objectAtIndex(data.tabTag));
-                                data.onToggle(this, tag == 2 && m_selectedTab == data.tabTag, buttonBar);
+                                if (CCNode* node = typeinfo_cast<CCNode*>(buttonBar->getUserObject("real-node"_spr))) {
+                                    data.onToggle(this, tag == 2 && m_selectedTab == data.tabTag, node);
+                                }
+                                else {
+                                    data.onToggle(this, tag == 2 && m_selectedTab == data.tabTag, buttonBar);
+                                }
                             }
                             break;
                         }
@@ -190,7 +208,13 @@ class $modify(MyEditorUI, EditorUI) {
             switch (data.type) {
                 case TabType::BUILD: {
                     if (CCNode* buttonBar = typeinfo_cast<CCNode*>(m_createButtonBars->objectAtIndex(data.tabTag))) {
-                        if (data.onToggle) data.onToggle(this, isTab, buttonBar);
+                        if (CCNode* node = typeinfo_cast<CCNode*>(buttonBar->getUserObject("real-node"_spr))) {
+                            if (isTab) node->setVisible(true);
+                            if (data.onToggle) data.onToggle(this, isTab, node);
+                        }
+                        else {
+                            if (data.onToggle) data.onToggle(this, isTab, buttonBar);
+                        }
                     }
                     break;
                 }
@@ -214,6 +238,13 @@ class $modify(MyEditorUI, EditorUI) {
 
     void onSelectBuildTab(CCObject* sender) {
         if (m_selectedMode == 2) {
+
+            for (CCNode* node : CCArrayExt<CCNode*>(m_createButtonBars)) {
+                if (CCNode* real = typeinfo_cast<CCNode*>(node->getUserObject("real-node"_spr))) {
+                    real->setVisible(false);
+                }
+            }
+
             auto tag = sender->getTag();
             toggleAll(TabType::BUILD, tag);
             EditorUI::onSelectBuildTab(sender);
@@ -291,6 +322,10 @@ class $modify(MyEditorUI, EditorUI) {
         m_fields->m_deleteButtonBars = CCArray::create();
 
         if (!EditorUI::init(editorLayer)) return false;
+
+        if (!Loader::get()->isModLoaded("geode.node-ids")){
+            m_tabsMenu->setLayout(createTabsLayout());
+        }
 
         addChild(m_fields->m_editTabsMenu);
         addChild(m_fields->m_deleteTabsMenu);
@@ -392,7 +427,7 @@ class $modify(MyEditorUI, EditorUI) {
     }
 };
 
-class $modify(EditorUI) {
+class $modify(LateEditorUI, EditorUI) {
 
     static void onModify(auto& self) {
         (void) self.setHookPriority("EditorUI::init", INT_MIN/2-100);
@@ -408,12 +443,9 @@ class $modify(EditorUI) {
         MyEditorUI* myEditorUI = static_cast<MyEditorUI*>(editorUI);
 
         CCSize winSize = CCDirector::get()->getWinSize();
-        float height = m_toolbarHeight;
+        float height = 90;
 
-        if (!Loader::get()->isModLoaded("geode.node-ids")){
-            height += 7;
-        }
-        else if (Loader::get()->isModLoaded("hjfod.betteredit")){
+        if (Loader::get()->isModLoaded("geode.node-ids")){
             if (CCNode* menu = getChildByID("toolbar-toggles-menu")){
                 height = menu->getScaledContentSize().height;
             }
@@ -442,6 +474,29 @@ class $modify(EditorUI) {
                     GameManager::get()->getIntGameVariable("0049"),
                     GameManager::get()->getIntGameVariable("0050")
                 );
+            }
+        }
+
+        float scaleBar = myEditorUI->m_createButtonBar->getScale();
+
+        for (CCNode* node : CCArrayExt<CCNode*>(m_createButtonBars)) {
+            if (CCNode* real = typeinfo_cast<CCNode*>(node->getUserObject("real-node"_spr))) {
+                real->setScale(scaleBar);
+                real->setPositionY(real->getPositionY() * scaleBar);
+            }
+        }
+
+        for (CCNode* node : CCArrayExt<CCNode*>(myEditorUI->m_fields->m_editButtonBars)) {
+            if (!typeinfo_cast<EditButtonBar*>(node)){
+                node->setScale(scaleBar);
+                node->setPositionY(node->getPositionY() * scaleBar);
+            }
+        }
+
+        for (CCNode* node : CCArrayExt<CCNode*>(myEditorUI->m_fields->m_deleteButtonBars)) {
+            if (!typeinfo_cast<EditButtonBar*>(node)){
+                node->setScale(scaleBar);
+                node->setPositionY(node->getPositionY() * scaleBar);
             }
         }
 

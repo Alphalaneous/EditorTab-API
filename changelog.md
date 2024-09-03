@@ -1,3 +1,10 @@
+# 1.0.0-beta.1
+- Fix tab positioning again
+- Fix non EditButtonBars crashing on pause
+- Fix missing menu when there is no node IDs, causing overlapping buttons on the build tab
+- Fix non EditButtonBars not scaling when BetterEdit scaling is used
+- Non EditButtonBars should now properly change visibility always
+
 # 1.0.0-alpha.21
 - Fix tab positioning again
 

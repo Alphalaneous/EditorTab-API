@@ -64,33 +64,40 @@ void EditorTabs::addTab(EditorUI* ui, TabData data){
     tabToggler->setID(id);
     tabToggler->setTag(tab);
 
-    CCNode* bar = data.onCreate(myEditorUI, tabToggler);
-    bar->setID(fmt::format("{}-bar", id));
-    bar->setZOrder(10);
-    bar->setVisible(false);
+    CCNode* node = data.onCreate(myEditorUI, tabToggler);
+    node->setID(fmt::format("{}-bar", id));
+    node->setZOrder(10);
+    node->setVisible(false);
 
     switch (data.type) {
         case TabType::BUILD: {
             myEditorUI->m_tabsMenu->addChild(tabToggler);
             myEditorUI->m_tabsMenu->updateLayout();
             myEditorUI->m_tabsArray->addObject(tabToggler);
-            myEditorUI->m_createButtonBars->addObject(bar);
+            if (!typeinfo_cast<EditButtonBar*>(node)) {
+                EditButtonBar* dummyBar = EditButtonBar::create(cocos2d::CCArray::create(), {0, 0}, 0, false, 0, 0);
+                dummyBar->setUserObject("real-node"_spr, node);
+                myEditorUI->m_createButtonBars->addObject(dummyBar);
+            }
+            else {
+                myEditorUI->m_createButtonBars->addObject(node);
+            }
             break;
         }
         case TabType::EDIT: {
             myEditorUI->m_fields->m_editTabsMenu->addChild(tabToggler);
             myEditorUI->m_fields->m_editTabsMenu->updateLayout();
             myEditorUI->m_fields->m_editTabsArray->addObject(tabToggler);
-            myEditorUI->m_fields->m_editButtonBars->addObject(bar);
-            bar->setVisible(false);
+            myEditorUI->m_fields->m_editButtonBars->addObject(node);
+            node->setVisible(false);
             break;
         }
         case TabType::DELETE: {
             myEditorUI->m_fields->m_deleteTabsMenu->addChild(tabToggler);
             myEditorUI->m_fields->m_deleteTabsMenu->updateLayout();
             myEditorUI->m_fields->m_deleteTabsArray->addObject(tabToggler);
-            myEditorUI->m_fields->m_deleteButtonBars->addObject(bar);
-            bar->setVisible(false);
+            myEditorUI->m_fields->m_deleteButtonBars->addObject(node);
+            node->setVisible(false);
             break;
         }
     }
@@ -112,8 +119,8 @@ void EditorTabs::addTab(EditorUI* ui, TabData data){
     }
 
     float scaleBar = myEditorUI->m_createButtonBar->getScale();
-    bar->setScale(scaleBar);
-    bar->setPositionY(bar->getPositionY() * scaleBar);
+    node->setScale(scaleBar);
+    node->setPositionY(node->getPositionY() * scaleBar);
 
     float scale = myEditorUI->m_tabsMenu->getScale();
     myEditorUI->m_fields->m_editTabsMenu->setScale(scale);
@@ -123,7 +130,7 @@ void EditorTabs::addTab(EditorUI* ui, TabData data){
     myEditorUI->m_fields->m_editTabsMenu->updateLayout();
     myEditorUI->m_fields->m_deleteTabsMenu->updateLayout();
 
-    myEditorUI->addChild(bar);
+    myEditorUI->addChild(node);
 }
 
 void EditorTabs::addTab(EditorUI* ui, TabType type, std::string id, std::function<cocos2d::CCNode*(EditorUI*, CCMenuItemToggler*)> onCreate, std::function<void(EditorUI*, bool, cocos2d::CCNode*)> onToggle){

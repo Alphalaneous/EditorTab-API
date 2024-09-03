@@ -1,3 +1,6 @@
+# 1.0.0-beta.2
+- Fix a bug relating to Pages API
+
 # 1.0.0-beta.1
 - Fix tab positioning again
 - Fix non EditButtonBars crashing on pause

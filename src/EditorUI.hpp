@@ -6,6 +6,12 @@
 
 using namespace geode::prelude;
 
+int getPagesChildrenCount(CCNode* node) {
+    if(node->getUserObject("alphalaneous.pages_api/children-count")){
+        return static_cast<CCInteger*>(node->getUserObject("alphalaneous.pages_api/children-count"))->getValue();
+    }
+    return 0;
+}
 
 class $modify(MyEditButtonBar, EditButtonBar) {
     
@@ -137,7 +143,7 @@ class $modify(MyEditorUI, EditorUI) {
 
         switch (tag) {
             case 3: {
-                if (m_fields->m_editTabsMenu->getChildrenCount() > 1 || static_cast<CCInteger*>(m_fields->m_editTabsMenu->getUserObject("alphalaneous.pages_api/children-count"))->getValue() > 1){
+                if (m_fields->m_editTabsMenu->getChildrenCount() > 1 || getPagesChildrenCount(m_fields->m_editTabsMenu) > 1){
                     m_fields->m_editTabsMenu->setVisible(true);
                 }
                 typeinfo_cast<CCNode*>(m_fields->m_editButtonBars->objectAtIndex(m_fields->m_selectedEditTab))->setVisible(true);
@@ -151,7 +157,7 @@ class $modify(MyEditorUI, EditorUI) {
                 break;
             }
             case 1: {
-                if (m_fields->m_deleteTabsMenu->getChildrenCount() > 1 || static_cast<CCInteger*>(m_fields->m_deleteTabsMenu->getUserObject("alphalaneous.pages_api/children-count"))->getValue() > 1){
+                if (m_fields->m_deleteTabsMenu->getChildrenCount() > 1 || getPagesChildrenCount(m_fields->m_deleteTabsMenu) > 1 > 1){
                     m_fields->m_deleteTabsMenu->setVisible(true);
                 }
                 typeinfo_cast<CCNode*>(m_fields->m_deleteButtonBars->objectAtIndex(m_fields->m_selectedDeleteTab))->setVisible(true);
@@ -377,7 +383,7 @@ class $modify(MyEditorUI, EditorUI) {
         if (p0) {
             switch (m_selectedMode) {
                 case 3: {
-                    if (m_fields->m_editTabsMenu->getChildrenCount() > 1 || static_cast<CCInteger*>(m_fields->m_editTabsMenu->getUserObject("alphalaneous.pages_api/children-count"))->getValue() > 1){
+                    if (m_fields->m_editTabsMenu->getChildrenCount() > 1 || getPagesChildrenCount(m_fields->m_editTabsMenu) > 1){
                         m_fields->m_editTabsMenu->setVisible(true);
                     }
 
@@ -392,7 +398,7 @@ class $modify(MyEditorUI, EditorUI) {
                     break;
                 }
                 case 1: {
-                    if (m_fields->m_deleteTabsMenu->getChildrenCount() > 1 || static_cast<CCInteger*>(m_fields->m_deleteTabsMenu->getUserObject("alphalaneous.pages_api/children-count"))->getValue() > 1){
+                    if (m_fields->m_deleteTabsMenu->getChildrenCount() > 1 || getPagesChildrenCount(m_fields->m_deleteTabsMenu) > 1){
                         m_fields->m_deleteTabsMenu->setVisible(true);
                     }
 

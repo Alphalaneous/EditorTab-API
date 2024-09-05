@@ -157,7 +157,7 @@ class $modify(MyEditorUI, EditorUI) {
                 break;
             }
             case 1: {
-                if (m_fields->m_deleteTabsMenu->getChildrenCount() > 1 || getPagesChildrenCount(m_fields->m_deleteTabsMenu) > 1 > 1){
+                if (m_fields->m_deleteTabsMenu->getChildrenCount() > 1 || getPagesChildrenCount(m_fields->m_deleteTabsMenu) > 1){
                     m_fields->m_deleteTabsMenu->setVisible(true);
                 }
                 typeinfo_cast<CCNode*>(m_fields->m_deleteButtonBars->objectAtIndex(m_fields->m_selectedDeleteTab))->setVisible(true);
@@ -242,59 +242,97 @@ class $modify(MyEditorUI, EditorUI) {
         }
     }
 
-    void onSelectBuildTab(CCObject* sender) {
-        if (m_selectedMode == 2) {
+    void selectBuildTab(int tab) {
+        EditorUI::selectBuildTab(tab);
 
+        if (m_selectedMode == 2) {
             for (CCNode* node : CCArrayExt<CCNode*>(m_createButtonBars)) {
                 if (CCNode* real = typeinfo_cast<CCNode*>(node->getUserObject("real-node"_spr))) {
                     real->setVisible(false);
                 }
             }
+            toggleAll(TabType::BUILD, tab);
+        }
+        else {
+            bool isNext = false;
+            if ((tab == 0 && m_selectedTab == m_tabsArray->count()-1) || (!(m_selectedTab == 0 && tab == m_tabsArray->count()-1) && tab > m_selectedTab)) {
+                isNext = true;
+            }
 
-            auto tag = sender->getTag();
-            toggleAll(TabType::BUILD, tag);
+            if (m_selectedMode == 3) {
+                if (isNext) m_fields->m_selectedEditTab++;
+                else m_fields->m_selectedEditTab--;
+
+                if (m_fields->m_selectedEditTab < 0) {
+                    m_fields->m_selectedEditTab = m_fields->m_editTabsArray->count()-1;
+                }
+                if (m_fields->m_selectedEditTab > m_fields->m_editTabsArray->count()-1) {
+                    m_fields->m_selectedEditTab = 0;
+                }
+
+                selectEditTab(m_fields->m_selectedEditTab);
+            }
+            if (m_selectedMode == 1) {
+                if (isNext) m_fields->m_selectedDeleteTab++;
+                else m_fields->m_selectedDeleteTab--;
+
+                if (m_fields->m_selectedDeleteTab < 0) {
+                    m_fields->m_selectedDeleteTab = m_fields->m_deleteTabsArray->count()-1;
+                }
+                if (m_fields->m_selectedDeleteTab > m_fields->m_deleteTabsArray->count()-1) {
+                    m_fields->m_selectedDeleteTab = 0;
+                }
+
+                selectDeleteTab(m_fields->m_selectedDeleteTab);
+            }
+        }
+    }
+
+    //editor sounds compat
+    void onSelectBuildTab(CCObject* sender) {
+        if (m_selectedMode == 2) {
             EditorUI::onSelectBuildTab(sender);
         }
     }
 
     void onSelectEditTab(CCObject* sender) {
-        if(m_selectedMode == 3){
-    
-            for (CCMenuItemToggler* node : CCArrayExt<CCMenuItemToggler*>(m_fields->m_editTabsArray)) {
-                node->toggle(false);
-            }
-            static_cast<CCMenuItemToggler*>(sender)->toggle(true);
-
-            for (CCNode* node : CCArrayExt<CCNode*>(m_fields->m_editButtonBars)) {
-                node->setVisible(false);
-            }
-
-            auto tag = sender->getTag();
-            m_fields->m_selectedEditTab = tag;
-            toggleAll(TabType::EDIT, tag);
-
+        if (m_selectedMode == 3) {
+            selectEditTab(sender->getTag());
             EditorUI::onSelectBuildTab(sender);
         }
     }
 
     void onSelectDeleteTab(CCObject* sender) {
-        if(m_selectedMode == 1){
-
-            for (CCMenuItemToggler* node : CCArrayExt<CCMenuItemToggler*>(m_fields->m_deleteTabsArray)) {
-                node->toggle(false);
-            }
-            static_cast<CCMenuItemToggler*>(sender)->toggle(true);
-
-            for (CCNode* node : CCArrayExt<CCNode*>(m_fields->m_deleteButtonBars)) {
-                node->setVisible(false);
-            }
-
-            auto tag = sender->getTag();
-            m_fields->m_selectedDeleteTab = tag;
-            toggleAll(TabType::DELETE, tag);
-
+        if (m_selectedMode == 1) {
+            selectDeleteTab(sender->getTag());
             EditorUI::onSelectBuildTab(sender);
         }
+    }
+
+    void selectEditTab(int tab) {
+        for (CCMenuItemToggler* node : CCArrayExt<CCMenuItemToggler*>(m_fields->m_editTabsArray)) {
+            node->toggle(false);
+        }
+        static_cast<CCMenuItemToggler*>(m_fields->m_editTabsArray->objectAtIndex(tab))->toggle(true);
+        for (CCNode* node : CCArrayExt<CCNode*>(m_fields->m_editButtonBars)) {
+            node->setVisible(false);
+        }
+
+        m_fields->m_selectedEditTab = tab;
+        toggleAll(TabType::EDIT, tab);
+    }
+
+    void selectDeleteTab(int tab) {
+        for (CCMenuItemToggler* node : CCArrayExt<CCMenuItemToggler*>(m_fields->m_deleteTabsArray)) {
+            node->toggle(false);
+        }
+        static_cast<CCMenuItemToggler*>(m_fields->m_deleteTabsArray->objectAtIndex(tab))->toggle(true);
+        for (CCNode* node : CCArrayExt<CCNode*>(m_fields->m_deleteButtonBars)) {
+            node->setVisible(false);
+        }
+
+        m_fields->m_selectedDeleteTab = tab;
+        toggleAll(TabType::DELETE, tab);
     }
 
     RowLayout* createTabsLayout(){

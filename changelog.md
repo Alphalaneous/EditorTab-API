@@ -1,3 +1,8 @@
+# 1.0.0-beta.3
+- Keybinds for switching between tabs works now:
+ - Custom Nodes are no longer invisible when using keybinds
+ - Edit and Delete mods now support keybinds for switching tabs
+
 # 1.0.0-beta.2
 - Fix a bug relating to Pages API
 

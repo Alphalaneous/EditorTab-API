@@ -1,3 +1,7 @@
+# 1.0.0
+- Adding tab icons is better if they are the same icon!
+- Out of beta and now officially feature complete
+
 # 1.0.0-beta.3
 - Keybinds for switching between tabs works now:
  - Custom Nodes are no longer invisible when using keybinds

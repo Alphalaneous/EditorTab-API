@@ -288,10 +288,37 @@ class $modify(MyEditorUI, EditorUI) {
         }
     }
 
+    void setTabIcons(CCArray* togglers) {
+        for (auto toggler : CCArrayExt<CCMenuItemToggler*>(togglers)) {
+            if (!toggler) return;
+            auto offBtnSprite = toggler->m_offButton->getNormalImage();
+            auto onBtnSprite = toggler->m_onButton->getNormalImage();
+
+            if (!offBtnSprite || !onBtnSprite) return;
+
+            auto offBtnChild = offBtnSprite->getChildren()->objectAtIndex(0);
+            auto onBtnChild = onBtnSprite->getChildren()->objectAtIndex(0);
+
+            if (!offBtnChild || !onBtnChild) return;
+
+            if (offBtnChild == onBtnChild) {
+                if(auto rgba = geode::cast::typeinfo_cast<cocos2d::CCRGBAProtocol*>(onBtnChild)){
+                    if (toggler->isOn()) {
+                        rgba->setOpacity(255); 
+                    }
+                    else {
+                        rgba->setOpacity(150); 
+                    }
+                }
+            }
+        }
+    }
+
     //editor sounds compat
     void onSelectBuildTab(CCObject* sender) {
         if (m_selectedMode == 2) {
             EditorUI::onSelectBuildTab(sender);
+            setTabIcons(m_tabsArray);
         }
     }
 
@@ -299,6 +326,7 @@ class $modify(MyEditorUI, EditorUI) {
         if (m_selectedMode == 3) {
             selectEditTab(sender->getTag());
             EditorUI::onSelectBuildTab(sender);
+            setTabIcons(m_fields->m_editTabsArray);
         }
     }
 
@@ -306,6 +334,7 @@ class $modify(MyEditorUI, EditorUI) {
         if (m_selectedMode == 1) {
             selectDeleteTab(sender->getTag());
             EditorUI::onSelectBuildTab(sender);
+            setTabIcons(m_fields->m_deleteTabsArray);
         }
     }
 

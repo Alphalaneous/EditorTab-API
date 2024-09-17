@@ -90,4 +90,8 @@ class EDITOR_TABS_API_DLL EditorTabUtils {
         }
         offBtnSprite->addChildAtPosition(off, cocos2d::Anchor::Center, ccp(0, -1));
     }
+
+    static void setTabIcon(CCMenuItemToggler* toggler, cocos2d::CCNode* icon){
+        setTabIcons(toggler, icon, icon);
+    }
 };

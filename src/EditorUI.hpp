@@ -31,6 +31,14 @@ class $modify(MyEditButtonBar, EditButtonBar) {
 
         EditButtonBar::loadFromItems(items, c, r, customObjects);
 
+        if (Mod* mod = Loader::get()->getLoadedMod("hjfod.betteredit")) {
+            if (mod->getVersion() <= VersionInfo{6, 8, 0, VersionTag{VersionTag::Beta, 3}}) {
+                if (std::string_view(getID()) == "hjfod.betteredit/view-tab") {
+                    updateUI();
+                }
+            }
+        }
+
         // do not update if no change is made to prevent lag
         if (m_fields->m_cols == c && m_fields->m_rows == r && !customObjects) return;
 
@@ -63,6 +71,15 @@ class $modify(MyEditButtonBar, EditButtonBar) {
                 setPositionX(winSize.width / 2);
                 m_scrollLayer->setPositionX(-(winSize.width / 2));
 
+                float height;
+
+                if (!Loader::get()->isModLoaded("geode.node-ids")){
+                    height = ui->m_toolbarHeight;
+                }
+                else {
+                    height = ui->m_tabsMenu->getPositionY();
+                }
+
                 if (auto menu = getChildOfType<CCMenu>(this, 0)) {
                     menu->setVisible(false);
                 
@@ -88,14 +105,7 @@ class $modify(MyEditButtonBar, EditButtonBar) {
                     CCMenuItemSpriteExtra* prevButton = CCMenuItemSpriteExtra::create(prevSpr, this, prevButtonOld->m_pfnSelector);
                     CCMenuItemSpriteExtra* nextButton = CCMenuItemSpriteExtra::create(nextSpr, this, nextButtonOld->m_pfnSelector);
 
-                    float height;
-
-                    if (!Loader::get()->isModLoaded("geode.node-ids")){
-                        height = ui->m_toolbarHeight;
-                    }
-                    else {
-                        height = ui->m_tabsMenu->getPositionY();
-                    }
+                    
 
                     prevButton->setPositionX(menu->getContentWidth()/2 - xOffset);
                     prevButton->setPositionY((height/2 + yOffset) / getScale());
@@ -120,18 +130,18 @@ class $modify(MyEditButtonBar, EditButtonBar) {
                         layout->setCrossAxisOverflow(false);
                         buttonMenu->setLayout(layout);
 
-                        float width = (m_fields->m_cols * 40 + m_fields->m_cols * layout->getGap()) - layout->getGap();
-                        float height = (m_fields->m_rows * 40 + m_fields->m_rows * layout->getGap()) - layout->getGap();
+                        float menuWidth = (m_fields->m_cols * 40 + m_fields->m_cols * layout->getGap()) - layout->getGap();
+                        float menuHeight = (m_fields->m_rows * 40 + m_fields->m_rows * layout->getGap()) - layout->getGap();
 
-                        buttonMenu->setContentSize({width, height});
+                        buttonMenu->setContentSize({menuWidth, menuHeight});
                         buttonMenu->setAnchorPoint({0.5, 1});
-                        buttonMenu->setPositionY(ui->m_toolbarHeight / getScale() - 5);
+                        buttonMenu->setPositionY(height / getScale() - 5);
                         buttonMenu->updateLayout();
 
                         float outerWidth = (winSize.width / getScale()) - 235;
-                        float outerHeight = (ui->m_toolbarHeight / getScale()) - 15;
-                        float scaleW = outerWidth / width;
-                        float scaleH = outerHeight / height;
+                        float outerHeight = (height / getScale()) - 15;
+                        float scaleW = outerWidth / menuWidth;
+                        float scaleH = outerHeight / menuHeight;
 
                         buttonMenu->setScale(std::min(scaleW, scaleH));
                     }

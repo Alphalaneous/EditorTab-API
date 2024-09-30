@@ -1,3 +1,6 @@
+# 1.0.4
+- Fix EditButtonBar alignment bug
+
 # 1.0.3
 - Fix Custom Objects Tab
 

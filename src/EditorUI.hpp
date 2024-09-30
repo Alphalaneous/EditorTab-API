@@ -26,20 +26,24 @@ class $modify(MyEditButtonBar, EditButtonBar) {
 
         EditButtonBar::loadFromItems(items, c, r, unkBool);
 
-        if (auto ui = typeinfo_cast<EditorUI*>(getParent())) {
+        bool oldBE = false;
+        if (Mod* mod = Loader::get()->getLoadedMod("hjfod.betteredit")) {
+            oldBE = mod->getVersion() <= VersionInfo{6, 7, 0};
+        }
 
-            auto winSize = CCDirector::get()->getWinSize();
+        if(!Loader::get()->isModLoaded("hjfod.betteredit") || oldBE){
 
-            setPositionX(winSize.width / 2);
+            if (auto ui = typeinfo_cast<EditorUI*>(getParent())) {
 
-            if (auto scrollLayer = getChildOfType<BoomScrollLayer>(this, 0)) {
-                scrollLayer->setPositionX(-winSize.width / 2 + 5);
-            }
+                auto winSize = CCDirector::get()->getWinSize();
 
-            if (auto menu = getChildOfType<CCMenu>(this, 0)) {
+                setPositionX(winSize.width / 2);
 
-               
-                if(!Loader::get()->isModLoaded("hjfod.betteredit") || Loader::get()->getLoadedMod("hjfod.betteredit")->getVersion() <= VersionInfo{6, 7, 0}){
+                if (auto scrollLayer = getChildOfType<BoomScrollLayer>(this, 0)) {
+                    scrollLayer->setPositionX(-winSize.width / 2);
+                }
+
+                if (auto menu = getChildOfType<CCMenu>(this, 0)) {
                     menu->setVisible(false);
 
                     CCMenuItemSpriteExtra* prevButtonOld = getChildOfType<CCMenuItemSpriteExtra>(menu, 0);
@@ -74,7 +78,12 @@ class $modify(MyEditButtonBar, EditButtonBar) {
                         height = ui->m_tabsMenu->getPositionY();
                     }
 
-                    prevButton->setPositionX(menu->getContentWidth()/2 - xOffset);
+                    float beOffset = 10;
+                    if (oldBE) {
+                        beOffset = 0;
+                    }
+
+                    prevButton->setPositionX(menu->getContentWidth()/2 - xOffset - beOffset);
                     prevButton->setPositionY((height/2 + yOffset) / getScale());
 
                     nextButton->setPositionX(menu->getContentWidth()/2 + xOffset);

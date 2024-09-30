@@ -1,3 +1,6 @@
+# 1.0.1
+- Fix BoomScrollLayer positioning
+
 # 1.0.0
 - Adding tab icons is better if they are the same icon!
 - Out of beta and now officially feature complete

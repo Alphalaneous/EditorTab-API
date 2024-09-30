@@ -79,14 +79,26 @@ class $modify(MyEditButtonBar, EditButtonBar) {
                     nextSpr->setFlipX(true);
                     nextSpr->setScale(0.6f);
 
-                    CCMenuItemSpriteExtra* prevButton = CCMenuItemSpriteExtra::create(prevSpr, this, menu_selector(EditButtonBar::onLeft));
-                    CCMenuItemSpriteExtra* nextButton = CCMenuItemSpriteExtra::create(nextSpr, this, menu_selector(EditButtonBar::onRight));
+                    CCMenuItemSpriteExtra* prevButtonOld = getChildOfType<CCMenuItemSpriteExtra>(menu, 0);
+                    CCMenuItemSpriteExtra* nextButtonOld = getChildOfType<CCMenuItemSpriteExtra>(menu, 1);
+
+                    CCMenuItemSpriteExtra* prevButton = CCMenuItemSpriteExtra::create(prevSpr, this, prevButtonOld->m_pfnSelector);
+                    CCMenuItemSpriteExtra* nextButton = CCMenuItemSpriteExtra::create(nextSpr, this, nextButtonOld->m_pfnSelector);
+
+                    float height;
+
+                    if (!Loader::get()->isModLoaded("geode.node-ids")){
+                        height = ui->m_toolbarHeight;
+                    }
+                    else {
+                        height = ui->m_tabsMenu->getPositionY();
+                    }
 
                     prevButton->setPositionX(menu->getContentWidth()/2 - xOffset);
-                    prevButton->setPositionY((ui->m_toolbarHeight/2 + yOffset) / getScale());
+                    prevButton->setPositionY((height/2 + yOffset) / getScale());
                     
                     nextButton->setPositionX(menu->getContentWidth()/2 + xOffset);
-                    nextButton->setPositionY((ui->m_toolbarHeight/2 + yOffset) / getScale());
+                    nextButton->setPositionY((height/2 + yOffset) / getScale());
 
                     navMenu->addChild(prevButton);
                     navMenu->addChild(nextButton);

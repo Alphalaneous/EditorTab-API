@@ -20,7 +20,7 @@ class $modify(MyEditButtonBar, EditButtonBar) {
         int m_rows = 0;
     };
 
-    void loadFromItems(CCArray* items, int c, int r, bool unkBool) {
+    void loadFromItems(CCArray* items, int c, int r, bool customObjects) {
 
         if(CCInteger* rows = typeinfo_cast<CCInteger*>(getUserObject("force-rows"))) {
             r = rows->getValue();
@@ -29,10 +29,10 @@ class $modify(MyEditButtonBar, EditButtonBar) {
             c = cols->getValue();
         }
 
-        EditButtonBar::loadFromItems(items, c, r, unkBool);
+        EditButtonBar::loadFromItems(items, c, r, customObjects);
 
         // do not update if no change is made to prevent lag
-        if (m_fields->m_cols == c && m_fields->m_rows == r) return;
+        if (m_fields->m_cols == c && m_fields->m_rows == r && !customObjects) return;
 
         m_fields->m_cols = c;
         m_fields->m_rows = r;

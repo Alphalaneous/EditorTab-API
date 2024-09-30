@@ -1,3 +1,6 @@
+# 1.0.3
+- Fix Custom Objects Tab
+
 # 1.0.2
 - Fix EditButtonBars
 

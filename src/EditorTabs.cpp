@@ -42,7 +42,7 @@ void EditorTabs::addTab(EditorUI* ui, TabData data){
     offBg->setOpacity(150);
 
     auto tabToggler = CCMenuItemExt::createToggler(
-        offBg, onBg, [myEditorUI, data](CCObject* sender) {
+        onBg, offBg, [myEditorUI, data](CCObject* sender) {
             switch (data.type) {
                 case TabType::BUILD: {
                     myEditorUI->onSelectBuildTab(sender);

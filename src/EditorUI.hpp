@@ -80,7 +80,7 @@ class $modify(MyEditButtonBar, EditButtonBar) {
                     height = ui->m_tabsMenu->getPositionY();
                 }
 
-                if (auto menu = getChildOfType<CCMenu>(this, 0)) {
+                if (auto menu = this->getChildByType<CCMenu>(0)) {
                     menu->setVisible(false);
                 
                     // easier to create a new menu than work with the old one
@@ -99,8 +99,8 @@ class $modify(MyEditButtonBar, EditButtonBar) {
                     nextSpr->setFlipX(true);
                     nextSpr->setScale(0.6f);
 
-                    CCMenuItemSpriteExtra* prevButtonOld = getChildOfType<CCMenuItemSpriteExtra>(menu, 0);
-                    CCMenuItemSpriteExtra* nextButtonOld = getChildOfType<CCMenuItemSpriteExtra>(menu, 1);
+                    CCMenuItemSpriteExtra* prevButtonOld = menu->getChildByType<CCMenuItemSpriteExtra>(0);
+                    CCMenuItemSpriteExtra* nextButtonOld = menu->getChildByType<CCMenuItemSpriteExtra>(1);
 
                     CCMenuItemSpriteExtra* prevButton = CCMenuItemSpriteExtra::create(prevSpr, this, prevButtonOld->m_pfnSelector);
                     CCMenuItemSpriteExtra* nextButton = CCMenuItemSpriteExtra::create(nextSpr, this, nextButtonOld->m_pfnSelector);
@@ -121,7 +121,7 @@ class $modify(MyEditButtonBar, EditButtonBar) {
 
                 // layout the pages and set their widths and heights according to the row and column counts, scale accordingly
                 for (ButtonPage* page : CCArrayExt<ButtonPage*>(m_scrollLayer->m_pages)) {
-                    if (CCMenu* buttonMenu = getChildOfType<CCMenu>(page, 0)) {
+                    if (CCMenu* buttonMenu = page->getChildByType<CCMenu>(0)) {
                         RowLayout* layout = RowLayout::create();
                         layout->setAxisAlignment(AxisAlignment::Start);
                         layout->setCrossAxisAlignment(AxisAlignment::End);

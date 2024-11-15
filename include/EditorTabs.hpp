@@ -83,12 +83,12 @@ class EDITOR_TABS_API_DLL EditorTabUtils {
         offBtnSprite->removeAllChildren();
         onBtnSprite->removeAllChildren();
 
-        onBtnSprite->addChildAtPosition(on, cocos2d::Anchor::Center, ccp(0, -1));
+        onBtnSprite->addChildAtPosition(on, geode::Anchor::Center, ccp(0, -1));
 
         if(auto rgba = geode::cast::typeinfo_cast<cocos2d::CCRGBAProtocol*>(off)){
             rgba->setOpacity(150); 
         }
-        offBtnSprite->addChildAtPosition(off, cocos2d::Anchor::Center, ccp(0, -1));
+        offBtnSprite->addChildAtPosition(off, geode::Anchor::Center, ccp(0, -1));
     }
 
     static void setTabIcon(CCMenuItemToggler* toggler, cocos2d::CCNode* icon){

@@ -154,9 +154,9 @@ class $modify(MyEditButtonBar, EditButtonBar) {
 class $modify(MyEditorUI, EditorUI) {
 
     static void onModify(auto& self) {
-        (void) self.setHookPriority("EditorUI::init", 10000); 
-        (void) self.setHookPriority("EditorUI::toggleMode", 10000);
-        (void) self.setHookPriority("EditorUI::onSelectBuildTab", 10000);
+        (void) self.setHookPriority("EditorUI::init", 1000); 
+        (void) self.setHookPriority("EditorUI::toggleMode", 1000);
+        (void) self.setHookPriority("EditorUI::onSelectBuildTab", 1000);
     }
 
     struct Fields {
@@ -560,9 +560,9 @@ class $modify(MyEditorUI, EditorUI) {
 class $modify(LateEditorUI, EditorUI) {
 
     static void onModify(auto& self) {
-        (void) self.setHookPriority("EditorUI::init", INT_MIN/2-100);
-        (void) self.setHookPriority("EditorUI::toggleMode", -10000);
-        (void) self.setHookPriority("EditorUI::onPause", -10000);
+        (void) self.setHookPriority("EditorUI::init", -1000);
+        (void) self.setHookPriority("EditorUI::toggleMode", -1000);
+        (void) self.setHookPriority("EditorUI::onPause", -1000);
     }
 
     bool init(LevelEditorLayer* editorLayer) {

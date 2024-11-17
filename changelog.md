@@ -1,3 +1,9 @@
+# 1.0.7
+- Fix hook prio
+
+# 1.0.6
+- 2.2074 support
+
 # 1.0.5
 - Fix scaling
 

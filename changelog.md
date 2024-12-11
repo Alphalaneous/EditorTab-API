@@ -1,3 +1,6 @@
+# 1.0.8
+- Android32 fix
+
 # 1.0.7
 - Fix hook prio
 

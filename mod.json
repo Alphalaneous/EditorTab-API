@@ -1,11 +1,11 @@
 {
-	"geode": "4.0.1",
+	"geode": "4.1.2",
 	"gd": {
 		"win": "2.2074",	
 		"mac": "2.2074",	
 		"android": "2.2074"
 	},
-	"version": "v1.0.8",
+	"version": "v1.0.9",
 	"id": "alphalaneous.editortab_api",
 	"name": "EditorTab API",
 	"developer": "Alphalaneous",

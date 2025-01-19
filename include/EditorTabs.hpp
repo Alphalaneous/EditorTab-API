@@ -58,7 +58,7 @@ class EDITOR_TABS_API_DLL EditorTabUtils {
     
     static EditButtonBar* createDummyBar(){
 
-        EditButtonBar* bar = EditButtonBar::create(cocos2d::CCArray::create(), {0, 0}, 0, false, 0, 0);
+        EditButtonBar* bar = EditButtonBar::create(cocos2d::CCArray::create(), {0, 0}, -1, false, 0, 0);
         bar->removeAllChildren();
         bar->addChild(cocos2d::CCNode::create()); //fix betteredit crash
         return bar;
@@ -72,7 +72,7 @@ class EDITOR_TABS_API_DLL EditorTabUtils {
         auto rows = GameManager::get()->getIntGameVariable("0050");
         auto cols = GameManager::get()->getIntGameVariable("0049");
 
-        return EditButtonBar::create(arr, offset, 0, false, cols, rows);
+        return EditButtonBar::create(arr, offset, -1, false, cols, rows);
     }
 
     static void setTabIcons(CCMenuItemToggler* toggler, cocos2d::CCNode* on, cocos2d::CCNode* off){

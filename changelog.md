@@ -1,3 +1,6 @@
+# 1.0.9
+- Set EditButtonBars to -1 index
+
 # 1.0.8
 - Android32 fix
 

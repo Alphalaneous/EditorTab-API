@@ -102,6 +102,10 @@ void EditorTabs::addTab(EditorUI* ui, TabData data){
         }
     }
 
+    if (auto ebb = typeinfo_cast<EditButtonBar*>(node)) {
+        ebb->m_unknown = -1;
+    }
+
     if (myEditorUI->m_fields->m_editTabsArray->count() > 0) {
         static_cast<CCMenuItemToggler*>(myEditorUI->m_fields->m_editTabsArray->objectAtIndex(0))->toggle(true);
     }

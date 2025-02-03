@@ -1,3 +1,7 @@
+# 1.0.10
+- Resolve issue with page preserving
+- Performance improvements
+
 # 1.0.9
 - Set EditButtonBars to -1 index
 

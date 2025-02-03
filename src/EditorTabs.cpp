@@ -103,7 +103,7 @@ void EditorTabs::addTab(EditorUI* ui, TabData data){
     }
 
     if (auto ebb = typeinfo_cast<EditButtonBar*>(node)) {
-        ebb->m_unknown = -1;
+        ebb->m_tabIndex = -1;
     }
 
     if (myEditorUI->m_fields->m_editTabsArray->count() > 0) {

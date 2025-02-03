@@ -20,7 +20,9 @@ class $modify(MyEditButtonBar, EditButtonBar) {
         int m_rows = 0;
     };
 
-    void loadFromItems(CCArray* items, int c, int r, bool customObjects) {
+    void loadFromItems(CCArray* items, int c, int r, bool preserve) {
+
+        auto fields = m_fields.self();
 
         if(CCInteger* rows = typeinfo_cast<CCInteger*>(getUserObject("force-rows"))) {
             r = rows->getValue();
@@ -29,33 +31,31 @@ class $modify(MyEditButtonBar, EditButtonBar) {
             c = cols->getValue();
         }
 
-        EditButtonBar::loadFromItems(items, c, r, customObjects);
+        EditButtonBar::loadFromItems(items, c, r, preserve);
 
         if (Mod* mod = Loader::get()->getLoadedMod("hjfod.betteredit")) {
             if (mod->getVersion() <= VersionInfo{6, 8, 0, VersionTag{VersionTag::Beta, 3}}) {
                 if (std::string_view(getID()) == "hjfod.betteredit/view-tab") {
-                    updateUI();
+                    updateUI(preserve);
                 }
             }
         }
 
         // do not update if no change is made to prevent lag
-        if (m_fields->m_cols == c && m_fields->m_rows == r && !customObjects) return;
+        if (fields->m_cols == c && fields->m_rows == r && !preserve) return;
 
-        m_fields->m_cols = c;
-        m_fields->m_rows = r;
-        updateUI();
+        fields->m_cols = c;
+        fields->m_rows = r;
+        updateUI(preserve);
     }
 
-    void updateUI() {
-        bool oldBE = false;
-        if (Mod* mod = Loader::get()->getLoadedMod("hjfod.betteredit")) {
-            oldBE = mod->getVersion() <= VersionInfo{6, 8, 0, VersionTag{VersionTag::Beta, 3}};
-        }
+    void updateUI(bool preserve) {
 
-        if(!Loader::get()->isModLoaded("hjfod.betteredit") || oldBE) {
+        auto fields = m_fields.self();
 
-            EditButtonBar::loadFromItems(m_buttonArray, m_fields->m_cols, m_fields->m_rows, false);
+        if(!Loader::get()->isModLoaded("hjfod.betteredit")) {
+
+            EditButtonBar::loadFromItems(m_buttonArray, fields->m_cols, fields->m_rows, preserve);
 
             if (auto ui = typeinfo_cast<EditorUI*>(getParent())) {
                 // fix visible pages when opening editor, can be assumed as 0 as loadFromItems resets the page to 0
@@ -130,8 +130,8 @@ class $modify(MyEditButtonBar, EditButtonBar) {
                         layout->setCrossAxisOverflow(false);
                         buttonMenu->setLayout(layout);
 
-                        float menuWidth = (m_fields->m_cols * 40 + m_fields->m_cols * layout->getGap()) - layout->getGap();
-                        float menuHeight = (m_fields->m_rows * 40 + m_fields->m_rows * layout->getGap()) - layout->getGap();
+                        float menuWidth = (fields->m_cols * 40 + fields->m_cols * layout->getGap()) - layout->getGap();
+                        float menuHeight = (fields->m_rows * 40 + fields->m_rows * layout->getGap()) - layout->getGap();
 
                         buttonMenu->setContentSize({menuWidth, menuHeight});
                         buttonMenu->setAnchorPoint({0.5, 1});
@@ -174,13 +174,14 @@ class $modify(MyEditorUI, EditorUI) {
     };
 
     void toggleMode(CCObject* sender) {
-
+        
+        auto fields = m_fields.self();
         int prevMode = m_selectedMode;
 
         auto tag = sender->getTag();
 
-        m_fields->m_editTabsMenu->setVisible(false);
-        m_fields->m_deleteTabsMenu->setVisible(false);
+        fields->m_editTabsMenu->setVisible(false);
+        fields->m_deleteTabsMenu->setVisible(false);
 
         for (CCNode* node : CCArrayExt<CCNode*>(m_createButtonBars)) {
             if (CCNode* real = typeinfo_cast<CCNode*>(node->getUserObject("real-node"_spr))) {
@@ -188,11 +189,11 @@ class $modify(MyEditorUI, EditorUI) {
             }
         }
 
-        for (CCNode* node : CCArrayExt<CCNode*>(m_fields->m_editButtonBars)) {
+        for (CCNode* node : CCArrayExt<CCNode*>(fields->m_editButtonBars)) {
             node->setVisible(false);
         }
 
-        for (CCNode* node : CCArrayExt<CCNode*>(m_fields->m_deleteButtonBars)) {
+        for (CCNode* node : CCArrayExt<CCNode*>(fields->m_deleteButtonBars)) {
             node->setVisible(false);
         }
 
@@ -200,10 +201,10 @@ class $modify(MyEditorUI, EditorUI) {
 
         switch (tag) {
             case 3: {
-                if (m_fields->m_editTabsMenu->getChildrenCount() > 1 || getPagesChildrenCount(m_fields->m_editTabsMenu) > 1){
-                    m_fields->m_editTabsMenu->setVisible(true);
+                if (fields->m_editTabsMenu->getChildrenCount() > 1 || getPagesChildrenCount(fields->m_editTabsMenu) > 1){
+                    fields->m_editTabsMenu->setVisible(true);
                 }
-                typeinfo_cast<CCNode*>(m_fields->m_editButtonBars->objectAtIndex(m_fields->m_selectedEditTab))->setVisible(true);
+                typeinfo_cast<CCNode*>(fields->m_editButtonBars->objectAtIndex(fields->m_selectedEditTab))->setVisible(true);
                 break;
             }
             case 2: {
@@ -214,10 +215,10 @@ class $modify(MyEditorUI, EditorUI) {
                 break;
             }
             case 1: {
-                if (m_fields->m_deleteTabsMenu->getChildrenCount() > 1 || getPagesChildrenCount(m_fields->m_deleteTabsMenu) > 1){
-                    m_fields->m_deleteTabsMenu->setVisible(true);
+                if (fields->m_deleteTabsMenu->getChildrenCount() > 1 || getPagesChildrenCount(fields->m_deleteTabsMenu) > 1){
+                    fields->m_deleteTabsMenu->setVisible(true);
                 }
-                typeinfo_cast<CCNode*>(m_fields->m_deleteButtonBars->objectAtIndex(m_fields->m_selectedDeleteTab))->setVisible(true);
+                typeinfo_cast<CCNode*>(fields->m_deleteButtonBars->objectAtIndex(fields->m_selectedDeleteTab))->setVisible(true);
                 break;
             }
         }
@@ -225,7 +226,7 @@ class $modify(MyEditorUI, EditorUI) {
         EditorUI::toggleMode(sender);
 
         if (prevMode != tag) {
-            for (TabData data : m_fields->tabs) {
+            for (TabData data : fields->tabs) {
                 if (data.onToggle && data.tabTag != -1 && m_createButtonBars->count() > data.tabTag) {
                     CCNode* buttonBar;
                     switch (data.type) {
@@ -242,16 +243,16 @@ class $modify(MyEditorUI, EditorUI) {
                             break;
                         }
                         case TabType::EDIT: {
-                            if (m_fields->m_editButtonBars->count() > data.tabTag) {
-                                buttonBar = typeinfo_cast<CCNode*>(m_fields->m_editButtonBars->objectAtIndex(data.tabTag));
-                                data.onToggle(this, tag == 3 && m_fields->m_selectedEditTab == data.tabTag, buttonBar);
+                            if (fields->m_editButtonBars->count() > data.tabTag) {
+                                buttonBar = typeinfo_cast<CCNode*>(fields->m_editButtonBars->objectAtIndex(data.tabTag));
+                                data.onToggle(this, tag == 3 && fields->m_selectedEditTab == data.tabTag, buttonBar);
                             }
                             break;
                         }
                         case TabType::DELETE: {
-                            if (m_fields->m_deleteButtonBars->count() > data.tabTag) {
-                                buttonBar = typeinfo_cast<CCNode*>(m_fields->m_deleteButtonBars->objectAtIndex(data.tabTag));
-                                data.onToggle(this, tag == 1 && m_fields->m_selectedDeleteTab == data.tabTag, buttonBar);
+                            if (fields->m_deleteButtonBars->count() > data.tabTag) {
+                                buttonBar = typeinfo_cast<CCNode*>(fields->m_deleteButtonBars->objectAtIndex(data.tabTag));
+                                data.onToggle(this, tag == 1 && fields->m_selectedDeleteTab == data.tabTag, buttonBar);
                             }
                             break;
                         }
@@ -264,7 +265,9 @@ class $modify(MyEditorUI, EditorUI) {
 
     void toggleAll(TabType type, int tag){
 
-        for (TabData data : m_fields->tabs) {
+        auto fields = m_fields.self();
+
+        for (TabData data : fields->tabs) {
 
             bool isTab = data.type == type && data.tabTag == tag;
 
@@ -282,14 +285,14 @@ class $modify(MyEditorUI, EditorUI) {
                     break;
                 }
                 case TabType::EDIT: {
-                    if (CCNode* buttonBar = typeinfo_cast<CCNode*>(m_fields->m_editButtonBars->objectAtIndex(data.tabTag))) {
+                    if (CCNode* buttonBar = typeinfo_cast<CCNode*>(fields->m_editButtonBars->objectAtIndex(data.tabTag))) {
                         if (isTab) buttonBar->setVisible(true);
                         if (data.onToggle) data.onToggle(this, isTab, buttonBar);
                     }
                     break;
                 }
                 case TabType::DELETE: {
-                    if (CCNode* buttonBar = typeinfo_cast<CCNode*>(m_fields->m_deleteButtonBars->objectAtIndex(data.tabTag))) {
+                    if (CCNode* buttonBar = typeinfo_cast<CCNode*>(fields->m_deleteButtonBars->objectAtIndex(data.tabTag))) {
                         if (isTab) buttonBar->setVisible(true);
                         if (data.onToggle) data.onToggle(this, isTab, buttonBar);
                     }
@@ -301,6 +304,8 @@ class $modify(MyEditorUI, EditorUI) {
 
     void selectBuildTab(int tab) {
         EditorUI::selectBuildTab(tab);
+
+        auto fields = m_fields.self();
 
         if (m_selectedMode == 2) {
             for (CCNode* node : CCArrayExt<CCNode*>(m_createButtonBars)) {
@@ -317,30 +322,30 @@ class $modify(MyEditorUI, EditorUI) {
             }
 
             if (m_selectedMode == 3) {
-                if (isNext) m_fields->m_selectedEditTab++;
-                else m_fields->m_selectedEditTab--;
+                if (isNext) fields->m_selectedEditTab++;
+                else fields->m_selectedEditTab--;
 
-                if (m_fields->m_selectedEditTab < 0) {
-                    m_fields->m_selectedEditTab = m_fields->m_editTabsArray->count()-1;
+                if (fields->m_selectedEditTab < 0) {
+                    fields->m_selectedEditTab = fields->m_editTabsArray->count()-1;
                 }
-                if (m_fields->m_selectedEditTab > m_fields->m_editTabsArray->count()-1) {
-                    m_fields->m_selectedEditTab = 0;
+                if (fields->m_selectedEditTab > fields->m_editTabsArray->count()-1) {
+                    fields->m_selectedEditTab = 0;
                 }
 
-                selectEditTab(m_fields->m_selectedEditTab);
+                selectEditTab(fields->m_selectedEditTab);
             }
             if (m_selectedMode == 1) {
-                if (isNext) m_fields->m_selectedDeleteTab++;
-                else m_fields->m_selectedDeleteTab--;
+                if (isNext) fields->m_selectedDeleteTab++;
+                else fields->m_selectedDeleteTab--;
 
-                if (m_fields->m_selectedDeleteTab < 0) {
-                    m_fields->m_selectedDeleteTab = m_fields->m_deleteTabsArray->count()-1;
+                if (fields->m_selectedDeleteTab < 0) {
+                    fields->m_selectedDeleteTab = fields->m_deleteTabsArray->count()-1;
                 }
-                if (m_fields->m_selectedDeleteTab > m_fields->m_deleteTabsArray->count()-1) {
-                    m_fields->m_selectedDeleteTab = 0;
+                if (fields->m_selectedDeleteTab > fields->m_deleteTabsArray->count()-1) {
+                    fields->m_selectedDeleteTab = 0;
                 }
 
-                selectDeleteTab(m_fields->m_selectedDeleteTab);
+                selectDeleteTab(fields->m_selectedDeleteTab);
             }
         }
     }
@@ -396,28 +401,34 @@ class $modify(MyEditorUI, EditorUI) {
     }
 
     void selectEditTab(int tab) {
-        for (CCMenuItemToggler* node : CCArrayExt<CCMenuItemToggler*>(m_fields->m_editTabsArray)) {
+
+        auto fields = m_fields.self();
+
+        for (CCMenuItemToggler* node : CCArrayExt<CCMenuItemToggler*>(fields->m_editTabsArray)) {
             node->toggle(false);
         }
-        static_cast<CCMenuItemToggler*>(m_fields->m_editTabsArray->objectAtIndex(tab))->toggle(true);
-        for (CCNode* node : CCArrayExt<CCNode*>(m_fields->m_editButtonBars)) {
+        static_cast<CCMenuItemToggler*>(fields->m_editTabsArray->objectAtIndex(tab))->toggle(true);
+        for (CCNode* node : CCArrayExt<CCNode*>(fields->m_editButtonBars)) {
             node->setVisible(false);
         }
 
-        m_fields->m_selectedEditTab = tab;
+        fields->m_selectedEditTab = tab;
         toggleAll(TabType::EDIT, tab);
     }
 
     void selectDeleteTab(int tab) {
-        for (CCMenuItemToggler* node : CCArrayExt<CCMenuItemToggler*>(m_fields->m_deleteTabsArray)) {
+
+        auto fields = m_fields.self();
+
+        for (CCMenuItemToggler* node : CCArrayExt<CCMenuItemToggler*>(fields->m_deleteTabsArray)) {
             node->toggle(false);
         }
-        static_cast<CCMenuItemToggler*>(m_fields->m_deleteTabsArray->objectAtIndex(tab))->toggle(true);
-        for (CCNode* node : CCArrayExt<CCNode*>(m_fields->m_deleteButtonBars)) {
+        static_cast<CCMenuItemToggler*>(fields->m_deleteTabsArray->objectAtIndex(tab))->toggle(true);
+        for (CCNode* node : CCArrayExt<CCNode*>(fields->m_deleteButtonBars)) {
             node->setVisible(false);
         }
 
-        m_fields->m_selectedDeleteTab = tab;
+        fields->m_selectedDeleteTab = tab;
         toggleAll(TabType::DELETE, tab);
     }
 
@@ -436,20 +447,22 @@ class $modify(MyEditorUI, EditorUI) {
 
     bool init(LevelEditorLayer* editorLayer) {
 
-        m_fields->m_editTabsMenu = CCMenu::create();
-        m_fields->m_editTabsMenu->setLayout(createTabsLayout());
-        m_fields->m_editTabsMenu->setID("edit-tabs-menu");
-        m_fields->m_editTabsMenu->ignoreAnchorPointForPosition(false);
-        m_fields->m_deleteTabsMenu = CCMenu::create();
-        m_fields->m_deleteTabsMenu->setLayout(createTabsLayout());
-        m_fields->m_deleteTabsMenu->setID("delete-tabs-menu");
-        m_fields->m_deleteTabsMenu->ignoreAnchorPointForPosition(false);
+        auto fields = m_fields.self();
 
-        m_fields->m_editTabsArray = CCArray::create();
-        m_fields->m_deleteTabsArray = CCArray::create();
+        fields->m_editTabsMenu = CCMenu::create();
+        fields->m_editTabsMenu->setLayout(createTabsLayout());
+        fields->m_editTabsMenu->setID("edit-tabs-menu");
+        fields->m_editTabsMenu->ignoreAnchorPointForPosition(false);
+        fields->m_deleteTabsMenu = CCMenu::create();
+        fields->m_deleteTabsMenu->setLayout(createTabsLayout());
+        fields->m_deleteTabsMenu->setID("delete-tabs-menu");
+        fields->m_deleteTabsMenu->ignoreAnchorPointForPosition(false);
 
-        m_fields->m_editButtonBars = CCArray::create();
-        m_fields->m_deleteButtonBars = CCArray::create();
+        fields->m_editTabsArray = CCArray::create();
+        fields->m_deleteTabsArray = CCArray::create();
+
+        fields->m_editButtonBars = CCArray::create();
+        fields->m_deleteButtonBars = CCArray::create();
 
         if (!EditorUI::init(editorLayer)) return false;
 
@@ -457,8 +470,8 @@ class $modify(MyEditorUI, EditorUI) {
             m_tabsMenu->setLayout(createTabsLayout());
         }
 
-        addChild(m_fields->m_editTabsMenu);
-        addChild(m_fields->m_deleteTabsMenu);
+        addChild(fields->m_editTabsMenu);
+        addChild(fields->m_deleteTabsMenu);
 
         EditorTabs::addTab(this, TabType::EDIT, "edit-tab", [](EditorUI* ui, CCMenuItemToggler* toggler) -> CCNode* {
             EditButtonBar* editTabBar = ui->m_editButtonBar;
@@ -501,48 +514,50 @@ class $modify(MyEditorUI, EditorUI) {
         return true;
     }
 
-    void showUI(bool p0){
-        EditorUI::showUI(p0);
+    void showUI(bool show){
+        EditorUI::showUI(show);
 
-        if (p0) {
+        auto fields = m_fields.self();
+
+        if (show) {
             switch (m_selectedMode) {
                 case 3: {
-                    if (m_fields->m_editTabsMenu->getChildrenCount() > 1 || getPagesChildrenCount(m_fields->m_editTabsMenu) > 1){
-                        m_fields->m_editTabsMenu->setVisible(true);
+                    if (fields->m_editTabsMenu->getChildrenCount() > 1 || getPagesChildrenCount(fields->m_editTabsMenu) > 1){
+                        fields->m_editTabsMenu->setVisible(true);
                     }
 
-                    if (m_fields->m_selectedEditTab != 0) {
+                    if (fields->m_selectedEditTab != 0) {
                         if (CCNode* node = getChildByID("hjfod.betteredit/custom-move-menu")) {
                             node->setVisible(false);
                         }
                         m_editButtonBar->setVisible(false);
                     }
 
-                    typeinfo_cast<CCNode*>(m_fields->m_editButtonBars->objectAtIndex(m_fields->m_selectedEditTab))->setVisible(true);
+                    typeinfo_cast<CCNode*>(fields->m_editButtonBars->objectAtIndex(fields->m_selectedEditTab))->setVisible(true);
                     break;
                 }
                 case 1: {
-                    if (m_fields->m_deleteTabsMenu->getChildrenCount() > 1 || getPagesChildrenCount(m_fields->m_deleteTabsMenu) > 1){
-                        m_fields->m_deleteTabsMenu->setVisible(true);
+                    if (fields->m_deleteTabsMenu->getChildrenCount() > 1 || getPagesChildrenCount(fields->m_deleteTabsMenu) > 1){
+                        fields->m_deleteTabsMenu->setVisible(true);
                     }
 
-                    if (m_fields->m_selectedDeleteTab != 0) {
+                    if (fields->m_selectedDeleteTab != 0) {
                         m_deleteMenu->setVisible(false);
                     }
 
-                    typeinfo_cast<CCNode*>(m_fields->m_deleteButtonBars->objectAtIndex(m_fields->m_selectedDeleteTab))->setVisible(true);
+                    typeinfo_cast<CCNode*>(fields->m_deleteButtonBars->objectAtIndex(fields->m_selectedDeleteTab))->setVisible(true);
                     break;
                 }
             }
         }
         else {
-            m_fields->m_editTabsMenu->setVisible(false);
-            m_fields->m_deleteTabsMenu->setVisible(false);
+            fields->m_editTabsMenu->setVisible(false);
+            fields->m_deleteTabsMenu->setVisible(false);
 
-            for (CCNode* node : CCArrayExt<CCNode*>(m_fields->m_editButtonBars)) {
+            for (CCNode* node : CCArrayExt<CCNode*>(fields->m_editButtonBars)) {
                 node->setVisible(false);
             }
-            for (CCNode* node : CCArrayExt<CCNode*>(m_fields->m_deleteButtonBars)) {
+            for (CCNode* node : CCArrayExt<CCNode*>(fields->m_deleteButtonBars)) {
                 node->setVisible(false);
             }
         }
@@ -568,9 +583,12 @@ class $modify(LateEditorUI, EditorUI) {
     bool init(LevelEditorLayer* editorLayer) {
 
         if (!EditorUI::init(editorLayer)) return false;
+        
 
         EditorUI* editorUI = static_cast<EditorUI*>(this);
         MyEditorUI* myEditorUI = static_cast<MyEditorUI*>(editorUI);
+
+        auto fields = myEditorUI->m_fields.self();
 
         CCSize winSize = CCDirector::get()->getWinSize();
         float height = 90;
@@ -584,23 +602,23 @@ class $modify(LateEditorUI, EditorUI) {
         m_tabsMenu->setAnchorPoint({0.5, 0});
         m_tabsMenu->setPosition({winSize.width/2, height});
 
-        myEditorUI->m_fields->m_editTabsMenu->setPosition({winSize.width/2, height});
-        myEditorUI->m_fields->m_editTabsMenu->setAnchorPoint(m_tabsMenu->getAnchorPoint());
-        myEditorUI->m_fields->m_editTabsMenu->setContentSize(m_tabsMenu->getContentSize());
-        myEditorUI->m_fields->m_editTabsMenu->setScale(m_tabsMenu->getScale());
-        myEditorUI->m_fields->m_editTabsMenu->setVisible(false);
-        myEditorUI->m_fields->m_editTabsMenu->updateLayout();
+        fields->m_editTabsMenu->setPosition({winSize.width/2, height});
+        fields->m_editTabsMenu->setAnchorPoint(m_tabsMenu->getAnchorPoint());
+        fields->m_editTabsMenu->setContentSize(m_tabsMenu->getContentSize());
+        fields->m_editTabsMenu->setScale(m_tabsMenu->getScale());
+        fields->m_editTabsMenu->setVisible(false);
+        fields->m_editTabsMenu->updateLayout();
 
-        myEditorUI->m_fields->m_deleteTabsMenu->setPosition({winSize.width/2, height});
-        myEditorUI->m_fields->m_deleteTabsMenu->setAnchorPoint(m_tabsMenu->getAnchorPoint());
-        myEditorUI->m_fields->m_deleteTabsMenu->setContentSize(m_tabsMenu->getContentSize());
-        myEditorUI->m_fields->m_deleteTabsMenu->setScale(m_tabsMenu->getScale());
-        myEditorUI->m_fields->m_deleteTabsMenu->setVisible(false);
-        myEditorUI->m_fields->m_deleteTabsMenu->updateLayout();
+        fields->m_deleteTabsMenu->setPosition({winSize.width/2, height});
+        fields->m_deleteTabsMenu->setAnchorPoint(m_tabsMenu->getAnchorPoint());
+        fields->m_deleteTabsMenu->setContentSize(m_tabsMenu->getContentSize());
+        fields->m_deleteTabsMenu->setScale(m_tabsMenu->getScale());
+        fields->m_deleteTabsMenu->setVisible(false);
+        fields->m_deleteTabsMenu->updateLayout();
 
         for (auto c : CCArrayExt<CCNode*>(this->getChildren())) {
             if (auto bar = typeinfo_cast<EditButtonBar*>(c)) {
-                static_cast<MyEditButtonBar*>(bar)->updateUI();
+                static_cast<MyEditButtonBar*>(bar)->updateUI(true);
             }
         }
 
@@ -613,14 +631,14 @@ class $modify(LateEditorUI, EditorUI) {
             }
         }
 
-        for (CCNode* node : CCArrayExt<CCNode*>(myEditorUI->m_fields->m_editButtonBars)) {
+        for (CCNode* node : CCArrayExt<CCNode*>(fields->m_editButtonBars)) {
             if (!typeinfo_cast<EditButtonBar*>(node)){
                 node->setScale(scaleBar);
                 node->setPositionY(node->getPositionY() * scaleBar);
             }
         }
 
-        for (CCNode* node : CCArrayExt<CCNode*>(myEditorUI->m_fields->m_deleteButtonBars)) {
+        for (CCNode* node : CCArrayExt<CCNode*>(fields->m_deleteButtonBars)) {
             if (!typeinfo_cast<EditButtonBar*>(node)){
                 node->setScale(scaleBar);
                 node->setPositionY(node->getPositionY() * scaleBar);

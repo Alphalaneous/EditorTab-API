@@ -1,3 +1,6 @@
+# 1.0.11
+- Add tags
+
 # 1.0.10
 - Resolve issue with page preserving
 - Performance improvements

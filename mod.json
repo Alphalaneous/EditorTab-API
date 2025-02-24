@@ -5,7 +5,7 @@
 		"mac": "2.2074",	
 		"android": "2.2074"
 	},
-	"version": "v1.0.10",
+	"version": "v1.0.11",
 	"id": "alphalaneous.editortab_api",
 	"name": "EditorTab API",
 	"developer": "Alphalaneous",
@@ -15,6 +15,9 @@
             "include/*.hpp"
         ]
     },
+	"tags": [
+		"editor", "developer"
+	],
 	"links": {
         "homepage": "https://linktr.ee/Alphalaneous",
         "source": "https://github.com/Alphalaneous/EditorTab-API",

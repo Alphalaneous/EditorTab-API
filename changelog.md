@@ -1,3 +1,6 @@
+# 1.0.12
+- Fix a bug with invisible tabs
+
 # 1.0.11
 - Add tags
 

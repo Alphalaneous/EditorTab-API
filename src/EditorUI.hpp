@@ -6,13 +6,6 @@
 
 using namespace geode::prelude;
 
-int getPagesChildrenCount(CCNode* node) {
-    if(node->getUserObject("alphalaneous.pages_api/children-count")){
-        return static_cast<CCInteger*>(node->getUserObject("alphalaneous.pages_api/children-count"))->getValue();
-    }
-    return 0;
-}
-
 class $modify(MyEditButtonBar, EditButtonBar) {
     
     struct Fields {
@@ -58,12 +51,12 @@ class $modify(MyEditButtonBar, EditButtonBar) {
             EditButtonBar::loadFromItems(m_buttonArray, fields->m_cols, fields->m_rows, preserve);
 
             if (auto ui = typeinfo_cast<EditorUI*>(getParent())) {
-                // fix visible pages when opening editor, can be assumed as 0 as loadFromItems resets the page to 0
+                // fix visible pages when opening editor
                 for (auto barPages : CCArrayExt<CCNode*>(m_pagesArray)) {
                     barPages->setVisible(false);
                 }
-                if (CCNode* firstPage = typeinfo_cast<CCNode*>(m_pagesArray->objectAtIndex(0))){
-                    firstPage->setVisible(true);
+                if (CCNode* currentPage = typeinfo_cast<CCNode*>(m_pagesArray->objectAtIndex(m_scrollLayer->m_page))){
+                    currentPage->setVisible(true);
                 }
 
                 auto winSize = CCDirector::get()->getWinSize();
@@ -104,8 +97,6 @@ class $modify(MyEditButtonBar, EditButtonBar) {
 
                     CCMenuItemSpriteExtra* prevButton = CCMenuItemSpriteExtra::create(prevSpr, this, prevButtonOld->m_pfnSelector);
                     CCMenuItemSpriteExtra* nextButton = CCMenuItemSpriteExtra::create(nextSpr, this, nextButtonOld->m_pfnSelector);
-
-                    
 
                     prevButton->setPositionX(menu->getContentWidth()/2 - xOffset);
                     prevButton->setPositionY((height/2 + yOffset) / getScale());
@@ -201,7 +192,7 @@ class $modify(MyEditorUI, EditorUI) {
 
         switch (tag) {
             case 3: {
-                if (fields->m_editTabsMenu->getChildrenCount() > 1 || getPagesChildrenCount(fields->m_editTabsMenu) > 1){
+                if (fields->m_editTabsMenu->getChildrenCount() > 1){
                     fields->m_editTabsMenu->setVisible(true);
                 }
                 typeinfo_cast<CCNode*>(fields->m_editButtonBars->objectAtIndex(fields->m_selectedEditTab))->setVisible(true);
@@ -215,7 +206,7 @@ class $modify(MyEditorUI, EditorUI) {
                 break;
             }
             case 1: {
-                if (fields->m_deleteTabsMenu->getChildrenCount() > 1 || getPagesChildrenCount(fields->m_deleteTabsMenu) > 1){
+                if (fields->m_deleteTabsMenu->getChildrenCount() > 1){
                     fields->m_deleteTabsMenu->setVisible(true);
                 }
                 typeinfo_cast<CCNode*>(fields->m_deleteButtonBars->objectAtIndex(fields->m_selectedDeleteTab))->setVisible(true);
@@ -522,7 +513,7 @@ class $modify(MyEditorUI, EditorUI) {
         if (show) {
             switch (m_selectedMode) {
                 case 3: {
-                    if (fields->m_editTabsMenu->getChildrenCount() > 1 || getPagesChildrenCount(fields->m_editTabsMenu) > 1){
+                    if (fields->m_editTabsMenu->getChildrenCount() > 1){
                         fields->m_editTabsMenu->setVisible(true);
                     }
 
@@ -537,7 +528,7 @@ class $modify(MyEditorUI, EditorUI) {
                     break;
                 }
                 case 1: {
-                    if (fields->m_deleteTabsMenu->getChildrenCount() > 1 || getPagesChildrenCount(fields->m_deleteTabsMenu) > 1){
+                    if (fields->m_deleteTabsMenu->getChildrenCount() > 1){
                         fields->m_deleteTabsMenu->setVisible(true);
                     }
 

@@ -46,7 +46,7 @@ class $modify(MyEditButtonBar, EditButtonBar) {
 
         auto fields = m_fields.self();
 
-        if(!Loader::get()->isModLoaded("hjfod.betteredit")) {
+        if (!Loader::get()->isModLoaded("hjfod.betteredit")) {
 
             EditButtonBar::loadFromItems(m_buttonArray, fields->m_cols, fields->m_rows, preserve);
 
@@ -55,7 +55,8 @@ class $modify(MyEditButtonBar, EditButtonBar) {
                 for (auto barPages : CCArrayExt<CCNode*>(m_pagesArray)) {
                     barPages->setVisible(false);
                 }
-                if (CCNode* currentPage = typeinfo_cast<CCNode*>(m_pagesArray->objectAtIndex(m_scrollLayer->m_page))){
+                int page = m_scrollLayer->m_page % m_scrollLayer->m_pages->count();
+                if (CCNode* currentPage = typeinfo_cast<CCNode*>(m_pagesArray->objectAtIndex(page))){
                     currentPage->setVisible(true);
                 }
 

@@ -6,7 +6,7 @@
 		"android": "2.2074",
 		"ios": "2.2074"
 	},
-	"version": "v1.0.15",
+	"version": "v1.0.16",
 	"id": "alphalaneous.editortab_api",
 	"name": "EditorTab API",
 	"developer": "Alphalaneous",
@@ -17,7 +17,7 @@
         ]
     },
 	"tags": [
-		"editor", "developer"
+		"editor", "developer", "api"
 	],
 	"links": {
         "homepage": "https://linktr.ee/Alphalaneous",

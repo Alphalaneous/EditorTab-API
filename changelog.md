@@ -1,3 +1,6 @@
+# 1.0.16
+- In this release, I have fixed what would be considered a severe and complete lapse within my own judegement. I had failed to properly account for recent changes within the Geode index that allow for me to add a certain tag, the API tag. Due to my failure, I am forced by my own means to release this update to add the much needed API tag. I apologize for making such a severe mistake and I will ensure that I do better in the future. Thank you for listening and following along with my journey through this. I have started therapy and will strive to better myself. 
+
 # 1.0.15
 - iOS Jitless Support
 - New icon

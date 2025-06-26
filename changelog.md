@@ -1,3 +1,7 @@
+# 1.0.15
+- iOS Jitless Support
+- New icon
+
 # 1.0.14
 - iOS support
 

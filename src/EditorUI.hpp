@@ -255,6 +255,20 @@ class $modify(MyEditorUI, EditorUI) {
         
     }
 
+    void updateButtons() {
+        EditorUI::updateButtons();
+        queueInMainThread([self = Ref(this)] {
+            auto fields = self->m_fields.self();
+            if (self->m_selectedMode == 3) {
+                self->selectEditTab(fields->m_selectedEditTab);
+            }
+            if (self->m_selectedMode == 1) {
+                self->selectDeleteTab(fields->m_selectedDeleteTab);
+            }
+        });
+    }
+
+
     void toggleAll(TabType type, int tag){
 
         auto fields = m_fields.self();

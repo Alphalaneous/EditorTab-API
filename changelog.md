@@ -1,3 +1,6 @@
+# 1.0.18
+- Fix a bug where other mods updating the buttons would reset main tab visibility
+
 # 1.0.17
 - It comes with great sadness to admit that I have failed both my fans and myself after all this time. I was once a good person, I swear! But alas, the whole world dogpiled on me and "cancelled" me for my actions. I have done something so horrid that I cannot even ask for forgiveness anymore. I mispelled the word "judgement" in my last release. I understand if you no longer wish to support me and my mods after this, but we do have to rise up against this "cancel culture". I am not a bad person, it's everyone else that is wrong. I have corrected the mistake. I love my fans so much. By the way, you should donate to my Ko-Fi to help get me out of this rut from gambling all that charity money. I need to make $150,000 fast to make up for it. Please make sure to like and subscribe! Alpha Out!
 

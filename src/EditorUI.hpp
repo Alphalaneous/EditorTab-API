@@ -163,6 +163,7 @@ class $modify(MyEditorUI, EditorUI) {
         int m_selectedDeleteTab;
 
         std::vector<TabData> tabs;
+        bool m_showingUI;
     };
 
     void toggleMode(CCObject* sender) {
@@ -259,11 +260,13 @@ class $modify(MyEditorUI, EditorUI) {
         EditorUI::updateButtons();
         queueInMainThread([self = Ref(this)] {
             auto fields = self->m_fields.self();
-            if (self->m_selectedMode == 3) {
-                self->selectEditTab(fields->m_selectedEditTab);
-            }
-            if (self->m_selectedMode == 1) {
-                self->selectDeleteTab(fields->m_selectedDeleteTab);
+            if (fields->m_showingUI) {
+                if (self->m_selectedMode == 3) {
+                    self->selectEditTab(fields->m_selectedEditTab);
+                }
+                if (self->m_selectedMode == 1) {
+                    self->selectDeleteTab(fields->m_selectedDeleteTab);
+                }
             }
         });
     }
@@ -524,7 +527,8 @@ class $modify(MyEditorUI, EditorUI) {
         EditorUI::showUI(show);
 
         auto fields = m_fields.self();
-
+        fields->m_showingUI = show;
+        
         if (show) {
             switch (m_selectedMode) {
                 case 3: {

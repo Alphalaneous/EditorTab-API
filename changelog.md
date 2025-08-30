@@ -1,3 +1,7 @@
+# 1.0.19
+- If you have a bug report, please be normal, don't spam ping me, make a post or a bug report on the GitHub repo for the mod. Easy right? Apparently not.
+- Fixed a bug with tab visibility.
+
 # 1.0.18
 - Fix a bug where other mods updating the buttons would reset main tab visibility
 

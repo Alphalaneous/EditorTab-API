@@ -1,3 +1,6 @@
+# 1.1.0-beta.1
+- 2.2081 Support
+
 # 1.0.19
 - If you have a bug report, please be normal, don't spam ping me, make a post or a bug report on the GitHub repo for the mod. Easy right? Apparently not.
 - Fixed a bug with tab visibility.

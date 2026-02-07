@@ -2,106 +2,68 @@
 
 An API mod for adding editor tabs easily. 
 
-To use, preferably hook EditorUI::init and use EditorTabs::get()->addTab() to add a tab. You must pass in an ID. There is one required lambda, which is for creating the CCNode, and an optional one for when you toggle that tab, state being true if visible, false if not. 
+To use, hook EditorUI::init and use alpha::editor_tabs::addTab() after calling original to add a tab. You must pass in an ID, the edit mode, a create node callback, and a create icon callback. There are two optional callbacks, one fot whent the tab is entered and exited, and one for when the tab is reloaded (row and column count changes). 
 
-`EditorTabUtils::setTabIcons(toggler, onNode, offNode)` is for settings the tab icons so you don't have to do it manually to the toggler passed in
+When adding a tab, it must be in a specific mode, the three vanilla ones are BUILD, EDIT, and DELETE, but you can assign your own too, though you are responsible for handling any buttons to switch to said mode.
 
-`EditorTabUtils::createEditButtonBar(nodeArray, editorUI)` is for creating a button bar with vanilla values, you can always create your own EditButtonBar with custom values if needed.
+You can use any node as the return in the create node callback. This API also provides an easy way to create an EditButtonBar (`alpha::editor_tabs::createEditButtonBar`) which will be initialized with the correct size and positioning.
 
-You must define a tab type to specifiy if you want it in the BUILD, EDIT, or DELETE tab
+<cr>Tab IDs should be unique</c>
 
-Example:
-
-```c++
-class $modify(EditorUI) {
-
-    bool init(LevelEditorLayer* editorLayer) {
-        if (!EditorUI::init(editorLayer)) return false;
-
-        EditorTabs::addTab(this /*The EditorUI*/, TabType::EDIT, "rawr"_spr, [](EditorUI* ui, CCMenuItemToggler* toggler) -> CCNode* { //create the tab
-
-            auto arr = CCArray::create();
-            auto label = CCLabelBMFont::create("meow", "bigFont.fnt");
-            arr->addObject(label);
-
-            CCLabelBMFont* textLabelOn = CCLabelBMFont::create("uwu", "bigFont.fnt");
-            textLabelOn->setScale(0.4f);
-            CCLabelBMFont* textLabelOff = CCLabelBMFont::create("owo", "bigFont.fnt");
-            textLabelOff->setScale(0.4f);
-
-            EditorTabUtils::setTabIcons(toggler, textLabelOn, textLabelOff);
-
-            return EditorTabUtils::createEditButtonBar(arr, ui);
-            
-        }, [](EditorUI*, bool state, CCNode*) { //toggled the tab (activates on every tab click)
-            log::info(":3");
-        });
-
-        return true;
-    }
-};
-```
-
-Alternatively you can use the callback macros rather than a lambda
-
-```c++
+```cpp
 class $modify(MyEditorUI, EditorUI) {
 
     bool init(LevelEditorLayer* editorLayer) {
         if (!EditorUI::init(editorLayer)) return false;
 
-        EditorTabs::addTab(this, TabType::EDIT, "rawr"_spr, create_tab_callback(MyEditorUI::createMeowBar), toggle_tab_callback(MyEditorUI::toggleMeowBar));
+        alpha::editor_tabs::addTab("rawr-tab"_spr, alpha::editor_tabs::BUILD, 
+        [] { // Create the tab
+            std::vector<Ref<CCNode>> nodes;
+            auto label = CCLabelBMFont::create("Rawr", "bigFont.fnt");
+            nodes.push_back(label);
+
+            return alpha::editor_tabs::createEditButtonBar(nodes);
+        }, 
+        [] { // create the tab icon
+            return CCSprite::createWithSpriteFrameName("spike_01_001.png");
+        }, 
+        [] (bool state, auto tab) { // do something when the tab is entered and exited
+            log::info("rawr-tab state: {}", state);
+        }, 
+        [] (int rows, int cols, auto tab) { // do something when the tab is reloaded
+            log::info("rawr tab rows: {}, cols: {}", rows, cols);
+        });
 
         return true;
     }
-
-    void toggleMeowBar(EditorUI* ui, bool state, cocos2d::CCNode* bar) {
-        log::info(":3");
-    }
-
-	CCNode* createMeowBar(EditorUI* ui, CCMenuItemToggler* toggler) {
-        auto arr = CCArray::create();
-        auto label = CCLabelBMFont::create("meow", "bigFont.fnt");
-        arr->addObject(label);
-
-        CCLabelBMFont* textLabelOn = CCLabelBMFont::create("uwu", "bigFont.fnt");
-        textLabelOn->setScale(0.4f);
-        CCLabelBMFont* textLabelOff = CCLabelBMFont::create("owo", "bigFont.fnt");
-        textLabelOff->setScale(0.4f);
-
-        EditorTabUtils::setTabIcons(toggler, textLabelOn, textLabelOff);
-
-        return EditorTabUtils::createEditButtonBar(arr, ui);
-    }
-
 };
+
 ```
 
-Optionally, you can register it at the start of the game using EditorTabs::get()->registerTab(), this does not require you to pass in the EditorUI, but it cannot be as easily changed during runtime.
+This API also provides ways to get information on what tab or mode you are on, as well as getting stuff from a tab ID itself.
 
-Example:
+```cpp
+// current mode (BUILD, EDIT, DELETE, or a custom string)
+geode::Result<geode::ZStringView> getCurrentMode()
 
-```c++
-$execute {
-    EditorTabs::get()->registerTab(TabType::BUILD, "rawr"_spr, [](EditorUI* ui, CCMenuItemToggler* toggler) -> CCNode* { //create
+// current tab as the ID
+geode::Result<geode::ZStringView> getCurrentTab()
 
-        auto arr = CCArray::create();
-        auto label = CCLabelBMFont::create("meow", "bigFont.fnt");
-        arr->addObject(label);
+// get a tab's index by ID
+geode::Result<int> getTabIndex(geode::ZStringView tabID)
 
-        CCLabelBMFont* textLabelOn = CCLabelBMFont::create("uwu", "bigFont.fnt");
-        textLabelOn->setScale(0.4f);
-        CCLabelBMFont* textLabelOff = CCLabelBMFont::create("owo", "bigFont.fnt");
-        textLabelOff->setScale(0.4f);
+// get a tab's mode by ID
+geode::Result<geode::ZStringView> getTabMode(geode::ZStringView tabID)
 
-        EditorTabUtils::setTabIcons(toggler, textLabelOn, textLabelOff);
+// get a tab's node by ID
+geode::Result<geode::Ref<cocos2d::CCNode>> nodeForTab(geode::ZStringView tabID)
 
-        return EditorTabUtils::createEditButtonBar(arr, ui);
-        
-    }, [](EditorUI*, bool state, CCNode*) { //toggled the tab (activates on every tab click)
+// get a tab's toggler by ID
+geode::Result<geode::Ref<CCMenuItemToggler>> togglerForTab(geode::ZStringView tabID)
+```
 
-        log::info(":3");
+You can also remove a tab if needed with just the tab ID.
 
-    });
-}
+```cpp
+void removeTab(geode::ZStringView tabID)
 ```

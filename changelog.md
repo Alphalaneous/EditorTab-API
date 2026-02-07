@@ -1,3 +1,12 @@
+# 2.0.0-alpha.1
+- Rewrite the whole thing
+- Make the api more sane
+- Custom Modes
+- Rewrote a lot of EditButtonBar
+  - Performance gains by removing invisible pages! (~40% FPS increase compared to vanilla on my PC)
+- Bug fixes
+- Pagination
+
 # 1.1.0-beta.1
 - 2.2081 Support
 

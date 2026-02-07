@@ -12,7 +12,9 @@ class $modify(ETEditButtonBar, EditButtonBar) {
         CCSpriteBatchNode* m_dots;
     };
 
-    static void onModify(auto& self);
+    static void onModify(auto& self) {
+        (void) self.setHookPriority("EditButtonBar::loadFromItems", Priority::EarlyPost);
+    }
 
     void loadFromItems(CCArray* items, int c, int r, bool preserve);
     void goToPage(int page);

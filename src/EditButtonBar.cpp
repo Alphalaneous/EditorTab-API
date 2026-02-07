@@ -2,10 +2,6 @@
 #include "EditorUI.hpp"
 #include <Geode/binding/EditButtonBar.hpp>
 
-void ETEditButtonBar::onModify(auto& self) {
-    (void) self.setHookPriority("EditButtonBar::loadFromItems", Priority::EarlyPost);
-}
-
 void ETEditButtonBar::loadFromItems(CCArray* items, int c, int r, bool preserve) {
     EditButtonBar::loadFromItems(items, c, r, preserve);
     auto editorUI = ETEditorUI::get();

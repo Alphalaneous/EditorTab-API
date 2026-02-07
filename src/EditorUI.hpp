@@ -45,7 +45,9 @@ public:
         }
     };
 
-    static void onModify(auto& self);
+    static void onModify(auto& self) {
+        (void) self.setHookPriority("EditorUI::init", Priority::EarlyPost);
+    }
 
     static ETEditorUI* get();
 

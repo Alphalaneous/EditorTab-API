@@ -7,10 +7,6 @@ ETEditorUI* ETEditorUI::get() {
     return s_instance;
 }
 
-void ETEditorUI::onModify(auto& self) {
-    (void) self.setHookPriority("EditorUI::init", Priority::EarlyPost);
-}
-
 bool ETEditorUI::init(LevelEditorLayer* editorLayer) {
     s_instance = this;
 

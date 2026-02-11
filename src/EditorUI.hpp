@@ -64,6 +64,7 @@ public:
     void switchTab(const InternalTabData& tabData);
     void switchTab(ZStringView id);
     void switchMode(ZStringView mode);
+    void toggleModeInternal();
     void toggleMode(CCObject* sender);
     void reloadEditTabs();
     void setTabVisible(CCNode* tab, bool visible);

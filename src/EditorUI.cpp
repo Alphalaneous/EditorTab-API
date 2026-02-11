@@ -23,82 +23,6 @@ bool ETEditorUI::init(LevelEditorLayer* editorLayer) {
 
     fields->m_initialized = true;
 
-    /*alpha::editor_tabs::addTab("delete-test"_spr, alpha::editor_tabs::DELETE, [] {
-        auto label = CCLabelBMFont::create("Meow", "bigFont.fnt");
-
-        auto btn = CCMenuItemExt::createSpriteExtra(label, [] (auto btn) {
-            alpha::editor_tabs::removeTab("delete-test"_spr);
-        });
-
-        auto menu = CCMenu::create();
-        menu->setContentSize(btn->getContentSize());
-        menu->ignoreAnchorPointForPosition(false);
-        menu->setAnchorPoint({0.5f, 0.5f});
-
-        auto winSize = CCDirector::get()->getWinSize();
-        menu->setPosition({winSize.width / 2, 50});
-
-        btn->setPosition(menu->getContentSize() / 2);
-
-        menu->addChild(btn);
-
-        return menu;
-    }, [] {
-        return CCSprite::createWithSpriteFrameName("spike_01_001.png");
-    }, [] (bool state, auto tab) {
-        log::info("state: {}", state);
-    }, [] (int rows, int cols, auto tab) {
-        log::info("rows: {}, cols: {}", rows, cols);
-    });
-
-    alpha::editor_tabs::addTab("log-test"_spr, alpha::editor_tabs::EDIT, [] {
-        auto label = CCLabelBMFont::create("Meow", "bigFont.fnt");
-
-        auto btn = CCMenuItemExt::createSpriteExtra(label, [] (auto btn) {
-            log::info("mode: {}", alpha::editor_tabs::getCurrentMode().unwrapOr(""));
-            log::info("tab: {}", alpha::editor_tabs::getCurrentTab().unwrapOr(""));
-            log::info("tab mode: {}", alpha::editor_tabs::getTabMode("log-test"_spr).unwrapOr(""));
-            log::info("tab idx: {}", alpha::editor_tabs::getTabIndex("log-test"_spr).unwrapOr(-1));
-            log::info("tab node: {}", alpha::editor_tabs::nodeForTab("log-test"_spr).unwrapOr(nullptr));
-
-            alpha::editor_tabs::switchTab("new-mode-test-15"_spr);
-        });
-
-        auto menu = CCMenu::create();
-        menu->setContentSize(btn->getContentSize());
-        menu->ignoreAnchorPointForPosition(false);
-        menu->setAnchorPoint({0.5f, 0.5f});
-
-        auto winSize = CCDirector::get()->getWinSize();
-        menu->setPosition({winSize.width / 2, 50});
-
-        btn->setPosition(menu->getContentSize() / 2);
-
-        menu->addChild(btn);
-
-        return menu;
-    }, [] {
-        return CCSprite::createWithSpriteFrameName("spike_01_001.png");
-    }, [] (bool state, auto tab) {
-        log::info("state: {}", state);
-    }, [] (int rows, int cols, auto tab) {
-        log::info("rows: {}, cols: {}", rows, cols);
-    });
-
-    for (int i = 0; i < 30; i++) {
-        alpha::editor_tabs::addTab(fmt::format("new-mode-test-{}"_spr, i), alpha::editor_tabs::BUILD, [i] {
-            std::vector<Ref<CCNode>> nodes;
-            auto label = CCLabelBMFont::create(fmt::format("test-{}", i).c_str(), "bigFont.fnt");
-            nodes.push_back(label);
-
-            auto buttonBar = alpha::editor_tabs::createEditButtonBar(nodes);
-
-            return buttonBar;
-        }, [i] {
-            return CCLabelBMFont::create(fmt::format("{}", i).c_str(), "bigFont.fnt");
-        });
-    }*/
-
     return true;
 }
 
@@ -272,7 +196,7 @@ void ETEditorUI::setupButtons() {
     
     auto prevButton = CCMenuItemExt::createSpriteExtraWithFrameName("GJ_arrow_02_001.png", 0.4f, [this, fields] (auto btn) {
         auto currentPage = fields->m_tabPage[fields->m_currentMode];
-        auto maxPages = fields->m_tabs[fields->m_currentMode].size() / fields->m_maxTabs;
+        auto maxPages = std::ceil(fields->m_tabs[fields->m_currentMode].size() / static_cast<float>(fields->m_maxTabs));
 
         currentPage--;
         if (currentPage < 0) {
@@ -284,7 +208,7 @@ void ETEditorUI::setupButtons() {
 
     auto nextBtn = CCMenuItemExt::createSpriteExtraWithFrameName("GJ_arrow_02_001.png", 0.4f, [this, fields] (auto btn) {
         auto currentPage = fields->m_tabPage[fields->m_currentMode];
-        auto maxPages = fields->m_tabs[fields->m_currentMode].size() / fields->m_maxTabs;
+        auto maxPages = std::ceil(fields->m_tabs[fields->m_currentMode].size() / static_cast<float>(fields->m_maxTabs));
 
         currentPage++;
         if (currentPage > maxPages - 1) {
@@ -355,9 +279,7 @@ void ETEditorUI::switchMode(ZStringView mode) {
 
     fields->m_arrowMenu->setVisible(currentTabs.size() > fields->m_maxTabs);
 
-    auto dummy = CCNode::create();
-    dummy->setTag(-1);
-    toggleMode(dummy);
+    toggleModeInternal();
 }
 
 void ETEditorUI::goToPage(int page) {
@@ -421,46 +343,51 @@ void ETEditorUI::switchTab(const InternalTabData& tabData) {
     goToPage(page);
 }
 
+void ETEditorUI::toggleModeInternal() {
+    auto fields = m_fields.self();
+
+    m_buildModeBtn->setSprite(CCSprite::createWithSpriteFrameName("edit_buildBtn_001.png"));
+    m_editModeBtn->setSprite(CCSprite::createWithSpriteFrameName("edit_editBtn_001.png"));
+    m_deleteModeBtn->setSprite(CCSprite::createWithSpriteFrameName("edit_deleteBtn_001.png"));
+
+    if (fields->m_currentMode == alpha::editor_tabs::BUILD) {
+        m_buildModeBtn->setSprite(CCSprite::createWithSpriteFrameName("edit_buildSBtn_001.png"));
+    }
+    if (fields->m_currentMode == alpha::editor_tabs::EDIT) {
+        m_editModeBtn->setSprite(CCSprite::createWithSpriteFrameName("edit_editSBtn_001.png"));
+    }
+    if (fields->m_currentMode == alpha::editor_tabs::DELETE) {
+        m_deleteModeBtn->setSprite(CCSprite::createWithSpriteFrameName("edit_deleteSBtn_001.png"));
+    }
+}
+
 void ETEditorUI::toggleMode(CCObject* sender) {
     auto fields = m_fields.self();
-    bool skip = false;
-    if (sender && sender->getTag() == -1) {
-        int tag = 0;
-        if (fields->m_currentMode == alpha::editor_tabs::BUILD) tag = 2;
-        else if (fields->m_currentMode == alpha::editor_tabs::EDIT) tag = 3;
-        else if (fields->m_currentMode == alpha::editor_tabs::DELETE) tag = 1;
-        sender->setTag(tag);
-        skip = true;
-        if (tag == 0) {
-            m_buildModeBtn->setSprite(CCSprite::createWithSpriteFrameName("edit_buildBtn_001.png"));
-            m_editModeBtn->setSprite(CCSprite::createWithSpriteFrameName("edit_editBtn_001.png"));
-            m_deleteModeBtn->setSprite(CCSprite::createWithSpriteFrameName("edit_deleteBtn_001.png"));
-            m_selectedMode = -1;
-            return;
-        }
-    }
 
-    EditorUI::toggleMode(sender);
+    m_selectedMode = sender->getTag();
+    resetUI();
 
-    if (!fields->m_initialized || skip) return;
+    if (!fields->m_initialized) return;
 
     switch (sender->getTag()) {
         case 3: {
-            switchMode(alpha::editor_tabs::EDIT);
+            fields->m_currentMode = alpha::editor_tabs::EDIT;
             break;
         }
         case 2: {
-            switchMode(alpha::editor_tabs::BUILD);
+            fields->m_currentMode = alpha::editor_tabs::BUILD;
             break;
         }
         case 1: {
-            switchMode(alpha::editor_tabs::DELETE);
+            fields->m_currentMode = alpha::editor_tabs::DELETE;
             break;
         }
         default: {
-            break;
+            m_selectedMode = -1;
         }
     }
+
+    switchMode(fields->m_currentMode);
 }
 
 void ETEditorUI::reloadEditTabs() {

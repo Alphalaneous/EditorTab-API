@@ -1,9 +1,14 @@
+# 2.0.0-alpha.2
+- Geode Alpha 2 support
+- Bug Fixes
+
 # 2.0.0-alpha.1
 - Rewrite the whole thing
 - Make the api more sane
 - Custom Modes
 - Rewrote a lot of EditButtonBar
   - Performance gains by removing invisible pages! (~40% FPS increase compared to vanilla on my PC)
+  - Better page dots
 - Bug fixes
 - Pagination
 

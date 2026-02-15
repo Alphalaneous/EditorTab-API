@@ -1,3 +1,6 @@
+# 2.0.0
+- Move out of alpha
+
 # 2.0.0-alpha.2
 - Geode Alpha 2 support
 - Bug Fixes

@@ -63,7 +63,7 @@ void ETEditButtonBar::loadFromItems(CCArray* items, int c, int r, bool preserve)
     fields->m_dots->setPositionX(getContentWidth() / 2);
 #endif
 
-    runAction(CallFuncExt::create([this, editorUI, fields] {
+    runAction(CallFuncExt::create([this, editorUI] {
         auto spacerLeft = editorUI->getChildByID("spacer-line-left");
         auto spacerRight = editorUI->getChildByID("spacer-line-right");
 

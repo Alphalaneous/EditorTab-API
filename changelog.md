@@ -1,3 +1,6 @@
+# 2.0.1
+- Remove better dots on MacOS cuz it caused unexplainable crashes
+
 # 2.0.0
 - Move out of alpha
 

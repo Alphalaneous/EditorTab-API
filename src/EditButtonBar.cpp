@@ -55,11 +55,13 @@ void ETEditButtonBar::loadFromItems(CCArray* items, int c, int r, bool preserve)
         menu->updateLayout();
     }
 
+#ifndef GEODE_IS_MACOS
     auto fields = m_fields.self();
     fields->m_dots = m_scrollLayer->getChildByType<CCSpriteBatchNode>(0);
     fields->m_dots->setAnchorPoint({0.5f, 0.f});
     fields->m_dots->setContentSize({getContentWidth(), 5.f});
     fields->m_dots->setPositionX(getContentWidth() / 2);
+#endif
 
     runAction(CallFuncExt::create([this, editorUI, fields] {
         auto spacerLeft = editorUI->getChildByID("spacer-line-left");
@@ -78,6 +80,7 @@ void ETEditButtonBar::loadFromItems(CCArray* items, int c, int r, bool preserve)
 }
 
 void ETEditButtonBar::updatePage() {
+#ifndef GEODE_IS_MACOS
     auto fields = m_fields.self();
     if (!fields->m_dots) return;
 
@@ -106,6 +109,7 @@ void ETEditButtonBar::updatePage() {
     }
 
     arr[getPage()]->setColor({255, 255, 255});
+#endif
 }
 
 void ETEditButtonBar::goToPage(int page) {
@@ -166,7 +170,9 @@ void ETEditButtonBar::optimizedSetVisible(bool visible) {
     }
 }
 
+#ifndef GEODE_IS_MACOS
 void ETBoomScrollLayer::updateDots(float dt) {
     if (typeinfo_cast<EditButtonBar*>(getParent())) return;
     BoomScrollLayer::updateDots(dt);
 }
+#endif

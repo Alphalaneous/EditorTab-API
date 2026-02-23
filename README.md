@@ -49,6 +49,9 @@ geode::Result<geode::ZStringView> getCurrentMode()
 // current tab as the ID
 geode::Result<geode::ZStringView> getCurrentTab()
 
+// get all tabs
+geode::Result<std::vector<cocos2d::CCNode*>> getAllTabs()
+
 // get a tab's index by ID
 geode::Result<int> getTabIndex(geode::ZStringView tabID)
 
@@ -66,4 +69,18 @@ You can also remove a tab if needed with just the tab ID.
 
 ```cpp
 void removeTab(geode::ZStringView tabID)
+```
+
+If you need to disable changing the mode sprites (the build, edit, delete tab buttons), for example if your mod has different sprites and this overrides it, use the following:
+
+```cpp
+void changeModeSprites(bool enabled)
+```
+
+If you need to listen for tab change or mode change, use the following. Note that these will be called whenever certain editor updates are fired. Do not assume they will only fire once. Do not add code that will add to the state of the editor without cleaning up beforehand if you do use it for anything complex. The ids provided in the callback are the IDs of the mode and tab respectively.
+
+```cpp
+void addModeSwitchCallback(geode::Function<void(geode::ZStringView id)>&& callback)
+
+void addTabSwitchCallback(geode::Function<void(geode::ZStringView id)>&& callback)
 ```

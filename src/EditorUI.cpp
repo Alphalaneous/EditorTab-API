@@ -45,6 +45,14 @@ void ETEditorUI::showUI(bool show) {
     }
 }
 
+void ETEditorUI::updateButtons() {
+    EditorUI::updateButtons();
+    auto fields = m_fields.self();
+    if (fields->m_initialized) {
+        switchMode(fields->m_currentMode);
+    }
+}
+
 void ETEditorUI::onPause(CCObject* sender) {
     auto fields = m_fields.self();
     auto currentTab = fields->m_currentTab;
@@ -313,6 +321,10 @@ void ETEditorUI::switchTab(ZStringView id) {
             break;
         }
     }
+
+    for (auto& [k, v] : fields->m_tabCallbacks) {
+        if (v) v(id);
+    }
 }
 
 void ETEditorUI::switchTab(const InternalTabData& tabData) {
@@ -341,10 +353,15 @@ void ETEditorUI::switchTab(const InternalTabData& tabData) {
 
     int page = tabData.idx / fields->m_maxTabs;
     goToPage(page);
+
+    for (auto& [k, v] : fields->m_tabCallbacks) {
+        if (v) v(fields->m_currentTab.id);
+    }
 }
 
 void ETEditorUI::toggleModeInternal() {
     auto fields = m_fields.self();
+    if (!fields->m_changeModeSprites) return;
 
     m_buildModeBtn->setSprite(CCSprite::createWithSpriteFrameName("edit_buildBtn_001.png"));
     m_editModeBtn->setSprite(CCSprite::createWithSpriteFrameName("edit_editBtn_001.png"));
@@ -358,6 +375,10 @@ void ETEditorUI::toggleModeInternal() {
     }
     if (fields->m_currentMode == alpha::editor_tabs::DELETE) {
         m_deleteModeBtn->setSprite(CCSprite::createWithSpriteFrameName("edit_deleteSBtn_001.png"));
+    }
+
+    for (auto& [k, v] : fields->m_modeCallbacks) {
+        if (v) v(fields->m_currentMode);
     }
 }
 

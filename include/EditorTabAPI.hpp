@@ -28,6 +28,15 @@ namespace alpha::editor_tabs {
     inline void switchTab(geode::ZStringView tabID)
     GEODE_EVENT_EXPORT_NORES(&switchTab, (tabID));
 
+    inline void changeModeSprites(bool enabled)
+    GEODE_EVENT_EXPORT_NORES(&changeModeSprites, (enabled));
+
+    inline void addModeSwitchCallback(geode::Function<void(geode::ZStringView id)>&& callback, geode::Mod* mod = geode::Mod::get())
+    GEODE_EVENT_EXPORT_NORES(&addModeSwitchCallback, (std::move(callback), mod));
+
+    inline void addTabSwitchCallback(geode::Function<void(geode::ZStringView id)>&& callback, geode::Mod* mod = geode::Mod::get())
+    GEODE_EVENT_EXPORT_NORES(&addTabSwitchCallback, (std::move(callback), mod));
+
     inline geode::Result<std::vector<cocos2d::CCNode*>> getAllTabs()
     GEODE_EVENT_EXPORT(&getAllTabs, ());
 

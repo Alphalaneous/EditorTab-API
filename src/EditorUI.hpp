@@ -37,9 +37,12 @@ public:
         std::string m_currentMode;
         bool m_initialized = false;
         bool m_uiVisible = true;
+        bool m_changeModeSprites = true;
         int m_maxTabs = 14;
         InternalTabData m_currentTab;
         CCMenu* m_arrowMenu;
+        StringMap<geode::Function<void(ZStringView id)>> m_modeCallbacks;
+        StringMap<geode::Function<void(ZStringView id)>> m_tabCallbacks;
         ~Fields() {
             s_instance = nullptr;
         }
@@ -54,6 +57,7 @@ public:
     bool init(LevelEditorLayer* editorLayer);
     void setupTabs();
     void showUI(bool show);
+    void updateButtons();
     void onPause(CCObject* sender);
     InternalTabData tabWithSpriteFrame(ZStringView id, ZStringView mode, CCNode* tab, ZStringView frameName);
     InternalTabData tabWithNodeCallback(ZStringView id, ZStringView mode, CCNode* tab, std::function<CCNode*()>&& callback);

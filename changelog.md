@@ -1,3 +1,8 @@
+# 2.0.3
+- Fixes
+- Add changeModeSprites API
+- Add addModeSwitchCallback and addTabSwitchCallback
+
 # 2.0.2
 - Add ability to get all tabs
 

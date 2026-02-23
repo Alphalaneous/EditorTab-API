@@ -1,3 +1,6 @@
+# 2.0.2
+- Add ability to get all tabs
+
 # 2.0.1
 - Remove better dots on MacOS cuz it caused unexplainable crashes
 

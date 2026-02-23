@@ -507,3 +507,17 @@ Result<const InternalTabData&> ETEditorUI::getTab(geode::ZStringView tabID) {
 
     return geode::Err("Tab not found");
 }
+
+std::vector<CCNode*> ETEditorUI::getAllTabs() {
+    auto fields = m_fields.self();
+
+    std::vector<CCNode*> tabs;
+
+    for (auto& [k, v] : fields->m_tabs) {
+        for (const auto& tabData : v) {
+            tabs.push_back(tabData.tab);
+        }
+    }
+
+    return tabs;
+}

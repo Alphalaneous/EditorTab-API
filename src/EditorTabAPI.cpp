@@ -28,6 +28,13 @@ namespace alpha::editor_tabs {
         editorUI->switchTab(tabID);
     }
 
+    geode::Result<std::vector<cocos2d::CCNode*>> getAllTabs() {
+        auto editorUI = ETEditorUI::get();
+        if (!editorUI) return geode::Err("Not in Editor");
+
+        return geode::Ok(editorUI->getAllTabs());
+    }
+
     geode::Result<geode::ZStringView> getCurrentMode() {
         auto editorUI = ETEditorUI::get();
         if (!editorUI) return geode::Err("Not in Editor");

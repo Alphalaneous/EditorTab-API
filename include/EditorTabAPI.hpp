@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Geode/cocos/menu_nodes/CCMenuItem.h"
 #include <Geode/cocos/base_nodes/CCNode.h>
 #include <Geode/utils/ZStringView.hpp>
 #include <Geode/binding/EditButtonBar.hpp>
@@ -28,6 +27,9 @@ namespace alpha::editor_tabs {
 
     inline void switchTab(geode::ZStringView tabID)
     GEODE_EVENT_EXPORT_NORES(&switchTab, (tabID));
+
+    inline geode::Result<std::vector<cocos2d::CCNode*>> getAllTabs()
+    GEODE_EVENT_EXPORT(&getAllTabs, ());
 
     inline geode::Result<geode::ZStringView> getCurrentMode()
     GEODE_EVENT_EXPORT(&getCurrentMode, ());

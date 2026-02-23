@@ -75,4 +75,5 @@ public:
     void addTab(geode::ZStringView tabID, geode::ZStringView modeID, CreateTab&& createTab, CreateTabIcon&& createIcon, ToggleTab&& toggleTab, ReloadTab&& reloadTab);
     void removeTab(geode::ZStringView tabID);
     Result<const InternalTabData&> getTab(geode::ZStringView tabID);
+    std::vector<CCNode*> getAllTabs();
 };

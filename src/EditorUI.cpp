@@ -50,6 +50,14 @@ void ETEditorUI::updateButtons() {
     auto fields = m_fields.self();
     if (fields->m_initialized) {
         switchMode(fields->m_currentMode);
+        // keep them invisible if it updates while ui is hidden
+        if (!fields->m_uiVisible) {
+            for (const auto& [k, v] : fields->m_tabs) {
+                for (const auto& tabData : v) {
+                    setTabVisible(tabData.tab, false);
+                }
+            }
+        }
     }
 }
 

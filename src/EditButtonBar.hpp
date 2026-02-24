@@ -8,7 +8,7 @@ using namespace geode::prelude;
 
 class $modify(ETEditButtonBar, EditButtonBar) {
     
-#ifndef GEODE_IS_MACOS
+#if !defined(GEODE_IS_MACOS) && !defined(GEODE_IS_IOS) 
     struct Fields {
         CCSpriteBatchNode* m_dots;
     };
@@ -28,7 +28,7 @@ class $modify(ETEditButtonBar, EditButtonBar) {
     void onRight(cocos2d::CCObject* sender);
 };
 
-#ifndef GEODE_IS_MACOS
+#if !defined(GEODE_IS_MACOS) && !defined(GEODE_IS_IOS) 
 class $modify(ETBoomScrollLayer, BoomScrollLayer) {
     void updateDots(float dt);
 };

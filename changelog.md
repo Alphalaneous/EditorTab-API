@@ -1,3 +1,8 @@
+# 2.0.4
+- Many Bug Fixes
+- General Recursion fix
+- BetterEdit Recursion fix
+
 # 2.0.3
 - Fixes
 - Add changeModeSprites API

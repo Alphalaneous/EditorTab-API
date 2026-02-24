@@ -57,7 +57,6 @@ public:
     bool init(LevelEditorLayer* editorLayer);
     void setupTabs();
     void showUI(bool show);
-    void updateButtons();
     void onPause(CCObject* sender);
     InternalTabData tabWithSpriteFrame(ZStringView id, ZStringView mode, CCNode* tab, ZStringView frameName);
     InternalTabData tabWithNodeCallback(ZStringView id, ZStringView mode, CCNode* tab, std::function<CCNode*()>&& callback);

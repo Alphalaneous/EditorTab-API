@@ -23,6 +23,10 @@ bool ETEditorUI::init(LevelEditorLayer* editorLayer) {
 
     fields->m_initialized = true;
 
+    runAction(CallFuncExt::create([this] {
+        reloadEditTabs();
+    }));
+
     return true;
 }
 
@@ -40,22 +44,6 @@ void ETEditorUI::showUI(bool show) {
         for (const auto& [k, v] : fields->m_tabs) {
             for (const auto& tabData : v) {
                 setTabVisible(tabData.tab, false);
-            }
-        }
-    }
-}
-
-void ETEditorUI::updateButtons() {
-    EditorUI::updateButtons();
-    auto fields = m_fields.self();
-    if (fields->m_initialized) {
-        switchMode(fields->m_currentMode);
-        // keep them invisible if it updates while ui is hidden
-        if (!fields->m_uiVisible) {
-            for (const auto& [k, v] : fields->m_tabs) {
-                for (const auto& tabData : v) {
-                    setTabVisible(tabData.tab, false);
-                }
             }
         }
     }
@@ -264,6 +252,21 @@ void ETEditorUI::setupButtons() {
 void ETEditorUI::switchMode(ZStringView mode) {
     auto fields = m_fields.self();
     
+    auto oldMode = fields->m_currentMode;
+
+    if (mode == alpha::editor_tabs::BUILD) {
+        m_selectedMode = 2;
+    }
+    else if (mode == alpha::editor_tabs::EDIT) {
+        m_selectedMode = 3;
+    }
+    else if (mode == alpha::editor_tabs::DELETE) {
+        m_selectedMode = 1;
+    }
+    else {
+        m_selectedMode = -1;
+    }
+
     fields->m_currentMode = mode;
 
     auto& currentTabs = fields->m_tabs[mode];
@@ -296,6 +299,12 @@ void ETEditorUI::switchMode(ZStringView mode) {
     fields->m_arrowMenu->setVisible(currentTabs.size() > fields->m_maxTabs);
 
     toggleModeInternal();
+
+    if (oldMode != fields->m_currentMode) {
+        for (auto& [k, v] : fields->m_modeCallbacks) {
+            if (v) v(fields->m_currentMode);
+        }
+    }
 }
 
 void ETEditorUI::goToPage(int page) {
@@ -328,10 +337,6 @@ void ETEditorUI::switchTab(ZStringView id) {
             goToPage(page);
             break;
         }
-    }
-
-    for (auto& [k, v] : fields->m_tabCallbacks) {
-        if (v) v(id);
     }
 }
 
@@ -369,24 +374,21 @@ void ETEditorUI::switchTab(const InternalTabData& tabData) {
 
 void ETEditorUI::toggleModeInternal() {
     auto fields = m_fields.self();
-    if (!fields->m_changeModeSprites) return;
 
-    m_buildModeBtn->setSprite(CCSprite::createWithSpriteFrameName("edit_buildBtn_001.png"));
-    m_editModeBtn->setSprite(CCSprite::createWithSpriteFrameName("edit_editBtn_001.png"));
-    m_deleteModeBtn->setSprite(CCSprite::createWithSpriteFrameName("edit_deleteBtn_001.png"));
+    if (fields->m_changeModeSprites) {
+        m_buildModeBtn->setSprite(CCSprite::createWithSpriteFrameName("edit_buildBtn_001.png"));
+        m_editModeBtn->setSprite(CCSprite::createWithSpriteFrameName("edit_editBtn_001.png"));
+        m_deleteModeBtn->setSprite(CCSprite::createWithSpriteFrameName("edit_deleteBtn_001.png"));
 
-    if (fields->m_currentMode == alpha::editor_tabs::BUILD) {
-        m_buildModeBtn->setSprite(CCSprite::createWithSpriteFrameName("edit_buildSBtn_001.png"));
-    }
-    if (fields->m_currentMode == alpha::editor_tabs::EDIT) {
-        m_editModeBtn->setSprite(CCSprite::createWithSpriteFrameName("edit_editSBtn_001.png"));
-    }
-    if (fields->m_currentMode == alpha::editor_tabs::DELETE) {
-        m_deleteModeBtn->setSprite(CCSprite::createWithSpriteFrameName("edit_deleteSBtn_001.png"));
-    }
-
-    for (auto& [k, v] : fields->m_modeCallbacks) {
-        if (v) v(fields->m_currentMode);
+        if (fields->m_currentMode == alpha::editor_tabs::BUILD) {
+            m_buildModeBtn->setSprite(CCSprite::createWithSpriteFrameName("edit_buildSBtn_001.png"));
+        }
+        if (fields->m_currentMode == alpha::editor_tabs::EDIT) {
+            m_editModeBtn->setSprite(CCSprite::createWithSpriteFrameName("edit_editSBtn_001.png"));
+        }
+        if (fields->m_currentMode == alpha::editor_tabs::DELETE) {
+            m_deleteModeBtn->setSprite(CCSprite::createWithSpriteFrameName("edit_deleteSBtn_001.png"));
+        }
     }
 }
 
@@ -400,23 +402,18 @@ void ETEditorUI::toggleMode(CCObject* sender) {
 
     switch (sender->getTag()) {
         case 3: {
-            fields->m_currentMode = alpha::editor_tabs::EDIT;
+            switchMode(alpha::editor_tabs::EDIT);
             break;
         }
         case 2: {
-            fields->m_currentMode = alpha::editor_tabs::BUILD;
+            switchMode(alpha::editor_tabs::BUILD);
             break;
         }
         case 1: {
-            fields->m_currentMode = alpha::editor_tabs::DELETE;
+            switchMode(alpha::editor_tabs::DELETE);
             break;
         }
-        default: {
-            m_selectedMode = -1;
-        }
     }
-
-    switchMode(fields->m_currentMode);
 }
 
 void ETEditorUI::reloadEditTabs() {

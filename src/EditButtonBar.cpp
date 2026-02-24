@@ -6,7 +6,17 @@ void ETEditButtonBar::loadFromItems(CCArray* items, int c, int r, bool preserve)
     EditButtonBar::loadFromItems(items, c, r, preserve);
     auto editorUI = ETEditorUI::get();
 
-    setContentSize({editorUI->getContentWidth() - 180, editorUI->m_toolbarHeight});
+    auto spacerLeft = editorUI->getChildByID("spacer-line-left");
+    auto spacerRight = editorUI->getChildByID("spacer-line-right");
+
+    auto widthOffset = 180;
+
+    if (spacerLeft && spacerRight) {
+        widthOffset = spacerLeft->getPositionX() + (editorUI->getContentWidth() - spacerRight->getPositionX());
+    }
+
+    setContentSize({(editorUI->getContentWidth() - widthOffset) / getScale(), editorUI->m_toolbarHeight / getScale()});
+
     setAnchorPoint({0.5f, 0.f});
     m_scrollLayer->setContentSize(getContentSize());
     m_scrollLayer->ignoreAnchorPointForPosition(false);
@@ -45,7 +55,7 @@ void ETEditButtonBar::loadFromItems(CCArray* items, int c, int r, bool preserve)
 
         menu->setContentSize({width, height});
 
-        float scaleX = (getContentWidth() - 40) / menu->getContentWidth();
+        float scaleX = (getContentWidth() - 60) / menu->getContentWidth();
         float scaleY = (getContentHeight() - 14) / menu->getContentHeight();
         float scale = std::min(scaleX, scaleY);
 
@@ -63,18 +73,13 @@ void ETEditButtonBar::loadFromItems(CCArray* items, int c, int r, bool preserve)
     fields->m_dots->setPositionX(getContentWidth() / 2);
 #endif
 
-    runAction(CallFuncExt::create([this, editorUI] {
-        auto spacerLeft = editorUI->getChildByID("spacer-line-left");
-        auto spacerRight = editorUI->getChildByID("spacer-line-right");
-
-        if (spacerLeft && spacerRight) {
-            float x = (spacerLeft->getPositionX() + spacerRight->getPositionX()) / 2;
-            setPosition({x, 0});
-        }
-        else {
-            setPosition({getContentWidth() / 2, 0});
-        }
-    }));
+    if (spacerLeft && spacerRight) {
+        float x = (spacerLeft->getPositionX() + spacerRight->getPositionX()) / 2;
+        setPosition({x, 0});
+    }
+    else {
+        setPosition({getContentWidth() / 2, 0});
+    }
 
     showPage();
 }

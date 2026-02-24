@@ -1,3 +1,10 @@
+# 2.0.6
+- Allow creating tabs at any time before init
+- Hardcode fix for BetterEdit's custom edit tab
+
+# 2.0.5
+- Just remove the nice looking dots for iOS too
+
 # 2.0.4
 - Many Bug Fixes
 - General Recursion fix

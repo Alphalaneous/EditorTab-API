@@ -26,9 +26,8 @@ struct InternalTabData {
 using namespace alpha::editor_tabs;
 
 class $modify(ETEditorUI, EditorUI) {
-private:
-    static ETEditorUI* s_instance;
 public:
+    static ETEditorUI* s_instance;
 
     struct Fields {
         StringMap<std::vector<InternalTabData>> m_tabs;
@@ -43,6 +42,7 @@ public:
         CCMenu* m_arrowMenu;
         StringMap<geode::Function<void(ZStringView id)>> m_modeCallbacks;
         StringMap<geode::Function<void(ZStringView id)>> m_tabCallbacks;
+        std::vector<geode::Function<void()>> m_queuedTabs;
         ~Fields() {
             s_instance = nullptr;
         }
@@ -75,8 +75,16 @@ public:
 
     void goToPage(int page);
 
-    void addTab(geode::ZStringView tabID, geode::ZStringView modeID, CreateTab&& createTab, CreateTabIcon&& createIcon, ToggleTab&& toggleTab, ReloadTab&& reloadTab);
+    void addTab(geode::ZStringView tabID, geode::ZStringView modeID, const CreateTab&& createTab, const CreateTabIcon&& createIcon, const ToggleTab&& toggleTab, const ReloadTab&& reloadTab);
+    void addTabInternal(geode::ZStringView tabID, geode::ZStringView modeID, const CreateTab&& createTab, const CreateTabIcon&& createIcon, const ToggleTab&& toggleTab, const ReloadTab&& reloadTab);
     void removeTab(geode::ZStringView tabID);
     Result<const InternalTabData&> getTab(geode::ZStringView tabID);
     std::vector<CCNode*> getAllTabs();
+};
+
+class $modify(InstanceEditorUI, EditorUI) {
+    static void onModify(auto& self) {
+        (void) self.setHookPriority("EditorUI::init", Priority::VeryEarlyPre);
+    }
+    bool init(LevelEditorLayer* editorLayer);
 };

@@ -8,9 +8,8 @@ ETEditorUI* ETEditorUI::get() {
 }
 
 bool ETEditorUI::init(LevelEditorLayer* editorLayer) {
-    s_instance = this;
-
     if (!EditorUI::init(editorLayer)) return false;
+    log::info("late");
 
     auto fields = m_fields.self();
 
@@ -22,6 +21,12 @@ bool ETEditorUI::init(LevelEditorLayer* editorLayer) {
     setupTabs();
 
     fields->m_initialized = true;
+
+    for (auto& queued : fields->m_queuedTabs) {
+        queued();
+    }
+    
+    fields->m_queuedTabs.clear();
 
     runAction(CallFuncExt::create([this] {
         reloadEditTabs();
@@ -370,6 +375,11 @@ void ETEditorUI::switchTab(const InternalTabData& tabData) {
     for (auto& [k, v] : fields->m_tabCallbacks) {
         if (v) v(fields->m_currentTab.id);
     }
+
+    auto customMoveMenu = getChildByID("hjfod.betteredit/custom-move-menu");
+    if (customMoveMenu) {
+        customMoveMenu->setVisible(tabData.id == "edit");
+    }
 }
 
 void ETEditorUI::toggleModeInternal() {
@@ -459,7 +469,22 @@ void ETEditorUI::updateCreateMenu(bool selectTab) {
     }
 }
 
-void ETEditorUI::addTab(geode::ZStringView tabID, geode::ZStringView modeID, CreateTab&& createTab, CreateTabIcon&& createIcon, ToggleTab&& toggleTab, ReloadTab&& reloadTab) {
+void ETEditorUI::addTab(geode::ZStringView tabID, geode::ZStringView modeID, const CreateTab&& createTab, const CreateTabIcon&& createIcon, const ToggleTab&& toggleTab, const ReloadTab&& reloadTab) {
+    auto fields = m_fields.self();
+
+    if (fields->m_initialized) {
+        log::info("already init");
+        addTabInternal(std::move(tabID), std::move(modeID), std::move(createTab), std::move(createIcon), std::move(toggleTab), std::move(reloadTab));
+    }
+    else {
+        log::info("queuing");
+        fields->m_queuedTabs.push_back([this, tabID = std::move(tabID), modeID = std::move(modeID), createTab = std::move(createTab), createIcon = std::move(createIcon), toggleTab = std::move(toggleTab), reloadTab = std::move(reloadTab)] {
+            addTabInternal(std::move(tabID), std::move(modeID), std::move(createTab), std::move(createIcon), std::move(toggleTab), std::move(reloadTab));
+        });
+    }
+}
+
+void ETEditorUI::addTabInternal(geode::ZStringView tabID, geode::ZStringView modeID, const CreateTab&& createTab, const CreateTabIcon&& createIcon, const ToggleTab&& toggleTab, const ReloadTab&& reloadTab) {
     auto fields = m_fields.self();
     
     auto sprOn = createIcon();
@@ -546,4 +571,10 @@ std::vector<CCNode*> ETEditorUI::getAllTabs() {
     }
 
     return tabs;
+}
+
+bool InstanceEditorUI::init(LevelEditorLayer* editorLayer) {
+    ETEditorUI::s_instance = static_cast<ETEditorUI*>(static_cast<EditorUI*>(this));
+    log::info("earliest");
+    return EditorUI::init(editorLayer);
 }

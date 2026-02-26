@@ -88,3 +88,10 @@ class $modify(InstanceEditorUI, EditorUI) {
     }
     bool init(LevelEditorLayer* editorLayer);
 };
+
+class $modify(LateEditorUI, EditorUI) {
+    static void onModify(auto& self) {
+        (void) self.setHookPriority("EditorUI::init", Priority::VeryLatePost);
+    }
+    bool init(LevelEditorLayer* editorLayer);
+};

@@ -1,10 +1,15 @@
 #include "EditButtonBar.hpp"
 #include "EditorUI.hpp"
-#include <Geode/binding/EditButtonBar.hpp>
 
 void ETEditButtonBar::loadFromItems(CCArray* items, int c, int r, bool preserve) {
-    EditButtonBar::loadFromItems(items, c, r, preserve);
     auto editorUI = ETEditorUI::get();
+
+    if (!editorUI->m_fields->m_initialized) {
+        EditButtonBar::loadFromItems(items, c, r, preserve);
+        return;
+    }
+
+    EditButtonBar::loadFromItems(items, c, r, preserve);
 
     auto spacerLeft = editorUI->getChildByID("spacer-line-left");
     auto spacerRight = editorUI->getChildByID("spacer-line-right");
@@ -24,64 +29,66 @@ void ETEditButtonBar::loadFromItems(CCArray* items, int c, int r, bool preserve)
     m_scrollLayer->unscheduleUpdate();
     m_scrollLayer->unschedule(schedule_selector(BoomScrollLayer::updateDots));
 
-    for (auto page : m_scrollLayer->m_pages->asExt<ButtonPage>()) {
-        page->setContentSize(getContentSize());
-        page->ignoreAnchorPointForPosition(false);
-        page->setPosition(getContentSize() / 2);
-        page->setAnchorPoint({0.5f, 0.5f});
+    if (editorUI->m_fields->m_initialized) {
+        for (auto page : m_scrollLayer->m_pages->asExt<ButtonPage>()) {
+            page->setContentSize(getContentSize());
+            page->ignoreAnchorPointForPosition(false);
+            page->setPosition(getContentSize() / 2);
+            page->setAnchorPoint({0.5f, 0.5f});
 
-        auto menu = page->getChildByType<CCMenu*>(0);
-        if (!menu) continue;
+            auto menu = page->getChildByType<CCMenu*>(0);
+            if (!menu) continue;
 
-        for (auto item : menu->getChildrenExt<CCMenuItemSpriteExtra>()) {
-            item->setScale(1.f);
-            item->m_baseScale = 1.f;
+            for (auto item : menu->getChildrenExt<CCMenuItemSpriteExtra>()) {
+                item->setScale(1.f);
+                item->m_baseScale = 1.f;
+            }
+
+            menu->setAnchorPoint({0.5f, 0.5f});
+            menu->setPosition(getContentSize() / 2);
+
+            auto layout = RowLayout::create();
+            layout->setGrowCrossAxis(true);
+            layout->setCrossAxisOverflow(false);
+            layout->setAutoScale(false);
+            layout->setAxisAlignment(AxisAlignment::Start);
+            layout->setCrossAxisAlignment(AxisAlignment::End);
+
+            float gap = 5.f;
+
+            float width = c * (40.f + gap) - gap; 
+            float height = r * (40.f + gap) - gap; 
+
+            menu->setContentSize({width, height});
+
+            float scaleX = (getContentWidth() - 60) / menu->getContentWidth();
+            float scaleY = (getContentHeight() - 14) / menu->getContentHeight();
+            float scale = std::min(scaleX, scaleY);
+
+            menu->setScale(scale);
+
+            menu->setLayout(layout);
+            menu->updateLayout();
         }
 
-        menu->setAnchorPoint({0.5f, 0.5f});
-        menu->setPosition(getContentSize() / 2);
+    #if !defined(GEODE_IS_MACOS) && !defined(GEODE_IS_IOS) 
+        auto fields = m_fields.self();
+        fields->m_dots = m_scrollLayer->getChildByType<CCSpriteBatchNode>(0);
+        fields->m_dots->setAnchorPoint({0.5f, 0.f});
+        fields->m_dots->setContentSize({getContentWidth(), 5.f});
+        fields->m_dots->setPositionX(getContentWidth() / 2);
+    #endif
 
-        auto layout = RowLayout::create();
-        layout->setGrowCrossAxis(true);
-        layout->setCrossAxisOverflow(false);
-        layout->setAutoScale(false);
-        layout->setAxisAlignment(AxisAlignment::Start);
-        layout->setCrossAxisAlignment(AxisAlignment::End);
+        if (spacerLeft && spacerRight) {
+            float x = (spacerLeft->getPositionX() + spacerRight->getPositionX()) / 2;
+            setPosition({x, 0});
+        }
+        else {
+            setPosition({getContentWidth() / 2, 0});
+        }
 
-        float gap = 5.f;
-
-        float width = c * (40.f + gap) - gap; 
-        float height = r * (40.f + gap) - gap; 
-
-        menu->setContentSize({width, height});
-
-        float scaleX = (getContentWidth() - 60) / menu->getContentWidth();
-        float scaleY = (getContentHeight() - 14) / menu->getContentHeight();
-        float scale = std::min(scaleX, scaleY);
-
-        menu->setScale(scale);
-
-        menu->setLayout(layout);
-        menu->updateLayout();
+        showPage();
     }
-
-#if !defined(GEODE_IS_MACOS) && !defined(GEODE_IS_IOS) 
-    auto fields = m_fields.self();
-    fields->m_dots = m_scrollLayer->getChildByType<CCSpriteBatchNode>(0);
-    fields->m_dots->setAnchorPoint({0.5f, 0.f});
-    fields->m_dots->setContentSize({getContentWidth(), 5.f});
-    fields->m_dots->setPositionX(getContentWidth() / 2);
-#endif
-
-    if (spacerLeft && spacerRight) {
-        float x = (spacerLeft->getPositionX() + spacerRight->getPositionX()) / 2;
-        setPosition({x, 0});
-    }
-    else {
-        setPosition({getContentWidth() / 2, 0});
-    }
-
-    showPage();
 }
 
 void ETEditButtonBar::updatePage() {
@@ -123,6 +130,7 @@ void ETEditButtonBar::goToPage(int page) {
 }
 
 void ETEditButtonBar::showPage() {
+    
     m_scrollLayer->m_extendedLayer->setContentSize(getContentSize());
     m_scrollLayer->m_extendedLayer->ignoreAnchorPointForPosition(false);
     m_scrollLayer->m_extendedLayer->setPosition(getContentSize() / 2);

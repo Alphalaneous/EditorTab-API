@@ -1,3 +1,7 @@
+# 2.0.7
+- Fix some touch bugs hopefully 
+- Slight performance improvements
+
 # 2.0.6
 - Allow creating tabs at any time before init
 - Hardcode fix for BetterEdit's custom edit tab

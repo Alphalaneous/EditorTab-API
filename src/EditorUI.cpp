@@ -9,7 +9,6 @@ ETEditorUI* ETEditorUI::get() {
 
 bool ETEditorUI::init(LevelEditorLayer* editorLayer) {
     if (!EditorUI::init(editorLayer)) return false;
-    log::info("late");
 
     auto fields = m_fields.self();
 
@@ -28,10 +27,12 @@ bool ETEditorUI::init(LevelEditorLayer* editorLayer) {
     
     fields->m_queuedTabs.clear();
 
-    runAction(CallFuncExt::create([this] {
-        reloadEditTabs();
-    }));
+    return true;
+}
 
+bool LateEditorUI::init(LevelEditorLayer* editorLayer) {
+    if (!EditorUI::init(editorLayer)) return false;
+    ETEditorUI::get()->reloadEditTabs();
     return true;
 }
 
@@ -473,11 +474,9 @@ void ETEditorUI::addTab(geode::ZStringView tabID, geode::ZStringView modeID, con
     auto fields = m_fields.self();
 
     if (fields->m_initialized) {
-        log::info("already init");
         addTabInternal(std::move(tabID), std::move(modeID), std::move(createTab), std::move(createIcon), std::move(toggleTab), std::move(reloadTab));
     }
     else {
-        log::info("queuing");
         fields->m_queuedTabs.push_back([this, tabID = std::move(tabID), modeID = std::move(modeID), createTab = std::move(createTab), createIcon = std::move(createIcon), toggleTab = std::move(toggleTab), reloadTab = std::move(reloadTab)] {
             addTabInternal(std::move(tabID), std::move(modeID), std::move(createTab), std::move(createIcon), std::move(toggleTab), std::move(reloadTab));
         });
@@ -575,6 +574,5 @@ std::vector<CCNode*> ETEditorUI::getAllTabs() {
 
 bool InstanceEditorUI::init(LevelEditorLayer* editorLayer) {
     ETEditorUI::s_instance = static_cast<ETEditorUI*>(static_cast<EditorUI*>(this));
-    log::info("earliest");
     return EditorUI::init(editorLayer);
 }

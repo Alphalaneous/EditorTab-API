@@ -33,6 +33,7 @@ bool ETEditorUI::init(LevelEditorLayer* editorLayer) {
 bool LateEditorUI::init(LevelEditorLayer* editorLayer) {
     if (!EditorUI::init(editorLayer)) return false;
     ETEditorUI::get()->reloadEditTabs();
+    ETEditorUI::get()->resizeButtons();
     return true;
 }
 
@@ -107,6 +108,7 @@ void ETEditorUI::setupTabs() {
     fields->m_tabs[alpha::editor_tabs::DELETE].push_back(tabWithSpriteFrame("delete", alpha::editor_tabs::DELETE, m_deleteMenu, "edit_delBtn_001.png"));
 
     setupButtons();
+
     switchMode(alpha::editor_tabs::BUILD);
 }
 
@@ -203,8 +205,9 @@ void ETEditorUI::setupButtons() {
     fields->m_arrowMenu->setPosition(m_tabsMenu->getPosition());
     fields->m_arrowMenu->setAnchorPoint(m_tabsMenu->getAnchorPoint());
     fields->m_arrowMenu->setID("tabs-navigation-menu"_spr);
-    
-    auto prevButton = CCMenuItemExt::createSpriteExtraWithFrameName("GJ_arrow_02_001.png", 0.4f, [this, fields] (auto btn) {
+    fields->m_arrowMenu->setScale(m_tabsMenu->getScale());
+
+    fields->m_prevArrow = CCMenuItemExt::createSpriteExtraWithFrameName("GJ_arrow_02_001.png", 0.4f, [this, fields] (auto btn) {
         auto currentPage = fields->m_tabPage[fields->m_currentMode];
         auto maxPages = std::ceil(fields->m_tabs[fields->m_currentMode].size() / static_cast<float>(fields->m_maxTabs));
 
@@ -216,7 +219,7 @@ void ETEditorUI::setupButtons() {
         goToPage(currentPage);
     });
 
-    auto nextBtn = CCMenuItemExt::createSpriteExtraWithFrameName("GJ_arrow_02_001.png", 0.4f, [this, fields] (auto btn) {
+    fields->m_nextArrow = CCMenuItemExt::createSpriteExtraWithFrameName("GJ_arrow_02_001.png", 0.4f, [this, fields] (auto btn) {
         auto currentPage = fields->m_tabPage[fields->m_currentMode];
         auto maxPages = std::ceil(fields->m_tabs[fields->m_currentMode].size() / static_cast<float>(fields->m_maxTabs));
 
@@ -227,13 +230,13 @@ void ETEditorUI::setupButtons() {
 
         goToPage(currentPage);
     });
-    nextBtn->getChildByType<CCSprite>(0)->setFlipX(true);
+    fields->m_nextArrow->getChildByType<CCSprite>(0)->setFlipX(true);
 
-    prevButton->setPosition({15, fields->m_arrowMenu->getContentHeight() / 2});
-    nextBtn->setPosition({fields->m_arrowMenu->getContentWidth() - 15, fields->m_arrowMenu->getContentHeight() / 2});
+    fields->m_prevArrow->setPosition({15, fields->m_arrowMenu->getContentHeight() / 2});
+    fields->m_nextArrow->setPosition({fields->m_arrowMenu->getContentWidth() - 15, fields->m_arrowMenu->getContentHeight() / 2});
 
-    fields->m_arrowMenu->addChild(prevButton);
-    fields->m_arrowMenu->addChild(nextBtn);
+    fields->m_arrowMenu->addChild(fields->m_prevArrow);
+    fields->m_arrowMenu->addChild(fields->m_nextArrow);
 
     addChild(fields->m_arrowMenu);
 
@@ -251,8 +254,25 @@ void ETEditorUI::setupButtons() {
             idx++;
         }
     }
+}
+
+void ETEditorUI::resizeButtons() {
+    auto fields = m_fields.self();
+    m_tabsMenu->setContentWidth(getContentWidth() / m_tabsMenu->getScale());
+
+    auto tabWidth = m_tabsMenu->getContentWidth() - 36;
+    fields->m_maxTabs = (tabWidth - 2) / 34;
+
+    fields->m_arrowMenu->setContentSize(m_tabsMenu->getContentSize());
+    fields->m_arrowMenu->setPosition(m_tabsMenu->getPosition());
+    fields->m_arrowMenu->setScale(m_tabsMenu->getScale());
+
+    fields->m_prevArrow->setPosition({15, fields->m_arrowMenu->getContentHeight() / 2});
+    fields->m_nextArrow->setPosition({fields->m_arrowMenu->getContentWidth() - 15, fields->m_arrowMenu->getContentHeight() / 2});
 
     m_tabsMenu->updateLayout();
+
+    switchMode(alpha::editor_tabs::BUILD);
 }
 
 void ETEditorUI::switchMode(ZStringView mode) {
@@ -341,6 +361,7 @@ void ETEditorUI::switchTab(ZStringView id) {
 
             int page = tabData.idx / fields->m_maxTabs;
             goToPage(page);
+
             break;
         }
     }
@@ -372,6 +393,12 @@ void ETEditorUI::switchTab(const InternalTabData& tabData) {
 
     int page = tabData.idx / fields->m_maxTabs;
     goToPage(page);
+
+    if (fields->m_currentMode == alpha::editor_tabs::BUILD) {
+        m_createButtonBar = typeinfo_cast<EditButtonBar*>(currentTab.tab.data());
+    }
+
+    toggleMode(nullptr);
 
     for (auto& [k, v] : fields->m_tabCallbacks) {
         if (v) v(fields->m_currentTab.id);
@@ -405,6 +432,8 @@ void ETEditorUI::toggleModeInternal() {
 
 void ETEditorUI::toggleMode(CCObject* sender) {
     auto fields = m_fields.self();
+
+    if (!sender) return;
 
     m_selectedMode = sender->getTag();
     resetUI();

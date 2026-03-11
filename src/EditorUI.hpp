@@ -40,6 +40,8 @@ public:
         int m_maxTabs = 14;
         InternalTabData m_currentTab;
         CCMenu* m_arrowMenu;
+        CCMenuItemSpriteExtra* m_prevArrow;
+        CCMenuItemSpriteExtra* m_nextArrow;
         StringMap<geode::Function<void(ZStringView id)>> m_modeCallbacks;
         StringMap<geode::Function<void(ZStringView id)>> m_tabCallbacks;
         std::vector<geode::Function<void()>> m_queuedTabs;
@@ -50,6 +52,7 @@ public:
 
     static void onModify(auto& self) {
         (void) self.setHookPriority("EditorUI::init", Priority::EarlyPost);
+        (void) self.setHookPriority("EditorUI::toggleMode", Priority::Late);
     }
 
     static ETEditorUI* get();
@@ -63,6 +66,7 @@ public:
     void fitNode(CCNode* node, const CCSize& size);
     CCMenuItemToggler* createToggler(const InternalTabData& tabData);
     void setupButtons();
+    void resizeButtons();
     void setupButton(InternalTabData& tabData);
     void switchTab(const InternalTabData& tabData);
     void switchTab(ZStringView id);

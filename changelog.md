@@ -1,3 +1,6 @@
+# 2.0.8
+- Bug fixes
+
 # 2.0.7
 - Fix some touch bugs hopefully 
 - Slight performance improvements

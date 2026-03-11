@@ -7,16 +7,17 @@
 using namespace geode::prelude;
 
 class $modify(ETEditButtonBar, EditButtonBar) {
-#if !defined(GEODE_IS_MACOS) && !defined(GEODE_IS_IOS) 
     struct Fields {
         CCSpriteBatchNode* m_dots;
     };
-#endif
 
     static void onModify(auto& self) {
         (void) self.setHookPriority("EditButtonBar::loadFromItems", Priority::EarlyPost);
     }
 
+    static EditButtonBar* create(cocos2d::CCArray* objects, cocos2d::CCPoint position, int tab, bool hasCreateItems, int columns, int rows);
+
+    void setupChanges(int c, int r);
     void loadFromItems(CCArray* items, int c, int r, bool preserve);
     void goToPage(int page);
     void optimizedSetVisible(bool visible);
@@ -26,9 +27,3 @@ class $modify(ETEditButtonBar, EditButtonBar) {
     void onLeft(cocos2d::CCObject* sender);
     void onRight(cocos2d::CCObject* sender);
 };
-
-#if !defined(GEODE_IS_MACOS) && !defined(GEODE_IS_IOS) 
-class $modify(ETBoomScrollLayer, BoomScrollLayer) {
-    void updateDots(float dt);
-};
-#endif

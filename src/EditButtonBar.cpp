@@ -1,15 +1,18 @@
 #include "EditButtonBar.hpp"
 #include "EditorUI.hpp"
 
-void ETEditButtonBar::loadFromItems(CCArray* items, int c, int r, bool preserve) {
+EditButtonBar* ETEditButtonBar::create(cocos2d::CCArray* objects, cocos2d::CCPoint position, int tab, bool hasCreateItems, int columns, int rows) {
+    auto ret = EditButtonBar::create(objects, position, tab, hasCreateItems, columns, rows);
+    static_cast<ETEditButtonBar*>(ret)->setupChanges(columns, rows);
+    return ret;
+}
+
+void ETEditButtonBar::setupChanges(int c, int r) {
     auto editorUI = ETEditorUI::get();
 
     if (!editorUI->m_fields->m_initialized) {
-        EditButtonBar::loadFromItems(items, c, r, preserve);
         return;
     }
-
-    EditButtonBar::loadFromItems(items, c, r, preserve);
 
     auto spacerLeft = editorUI->getChildByID("spacer-line-left");
     auto spacerRight = editorUI->getChildByID("spacer-line-right");
@@ -29,77 +32,99 @@ void ETEditButtonBar::loadFromItems(CCArray* items, int c, int r, bool preserve)
     m_scrollLayer->unscheduleUpdate();
     m_scrollLayer->unschedule(schedule_selector(BoomScrollLayer::updateDots));
 
-    if (editorUI->m_fields->m_initialized) {
-        for (auto page : m_scrollLayer->m_pages->asExt<ButtonPage>()) {
-            page->setContentSize(getContentSize());
-            page->ignoreAnchorPointForPosition(false);
-            page->setPosition(getContentSize() / 2);
-            page->setAnchorPoint({0.5f, 0.5f});
+    for (auto page : m_scrollLayer->m_pages->asExt<ButtonPage>()) {
+        page->setContentSize(getContentSize());
+        page->ignoreAnchorPointForPosition(false);
+        page->setPosition(getContentSize() / 2);
+        page->setAnchorPoint({0.5f, 0.5f});
 
-            auto menu = page->getChildByType<CCMenu*>(0);
-            if (!menu) continue;
+        auto menu = page->getChildByType<CCMenu*>(0);
+        if (!menu) continue;
 
-            for (auto item : menu->getChildrenExt<CCMenuItemSpriteExtra>()) {
-                item->setScale(1.f);
-                item->m_baseScale = 1.f;
-            }
-
-            menu->setAnchorPoint({0.5f, 0.5f});
-            menu->setPosition(getContentSize() / 2);
-
-            auto layout = RowLayout::create();
-            layout->setGrowCrossAxis(true);
-            layout->setCrossAxisOverflow(false);
-            layout->setAutoScale(false);
-            layout->setAxisAlignment(AxisAlignment::Start);
-            layout->setCrossAxisAlignment(AxisAlignment::End);
-
-            float gap = 5.f;
-
-            float width = c * (40.f + gap) - gap; 
-            float height = r * (40.f + gap) - gap; 
-
-            menu->setContentSize({width, height});
-
-            float scaleX = (getContentWidth() - 60) / menu->getContentWidth();
-            float scaleY = (getContentHeight() - 14) / menu->getContentHeight();
-            float scale = std::min(scaleX, scaleY);
-
-            menu->setScale(scale);
-
-            menu->setLayout(layout);
-            menu->updateLayout();
-        }
-#if !defined(GEODE_IS_MACOS) && !defined(GEODE_IS_IOS) 
-        auto fields = m_fields.self();
-        fields->m_dots = m_scrollLayer->getChildByType<CCSpriteBatchNode>(0);
-        fields->m_dots->setAnchorPoint({0.5f, 0.f});
-        fields->m_dots->setContentSize({getContentWidth(), 5.f});
-        fields->m_dots->setPositionX(getContentWidth() / 2);
-#endif
-        if (spacerLeft && spacerRight) {
-            float x = (spacerLeft->getPositionX() + spacerRight->getPositionX()) / 2;
-            setPosition({x, 0});
-        }
-        else {
-            setPosition({getContentWidth() / 2, 0});
+        for (auto item : menu->getChildrenExt<CCMenuItemSpriteExtra>()) {
+            item->setScale(1.f);
+            item->m_baseScale = 1.f;
         }
 
-        showPage();
+        menu->setAnchorPoint({0.5f, 0.5f});
+        menu->setPosition(getContentSize() / 2);
+
+        auto layout = RowLayout::create();
+        layout->setGrowCrossAxis(true);
+        layout->setCrossAxisOverflow(false);
+        layout->setAutoScale(false);
+        layout->setAxisAlignment(AxisAlignment::Start);
+        layout->setCrossAxisAlignment(AxisAlignment::End);
+
+        float gap = 5.f;
+
+        float width = c * (40.f + gap) - gap; 
+        float height = r * (40.f + gap) - gap; 
+
+        menu->setContentSize({width, height});
+
+        float scaleX = (getContentWidth() - 60) / menu->getContentWidth();
+        float scaleY = (getContentHeight() - 14) / menu->getContentHeight();
+        float scale = std::min(scaleX, scaleY);
+
+        menu->setScale(scale);
+
+        menu->setLayout(layout);
+        menu->updateLayout();
     }
+    auto fields = m_fields.self();
+    m_scrollLayer->getChildByType<CCSpriteBatchNode>(0)->setVisible(false);
+
+    auto count = m_pagesArray ? m_pagesArray->count() : 1;
+
+    fields->m_dots = CCSpriteBatchNode::create("smallDot.png", count);
+    fields->m_dots->setAnchorPoint({0.5f, 0.f});
+    fields->m_dots->setContentSize({getContentWidth(), 5.f});
+    fields->m_dots->setPositionX(getContentWidth() / 2);
+
+    addChild(fields->m_dots);
+
+    for (int i = 0; i < count; i++) {
+        auto spr = CCSprite::create("smallDot.png");
+        spr->setScale(0.5f);
+        fields->m_dots->addChild(spr);
+    } 
+
+    if (spacerLeft && spacerRight) {
+        float x = (spacerLeft->getPositionX() + spacerRight->getPositionX()) / 2;
+        setPosition({x, 0});
+    }
+    else {
+        setPosition({getContentWidth() / 2, 0});
+    }
+
+    showPage();
+}
+
+void ETEditButtonBar::loadFromItems(CCArray* items, int c, int r, bool preserve) {
+    auto editorUI = ETEditorUI::get();
+
+    if (!editorUI->m_fields->m_initialized) {
+        EditButtonBar::loadFromItems(items, c, r, preserve);
+        return;
+    }
+
+    EditButtonBar::loadFromItems(items, c, r, preserve);
+    setupChanges(c, r);
 }
 
 void ETEditButtonBar::updatePage() {
-#if !defined(GEODE_IS_MACOS) && !defined(GEODE_IS_IOS) 
     auto fields = m_fields.self();
     if (!fields->m_dots) return;
 
     auto arr = fields->m_dots->getChildrenExt<CCSprite>();
 
+    if (arr.empty()) return;
+
     float gap = 12.f;
     float overallWidth = fields->m_dots->getContentWidth() - 15.f;
 
-    float width = (gap + 3.2f) * fields->m_dots->getChildrenCount() - gap;
+    float width = (gap + arr[0]->getScaledContentWidth()) * fields->m_dots->getChildrenCount() - gap;
     float start = fields->m_dots->getContentWidth() / 2 - width / 2;
 
     float factor = 1.f;
@@ -118,7 +143,6 @@ void ETEditButtonBar::updatePage() {
         idx++;
     }
     arr[getPage()]->setColor({255, 255, 255});
-#endif
 }
 
 void ETEditButtonBar::goToPage(int page) {
@@ -179,10 +203,3 @@ void ETEditButtonBar::optimizedSetVisible(bool visible) {
         showPage();
     }
 }
-
-#if !defined(GEODE_IS_MACOS) && !defined(GEODE_IS_IOS) 
-void ETBoomScrollLayer::updateDots(float dt) {
-    if (typeinfo_cast<EditButtonBar*>(getParent())) return;
-    BoomScrollLayer::updateDots(dt);
-}
-#endif

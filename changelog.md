@@ -1,3 +1,6 @@
+# 2.0.10
+- Reimplement the dots myself
+
 # 2.0.9
 - Remove BoomScrollLayer::updateDots hook again for mac and ios
 

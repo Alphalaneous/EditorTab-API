@@ -70,13 +70,13 @@ void ETEditButtonBar::loadFromItems(CCArray* items, int c, int r, bool preserve)
             menu->setLayout(layout);
             menu->updateLayout();
         }
-
+#if !defined(GEODE_IS_MACOS) && !defined(GEODE_IS_IOS) 
         auto fields = m_fields.self();
         fields->m_dots = m_scrollLayer->getChildByType<CCSpriteBatchNode>(0);
         fields->m_dots->setAnchorPoint({0.5f, 0.f});
         fields->m_dots->setContentSize({getContentWidth(), 5.f});
         fields->m_dots->setPositionX(getContentWidth() / 2);
-
+#endif
         if (spacerLeft && spacerRight) {
             float x = (spacerLeft->getPositionX() + spacerRight->getPositionX()) / 2;
             setPosition({x, 0});
@@ -90,6 +90,7 @@ void ETEditButtonBar::loadFromItems(CCArray* items, int c, int r, bool preserve)
 }
 
 void ETEditButtonBar::updatePage() {
+#if !defined(GEODE_IS_MACOS) && !defined(GEODE_IS_IOS) 
     auto fields = m_fields.self();
     if (!fields->m_dots) return;
 
@@ -116,7 +117,7 @@ void ETEditButtonBar::updatePage() {
         dot->setPosition({x, fields->m_dots->getContentHeight() / 2});
         idx++;
     }
-
+#endif
     arr[getPage()]->setColor({255, 255, 255});
 }
 
@@ -179,7 +180,9 @@ void ETEditButtonBar::optimizedSetVisible(bool visible) {
     }
 }
 
+#if !defined(GEODE_IS_MACOS) && !defined(GEODE_IS_IOS) 
 void ETBoomScrollLayer::updateDots(float dt) {
     if (typeinfo_cast<EditButtonBar*>(getParent())) return;
     BoomScrollLayer::updateDots(dt);
 }
+#endif

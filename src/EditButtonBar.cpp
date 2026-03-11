@@ -117,8 +117,8 @@ void ETEditButtonBar::updatePage() {
         dot->setPosition({x, fields->m_dots->getContentHeight() / 2});
         idx++;
     }
-#endif
     arr[getPage()]->setColor({255, 255, 255});
+#endif
 }
 
 void ETEditButtonBar::goToPage(int page) {

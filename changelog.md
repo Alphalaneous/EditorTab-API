@@ -1,3 +1,6 @@
+# 2.0.12
+- Add option to disable tab pagination
+
 # 2.0.11
 - Fixes
 

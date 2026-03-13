@@ -196,8 +196,12 @@ void ETEditorUI::setupButtons() {
 
     m_tabsMenu->setContentWidth(getContentWidth() / m_tabsMenu->getScale());
 
-    auto tabWidth = m_tabsMenu->getContentWidth() - 36;
-    fields->m_maxTabs = (tabWidth - 2) / 34;
+    if (Mod::get()->getSettingValue<bool>("disable-pages")) {
+        fields->m_maxTabs = 9999;
+    } else {
+        auto tabWidth = m_tabsMenu->getContentWidth() - 36;
+        fields->m_maxTabs = (tabWidth - 2) / 34;
+    }
 
     fields->m_arrowMenu = CCMenu::create();
     fields->m_arrowMenu->setContentSize(m_tabsMenu->getContentSize());
@@ -260,9 +264,13 @@ void ETEditorUI::resizeButtons() {
     auto fields = m_fields.self();
     m_tabsMenu->setContentWidth(getContentWidth() / m_tabsMenu->getScale());
 
-    auto tabWidth = m_tabsMenu->getContentWidth() - 36;
-    fields->m_maxTabs = (tabWidth - 2) / 34;
-
+    if (Mod::get()->getSettingValue<bool>("disable-pages")) {
+        fields->m_maxTabs = 9999;
+    } else {
+        auto tabWidth = m_tabsMenu->getContentWidth() - 36;
+        fields->m_maxTabs = (tabWidth - 2) / 34;
+    }
+    
     fields->m_arrowMenu->setContentSize(m_tabsMenu->getContentSize());
     fields->m_arrowMenu->setPosition(m_tabsMenu->getPosition());
     fields->m_arrowMenu->setScale(m_tabsMenu->getScale());

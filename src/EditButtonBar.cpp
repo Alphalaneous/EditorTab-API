@@ -10,7 +10,7 @@ EditButtonBar* ETEditButtonBar::create(cocos2d::CCArray* objects, cocos2d::CCPoi
 void ETEditButtonBar::setupChanges(int c, int r) {
     auto editorUI = ETEditorUI::get();
 
-    if (!editorUI->m_fields->m_initialized) {
+    if (!editorUI || !editorUI->m_fields->m_initialized) {
         return;
     }
 
@@ -81,6 +81,7 @@ void ETEditButtonBar::setupChanges(int c, int r) {
     fields->m_dots->setAnchorPoint({0.5f, 0.f});
     fields->m_dots->setContentSize({getContentWidth(), 5.f});
     fields->m_dots->setPositionX(getContentWidth() / 2);
+    fields->m_dots->setID("dots"_spr);
 
     addChild(fields->m_dots);
 

@@ -1,3 +1,6 @@
+# 2.0.11
+- Fixes
+
 # 2.0.10
 - Reimplement the dots myself
 

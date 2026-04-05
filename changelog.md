@@ -1,3 +1,6 @@
+# 2.0.12
+- Add `alphalaneous.editortab_api/disable-rewrite` user flag
+
 # 2.0.11
 - Fixes
 

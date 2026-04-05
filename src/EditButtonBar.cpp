@@ -8,6 +8,8 @@ EditButtonBar* ETEditButtonBar::create(cocos2d::CCArray* objects, cocos2d::CCPoi
 }
 
 void ETEditButtonBar::setupChanges(int c, int r) {
+    if (getUserFlag("disable-rewrite"_spr)) return;
+
     auto editorUI = ETEditorUI::get();
 
     if (!editorUI || !editorUI->m_fields->m_initialized) {
@@ -24,14 +26,14 @@ void ETEditButtonBar::setupChanges(int c, int r) {
     }
 
     setContentSize({(editorUI->getContentWidth() - widthOffset) / getScale(), editorUI->m_toolbarHeight / getScale()});
-
+    
     setAnchorPoint({0.5f, 0.f});
     m_scrollLayer->setContentSize(getContentSize());
     m_scrollLayer->ignoreAnchorPointForPosition(false);
     m_scrollLayer->setPosition(getContentSize() / 2);
     m_scrollLayer->unscheduleUpdate();
     m_scrollLayer->unschedule(schedule_selector(BoomScrollLayer::updateDots));
-
+    
     for (auto page : m_scrollLayer->m_pages->asExt<ButtonPage>()) {
         page->setContentSize(getContentSize());
         page->ignoreAnchorPointForPosition(false);
@@ -73,7 +75,9 @@ void ETEditButtonBar::setupChanges(int c, int r) {
         menu->updateLayout();
     }
     auto fields = m_fields.self();
-    m_scrollLayer->getChildByType<CCSpriteBatchNode>(0)->setVisible(false);
+
+    auto batch = m_scrollLayer->getChildByType<CCSpriteBatchNode>(0);
+    if (batch) batch->setVisible(false);
 
     auto count = m_pagesArray ? m_pagesArray->count() : 1;
 
@@ -152,6 +156,7 @@ void ETEditButtonBar::goToPage(int page) {
 }
 
 void ETEditButtonBar::showPage() {
+    if (getUserFlag("disable-rewrite"_spr)) return;
     
     m_scrollLayer->m_extendedLayer->setContentSize(getContentSize());
     m_scrollLayer->m_extendedLayer->ignoreAnchorPointForPosition(false);
@@ -167,8 +172,8 @@ void ETEditButtonBar::showPage() {
         auto leftBtn = menu->getChildByType<CCMenuItemSpriteExtra*>(0);
         auto rightBtn = menu->getChildByType<CCMenuItemSpriteExtra*>(1);
 
-        leftBtn->setPosition({leftBtn->getContentWidth() / 2 + 5, getContentHeight() / 2});
-        rightBtn->setPosition({getContentWidth() - leftBtn->getContentWidth() / 2 - 5, getContentHeight() / 2});
+        if (leftBtn) leftBtn->setPosition({leftBtn->getContentWidth() / 2 + 5, getContentHeight() / 2});
+        if (rightBtn) rightBtn->setPosition({getContentWidth() - leftBtn->getContentWidth() / 2 - 5, getContentHeight() / 2});
     }
 
     for (auto page : m_scrollLayer->m_pages->asExt<ButtonPage>()) {
@@ -195,6 +200,8 @@ void ETEditButtonBar::onRight(CCObject* sender) {
 
 void ETEditButtonBar::optimizedSetVisible(bool visible) {
     setVisible(visible);
+    if (getUserFlag("disable-rewrite"_spr)) return;
+
     if (!visible) {
         for (auto page : m_scrollLayer->m_pages->asExt<ButtonPage>()) {
             page->removeFromParent();

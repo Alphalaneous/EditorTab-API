@@ -499,6 +499,14 @@ void ETEditorUI::updateCreateMenu(bool selectTab) {
     }
 }
 
+void ETEditorUI::clickOnPosition(cocos2d::CCPoint position) {
+    EditorUI::clickOnPosition(position);
+    auto fields = m_fields.self();
+    if (fields->m_initialized) {
+        switchMode(fields->m_currentMode);
+    }
+}
+
 void ETEditorUI::addTab(geode::ZStringView tabID, geode::ZStringView modeID, const CreateTab&& createTab, const CreateTabIcon&& createIcon, const ToggleTab&& toggleTab, const ReloadTab&& reloadTab) {
     auto fields = m_fields.self();
 

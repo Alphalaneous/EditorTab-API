@@ -1,3 +1,6 @@
+# 2.0.13
+- Fix a bug where dragging with free move made the edit tabs show up in the wrong tab.
+
 # 2.0.12
 - Add `alphalaneous.editortab_api/disable-rewrite` user flag
 

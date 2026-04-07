@@ -76,6 +76,7 @@ public:
     void reloadEditTabs();
     void setTabVisible(CCNode* tab, bool visible);
     void updateCreateMenu(bool selectTab);
+    void clickOnPosition(cocos2d::CCPoint position);
 
     void goToPage(int page);
 

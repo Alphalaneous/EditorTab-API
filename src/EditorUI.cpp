@@ -503,17 +503,14 @@ void ETEditorUI::clickOnPosition(cocos2d::CCPoint position) {
     EditorUI::clickOnPosition(position);
     auto fields = m_fields.self();
     if (!fields->m_initialized) return;
-    if (fields->m_currentMode == alpha::editor_tabs::BUILD && m_createButtonBar->m_hasCreateItems) {
-        m_selectedTab = m_createButtonBar->m_tabIndex;
-        fields->m_tabIndex[fields->m_currentMode] = m_selectedTab;
+    switchMode(fields->m_currentMode);
+
+    if (fields->m_currentMode == alpha::editor_tabs::BUILD && m_createButtonBar && m_createButtonBar->m_hasCreateItems && m_createButtonBar->m_buttonArray) {
         for (auto item : m_createButtonBar->m_buttonArray->asExt<CreateMenuItem>()) {
             if (item->m_objectID == m_selectedObjectIndex) {
                 m_createButtonBar->goToPage(item->m_pageIndex);
             }
         }
-    }
-    else {
-        switchMode(fields->m_currentMode);
     }
 }
 

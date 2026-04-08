@@ -1,5 +1,8 @@
+# 2.1.1
+- Fix a crash
+
 # 2.1.0
-- Fix clicking on objects not bringing you to the right page in the create menu.
+- Fix clicking on objects not bringing you to the right page in the build menu.
 - Added indexForTab, idForTab, idForTabIndex, and tabForIndex
 
 # 2.0.13

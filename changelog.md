@@ -1,3 +1,7 @@
+# 2.1.0
+- Fix clicking on objects not bringing you to the right page in the create menu.
+- Added indexForTab, idForTab, idForTabIndex, and tabForIndex
+
 # 2.0.13
 - Fix a bug where dragging with free move made the edit tabs show up in the wrong tab.
 

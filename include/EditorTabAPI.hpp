@@ -55,6 +55,18 @@ namespace alpha::editor_tabs {
     inline geode::Result<geode::Ref<cocos2d::CCNode>> nodeForTab(geode::ZStringView tabID)
     GEODE_EVENT_EXPORT(&nodeForTab, (tabID));
 
+    inline geode::Result<int> indexForTab(cocos2d::CCNode* tab)
+    GEODE_EVENT_EXPORT(&indexForTab, (tab));
+
+    inline geode::Result<geode::Ref<cocos2d::CCNode>> tabForIndex(int index, geode::ZStringView modeID)
+    GEODE_EVENT_EXPORT(&tabForIndex, (index, modeID));
+
+    inline geode::Result<geode::ZStringView> idForTab(cocos2d::CCNode* tab)
+    GEODE_EVENT_EXPORT(&idForTab, (tab));
+
+    inline geode::Result<geode::ZStringView> idForTabIndex(int index, geode::ZStringView modeID)
+    GEODE_EVENT_EXPORT(&idForTabIndex, (index, modeID));
+
     inline geode::Result<geode::Ref<CCMenuItemToggler>> togglerForTab(geode::ZStringView tabID)
     GEODE_EVENT_EXPORT(&togglerForTab, (tabID));
 

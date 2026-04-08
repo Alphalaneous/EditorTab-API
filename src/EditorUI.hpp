@@ -84,6 +84,10 @@ public:
     void addTabInternal(geode::ZStringView tabID, geode::ZStringView modeID, const CreateTab&& createTab, const CreateTabIcon&& createIcon, const ToggleTab&& toggleTab, const ReloadTab&& reloadTab);
     void removeTab(geode::ZStringView tabID);
     Result<const InternalTabData&> getTab(geode::ZStringView tabID);
+    Result<int> getTabIndex(CCNode* tab);
+    Result<geode::ZStringView> getTabID(CCNode* tab);
+    Result<geode::ZStringView> getTabIDByIndex(int index, ZStringView modeID);
+    Result<Ref<CCNode>> getTabByIndex(int index, ZStringView modeID);
     std::vector<CCNode*> getAllTabs();
 };
 

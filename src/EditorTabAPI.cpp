@@ -111,6 +111,46 @@ namespace alpha::editor_tabs {
         return geode::Ok(res.unwrap().tab);
     }
 
+    geode::Result<int> indexForTab(cocos2d::CCNode* tab){
+        auto editorUI = ETEditorUI::get();
+        if (!editorUI) return geode::Err("Not in Editor");
+
+        const auto& res = editorUI->getTabIndex(tab);
+        if (!res) return geode::Err("Tab doesn't exist");
+
+        return geode::Ok(res.unwrap());
+    }
+
+    geode::Result<geode::ZStringView> idForTab(cocos2d::CCNode* tab) {
+        auto editorUI = ETEditorUI::get();
+        if (!editorUI) return geode::Err("Not in Editor");
+
+        const auto& res = editorUI->getTabID(tab);
+        if (!res) return geode::Err("Tab doesn't exist");
+
+        return geode::Ok(res.unwrap());
+    }
+
+    geode::Result<geode::Ref<cocos2d::CCNode>> tabForIndex(int index, geode::ZStringView modeID) {
+        auto editorUI = ETEditorUI::get();
+        if (!editorUI) return geode::Err("Not in Editor");
+
+        const auto& res = editorUI->getTabByIndex(index, modeID);
+        if (!res) return geode::Err("Tab doesn't exist");
+
+        return geode::Ok(res.unwrap());
+    }
+
+    inline geode::Result<geode::ZStringView> idForTabIndex(int index, geode::ZStringView modeID) {
+        auto editorUI = ETEditorUI::get();
+        if (!editorUI) return geode::Err("Not in Editor");
+
+        const auto& res = editorUI->getTabIDByIndex(index, modeID);
+        if (!res) return geode::Err("Tab doesn't exist");
+
+        return geode::Ok(res.unwrap());
+    }
+
     geode::Result<geode::Ref<CCMenuItemToggler>> togglerForTab(geode::ZStringView tabID) {
         auto editorUI = ETEditorUI::get();
         if (!editorUI) return geode::Err("Not in Editor");

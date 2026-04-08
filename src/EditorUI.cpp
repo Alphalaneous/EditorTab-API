@@ -502,7 +502,17 @@ void ETEditorUI::updateCreateMenu(bool selectTab) {
 void ETEditorUI::clickOnPosition(cocos2d::CCPoint position) {
     EditorUI::clickOnPosition(position);
     auto fields = m_fields.self();
-    if (fields->m_initialized) {
+    if (!fields->m_initialized) return;
+    if (fields->m_currentMode == alpha::editor_tabs::BUILD && m_createButtonBar->m_hasCreateItems) {
+        m_selectedTab = m_createButtonBar->m_tabIndex;
+        fields->m_tabIndex[fields->m_currentMode] = m_selectedTab;
+        for (auto item : m_createButtonBar->m_buttonArray->asExt<CreateMenuItem>()) {
+            if (item->m_objectID == m_selectedObjectIndex) {
+                m_createButtonBar->goToPage(item->m_pageIndex);
+            }
+        }
+    }
+    else {
         switchMode(fields->m_currentMode);
     }
 }
@@ -592,6 +602,54 @@ Result<const InternalTabData&> ETEditorUI::getTab(geode::ZStringView tabID) {
         }
     }
 
+    return geode::Err("Tab not found");
+}
+
+Result<int> ETEditorUI::getTabIndex(CCNode* tab) {
+    auto fields = m_fields.self();
+
+    for (auto& [k, v] : fields->m_tabs) {
+        for (const auto& tabData : v) {
+            if (tabData.tab == tab) return geode::Ok(tabData.idx);
+        }
+    }
+
+    return geode::Err("Tab not found");
+}
+
+Result<geode::ZStringView> ETEditorUI::getTabID(CCNode* tab) {
+    auto fields = m_fields.self();
+
+    for (auto& [k, v] : fields->m_tabs) {
+        for (const auto& tabData : v) {
+            if (tabData.tab == tab) return geode::Ok(tabData.id);
+        }
+    }
+
+    return geode::Err("Tab not found");
+}
+
+Result<Ref<CCNode>> ETEditorUI::getTabByIndex(int index, ZStringView modeID) {
+    auto fields = m_fields.self();
+
+    auto& tabs = fields->m_tabs[modeID];
+
+    for (const auto& tabData : tabs) {
+        if (tabData.idx == index) return geode::Ok(tabData.tab);
+    }
+    
+    return geode::Err("Tab not found");
+}
+
+Result<geode::ZStringView> ETEditorUI::getTabIDByIndex(int index, ZStringView modeID) {
+    auto fields = m_fields.self();
+
+    auto& tabs = fields->m_tabs[modeID];
+
+    for (const auto& tabData : tabs) {
+        if (tabData.idx == index) return geode::Ok(tabData.id);
+    }
+    
     return geode::Err("Tab not found");
 }
 

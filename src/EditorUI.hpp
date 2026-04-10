@@ -18,7 +18,7 @@ struct InternalTabData {
     Ref<CCMenuItemToggler> toggler;
     int idx;
 
-    bool operator==(const InternalTabData& data) {
+    bool operator==(const InternalTabData& data) const {
         return this->id == data.id;
     }
 };
@@ -42,8 +42,8 @@ public:
         CCMenu* m_arrowMenu;
         CCMenuItemSpriteExtra* m_prevArrow;
         CCMenuItemSpriteExtra* m_nextArrow;
-        StringMap<geode::Function<void(ZStringView id)>> m_modeCallbacks;
-        StringMap<geode::Function<void(ZStringView id)>> m_tabCallbacks;
+        StringMap<std::vector<geode::Function<void(ZStringView id)>>> m_modeCallbacks;
+        StringMap<std::vector<geode::Function<void(ZStringView id)>>> m_tabCallbacks;
         std::vector<geode::Function<void()>> m_queuedTabs;
         ~Fields() {
             s_instance = nullptr;

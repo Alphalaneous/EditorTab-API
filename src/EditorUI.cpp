@@ -328,8 +328,21 @@ void ETEditorUI::switchMode(ZStringView mode) {
 
     if (oldMode != fields->m_currentMode) {
         for (auto& [k, v] : fields->m_modeCallbacks) {
-            if (v) v(fields->m_currentMode);
+            for (auto& c : v) {
+                if (c) c(fields->m_currentMode);
+            }
         }
+        for (auto& [k, v] : fields->m_tabCallbacks) {
+            for (auto& c : v) {
+                if (c) c(fields->m_currentTab.id);
+            }
+        }
+    }
+
+    if (fields->m_currentMode != alpha::editor_tabs::EDIT) return;
+    auto customMoveMenu = getChildByID("hjfod.betteredit/custom-move-menu");
+    if (customMoveMenu) {
+        customMoveMenu->setVisible(fields->m_currentTab.id == "edit");
     }
 }
 
@@ -371,6 +384,7 @@ void ETEditorUI::switchTab(const InternalTabData& tabData) {
     auto fields = m_fields.self();
 
     setTabVisible(tabData.tab, true);
+    int oldIdx = fields->m_tabIndex[fields->m_currentMode];
     fields->m_tabIndex[fields->m_currentMode] = tabData.idx;
 
     for (const auto& [k, v] : fields->m_tabs) {
@@ -398,10 +412,12 @@ void ETEditorUI::switchTab(const InternalTabData& tabData) {
         m_createButtonBar = typeinfo_cast<EditButtonBar*>(currentTab.tab.data());
     }
 
-    toggleMode(nullptr);
-
-    for (auto& [k, v] : fields->m_tabCallbacks) {
-        if (v) v(fields->m_currentTab.id);
+    if (oldIdx != tabData.idx) {
+        for (auto& [k, v] : fields->m_tabCallbacks) {
+            for (auto& c : v) {
+                if (c) c(fields->m_currentTab.id);
+            }
+        }
     }
 
     auto customMoveMenu = getChildByID("hjfod.betteredit/custom-move-menu");

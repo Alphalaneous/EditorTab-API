@@ -32,14 +32,14 @@ namespace alpha::editor_tabs {
         auto editorUI = ETEditorUI::get();
         if (!editorUI) return;
 
-        editorUI->m_fields->m_modeCallbacks[mod->getID()] = std::move(callback);
+        editorUI->m_fields->m_modeCallbacks[mod->getID()].push_back(std::move(callback));
     }
 
     void addTabSwitchCallback(geode::Function<void(geode::ZStringView id)>&& callback, geode::Mod* mod) {
         auto editorUI = ETEditorUI::get();
         if (!editorUI) return;
 
-        editorUI->m_fields->m_tabCallbacks[mod->getID()] = std::move(callback);
+        editorUI->m_fields->m_tabCallbacks[mod->getID()].push_back(std::move(callback));
     }
 
     void changeModeSprites(bool enabled) {

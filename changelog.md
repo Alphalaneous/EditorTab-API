@@ -1,3 +1,6 @@
+# 2.1.3
+- Hotfix for BetterEdit Edit Menu breaking
+
 # 2.1.2
 - Fix mods only being allowed one tab/mode callback
 - Fix those callbacks being called inconsistently

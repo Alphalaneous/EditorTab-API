@@ -78,6 +78,8 @@ public:
     void updateCreateMenu(bool selectTab);
     void clickOnPosition(cocos2d::CCPoint position);
 
+    void fixBetterEdit();
+
     void goToPage(int page);
 
     void addTab(geode::ZStringView tabID, geode::ZStringView modeID, const CreateTab&& createTab, const CreateTabIcon&& createIcon, const ToggleTab&& toggleTab, const ReloadTab&& reloadTab);

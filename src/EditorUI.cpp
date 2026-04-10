@@ -339,11 +339,7 @@ void ETEditorUI::switchMode(ZStringView mode) {
         }
     }
 
-    if (fields->m_currentMode != alpha::editor_tabs::EDIT) return;
-    auto customMoveMenu = getChildByID("hjfod.betteredit/custom-move-menu");
-    if (customMoveMenu) {
-        customMoveMenu->setVisible(fields->m_currentTab.id == "edit");
-    }
+    fixBetterEdit();
 }
 
 void ETEditorUI::goToPage(int page) {
@@ -378,6 +374,8 @@ void ETEditorUI::switchTab(ZStringView id) {
             break;
         }
     }
+
+    fixBetterEdit();
 }
 
 void ETEditorUI::switchTab(const InternalTabData& tabData) {
@@ -420,9 +418,20 @@ void ETEditorUI::switchTab(const InternalTabData& tabData) {
         }
     }
 
+    fixBetterEdit();
+}
+
+void ETEditorUI::fixBetterEdit() {
+    auto fields = m_fields.self();
+    if (fields->m_currentMode != alpha::editor_tabs::EDIT) return;
+
     auto customMoveMenu = getChildByID("hjfod.betteredit/custom-move-menu");
     if (customMoveMenu) {
-        customMoveMenu->setVisible(tabData.id == "edit");
+        customMoveMenu->setVisible(fields->m_currentTab.id == "edit");
+        auto editTabRes = getTab("edit");
+        if (!editTabRes) return;
+        auto& editTab = editTabRes.unwrap();
+        editTab.tab->setVisible(false);
     }
 }
 

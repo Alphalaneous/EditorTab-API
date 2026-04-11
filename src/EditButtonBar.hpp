@@ -8,7 +8,7 @@ using namespace geode::prelude;
 
 class $modify(ETEditButtonBar, EditButtonBar) {
     struct Fields {
-        CCSpriteBatchNode* m_dots;
+        CCNode* m_dots;
     };
 
     static void onModify(auto& self) {

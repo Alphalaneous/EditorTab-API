@@ -1,3 +1,6 @@
+# 2.1.4
+- Fix incompat with Clickable Dots in the editor
+
 # 2.1.3
 - Hotfix for BetterEdit Edit Menu breaking
 

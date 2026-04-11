@@ -1,5 +1,6 @@
 #include "EditButtonBar.hpp"
 #include "EditorUI.hpp"
+#include <Geode/ui/Button.hpp>
 
 EditButtonBar* ETEditButtonBar::create(cocos2d::CCArray* objects, cocos2d::CCPoint position, int tab, bool hasCreateItems, int columns, int rows) {
     auto ret = EditButtonBar::create(objects, position, tab, hasCreateItems, columns, rows);
@@ -33,6 +34,11 @@ void ETEditButtonBar::setupChanges(int c, int r) {
     m_scrollLayer->setPosition(getContentSize() / 2);
     m_scrollLayer->unscheduleUpdate();
     m_scrollLayer->unschedule(schedule_selector(BoomScrollLayer::updateDots));
+
+    auto clickableDotsMenu = m_scrollLayer->getChildByID("zilko.clickable_dots/buttons-menu");
+    if (clickableDotsMenu) {
+        clickableDotsMenu->setVisible(false);
+    }
     
     for (auto page : m_scrollLayer->m_pages->asExt<ButtonPage>()) {
         page->setContentSize(getContentSize());
@@ -81,10 +87,10 @@ void ETEditButtonBar::setupChanges(int c, int r) {
 
     auto count = m_pagesArray ? m_pagesArray->count() : 1;
 
-    fields->m_dots = CCSpriteBatchNode::create("smallDot.png", count);
+    fields->m_dots = CCNode::create();
     fields->m_dots->setAnchorPoint({0.5f, 0.f});
     fields->m_dots->setContentSize({getContentWidth(), 5.f});
-    fields->m_dots->setPositionX(getContentWidth() / 2);
+    fields->m_dots->setPosition({getContentWidth() / 2, 0});
     fields->m_dots->setID("dots"_spr);
 
     addChild(fields->m_dots);
@@ -92,7 +98,21 @@ void ETEditButtonBar::setupChanges(int c, int r) {
     for (int i = 0; i < count; i++) {
         auto spr = CCSprite::create("smallDot.png");
         spr->setScale(0.5f);
-        fields->m_dots->addChild(spr);
+
+        if (clickableDotsMenu) {
+            auto btn = geode::Button::createWithNode(spr, [this] (auto sender) {
+                goToPage(sender->getTag());
+            });
+            btn->setCascadeColorEnabled(true);
+            btn->setCascadeOpacityEnabled(true);
+            btn->setTag(i);
+            btn->setZOrder(i);
+
+            fields->m_dots->addChild(btn);
+        }
+        else {
+            fields->m_dots->addChild(spr);
+        }
     } 
 
     if (spacerLeft && spacerRight) {
@@ -122,7 +142,7 @@ void ETEditButtonBar::updatePage() {
     auto fields = m_fields.self();
     if (!fields->m_dots) return;
 
-    auto arr = fields->m_dots->getChildrenExt<CCSprite>();
+    auto arr = fields->m_dots->getChildrenExt<CCNodeRGBA>();
 
     if (arr.empty()) return;
 

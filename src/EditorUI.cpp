@@ -339,6 +339,7 @@ void ETEditorUI::switchMode(ZStringView mode) {
         }
     }
 
+    updateGridNodeSize();
     fixBetterEdit();
 }
 
@@ -355,6 +356,7 @@ void ETEditorUI::goToPage(int page) {
     }
 
     m_tabsMenu->updateLayout();
+    updateGridNodeSize();
 }
 
 void ETEditorUI::switchTab(ZStringView id) {
@@ -375,6 +377,7 @@ void ETEditorUI::switchTab(ZStringView id) {
         }
     }
 
+    updateGridNodeSize();
     fixBetterEdit();
 }
 
@@ -418,6 +421,7 @@ void ETEditorUI::switchTab(const InternalTabData& tabData) {
         }
     }
 
+    updateGridNodeSize();
     fixBetterEdit();
 }
 
@@ -453,6 +457,7 @@ void ETEditorUI::toggleModeInternal() {
             m_deleteModeBtn->setSprite(CCSprite::createWithSpriteFrameName("edit_deleteSBtn_001.png"));
         }
     }
+    updateGridNodeSize();
 }
 
 void ETEditorUI::toggleMode(CCObject* sender) {
@@ -479,6 +484,7 @@ void ETEditorUI::toggleMode(CCObject* sender) {
             break;
         }
     }
+    updateGridNodeSize();
 }
 
 void ETEditorUI::reloadEditTabs() {
@@ -507,6 +513,8 @@ void ETEditorUI::setTabVisible(CCNode* tab, bool visible) {
 
 void ETEditorUI::updateCreateMenu(bool selectTab) {
     EditorUI::updateCreateMenu(selectTab);
+    updateGridNodeSize();
+
     auto fields = m_fields.self();
 
     if (selectTab) {
@@ -514,6 +522,13 @@ void ETEditorUI::updateCreateMenu(bool selectTab) {
         fields->m_tabIndex[fields->m_currentMode] = m_selectedTab;
         switchMode(fields->m_currentMode);
         goToPage(page);
+        if (fields->m_currentMode == alpha::editor_tabs::BUILD && m_createButtonBar && m_createButtonBar->m_hasCreateItems && m_createButtonBar->m_buttonArray) {
+            for (auto item : m_createButtonBar->m_buttonArray->asExt<CreateMenuItem>()) {
+                if (item->m_objectID == m_selectedObjectIndex) {
+                    m_createButtonBar->goToPage(item->m_pageIndex);
+                }
+            }
+        }
         return;
     }
 
@@ -529,14 +544,6 @@ void ETEditorUI::clickOnPosition(cocos2d::CCPoint position) {
     auto fields = m_fields.self();
     if (!fields->m_initialized) return;
     switchMode(fields->m_currentMode);
-
-    if (fields->m_currentMode == alpha::editor_tabs::BUILD && m_createButtonBar && m_createButtonBar->m_hasCreateItems && m_createButtonBar->m_buttonArray) {
-        for (auto item : m_createButtonBar->m_buttonArray->asExt<CreateMenuItem>()) {
-            if (item->m_objectID == m_selectedObjectIndex) {
-                m_createButtonBar->goToPage(item->m_pageIndex);
-            }
-        }
-    }
 }
 
 void ETEditorUI::addTab(geode::ZStringView tabID, geode::ZStringView modeID, const CreateTab&& createTab, const CreateTabIcon&& createIcon, const ToggleTab&& toggleTab, const ReloadTab&& reloadTab) {

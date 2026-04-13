@@ -1,3 +1,7 @@
+# 2.1.5
+- Fix jumping pages when placing objects
+- Fix grid size not updating properly when switching modes
+
 # 2.1.4
 - Fix incompat with Clickable Dots in the editor
 

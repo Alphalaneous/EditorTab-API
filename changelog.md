@@ -1,3 +1,6 @@
+# 2.1.7
+- Fix another BetterEdit bug
+
 # 2.1.6
 - Fix scaling issues
 - Add updateTabMenu in the api, to force it to update in case you change its scale or size or something

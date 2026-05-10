@@ -167,4 +167,11 @@ namespace alpha::editor_tabs {
 
         editorUI->removeTab(tabID);
     }
+
+    void updateTabMenu() {
+        auto editorUI = ETEditorUI::get();
+        if (!editorUI) return;
+
+        editorUI->resizeButtons();
+    }
 }

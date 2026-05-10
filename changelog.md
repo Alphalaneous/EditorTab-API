@@ -1,3 +1,10 @@
+# 2.1.6
+- Fix scaling issues
+- Add updateTabMenu in the api, to force it to update in case you change its scale or size or something
+- Fix arrow menu showing during playtest or UI being hidden
+- Fix tabs reappearing under certain conditions where the UI should be hidden
+- Make EditButtonBar top aligned rather than center aligned to match vanilla when the menu height is less than the EditButtonBar height
+
 # 2.1.5
 - Fix jumping pages when placing objects
 - Fix grid size not updating properly when switching modes

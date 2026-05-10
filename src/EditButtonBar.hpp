@@ -9,6 +9,7 @@ using namespace geode::prelude;
 class $modify(ETEditButtonBar, EditButtonBar) {
     struct Fields {
         CCNode* m_dots;
+        float m_menuHeight;
     };
 
     static void onModify(auto& self) {

@@ -26,9 +26,12 @@ void ETEditButtonBar::setupChanges(int c, int r) {
         widthOffset = spacerLeft->getPositionX() + (editorUI->getContentWidth() - spacerRight->getPositionX());
     }
 
-    setContentSize({(editorUI->getContentWidth() - widthOffset) / getScale(), editorUI->m_toolbarHeight / getScale()});
-    
+    auto barScale = editorUI->m_toolbarHeight / 92;
+
+    setContentSize({editorUI->getContentWidth() - widthOffset, editorUI->m_toolbarHeight});
     setAnchorPoint({0.5f, 0.f});
+    setScale(1);
+
     m_scrollLayer->setContentSize(getContentSize());
     m_scrollLayer->ignoreAnchorPointForPosition(false);
     m_scrollLayer->setPosition(getContentSize() / 2);
@@ -40,6 +43,8 @@ void ETEditButtonBar::setupChanges(int c, int r) {
         clickableDotsMenu->setVisible(false);
     }
     
+    auto fields = m_fields.self();
+
     for (auto page : m_scrollLayer->m_pages->asExt<ButtonPage>()) {
         page->setContentSize(getContentSize());
         page->ignoreAnchorPointForPosition(false);
@@ -54,8 +59,8 @@ void ETEditButtonBar::setupChanges(int c, int r) {
             item->m_baseScale = 1.f;
         }
 
-        menu->setAnchorPoint({0.5f, 0.5f});
-        menu->setPosition(getContentSize() / 2);
+        menu->setAnchorPoint({0.5f, 1.f});
+        menu->setPosition({getContentWidth() / 2, getContentHeight() - 7 * barScale});
 
         auto layout = RowLayout::create();
         layout->setGrowCrossAxis(true);
@@ -71,16 +76,16 @@ void ETEditButtonBar::setupChanges(int c, int r) {
 
         menu->setContentSize({width, height});
 
-        float scaleX = (getContentWidth() - 60) / menu->getContentWidth();
-        float scaleY = (getContentHeight() - 14) / menu->getContentHeight();
+        float scaleX = (getContentWidth() - 60 * barScale) / menu->getContentWidth();
+        float scaleY = (getContentHeight() - 14 * barScale) / menu->getContentHeight();
         float scale = std::min(scaleX, scaleY);
 
         menu->setScale(scale);
+        fields->m_menuHeight = menu->getScaledContentHeight();
 
         menu->setLayout(layout);
         menu->updateLayout();
     }
-    auto fields = m_fields.self();
 
     auto batch = m_scrollLayer->getChildByType<CCSpriteBatchNode>(0);
     if (batch) batch->setVisible(false);
@@ -89,7 +94,7 @@ void ETEditButtonBar::setupChanges(int c, int r) {
 
     fields->m_dots = CCNode::create();
     fields->m_dots->setAnchorPoint({0.5f, 0.f});
-    fields->m_dots->setContentSize({getContentWidth(), 5.f});
+    fields->m_dots->setContentSize({getContentWidth(), 5.f * barScale});
     fields->m_dots->setPosition({getContentWidth() / 2, 0});
     fields->m_dots->setID("dots"_spr);
 
@@ -97,7 +102,7 @@ void ETEditButtonBar::setupChanges(int c, int r) {
 
     for (int i = 0; i < count; i++) {
         auto spr = CCSprite::create("smallDot.png");
-        spr->setScale(0.5f);
+        spr->setScale(0.5f * barScale);
 
         if (clickableDotsMenu) {
             auto btn = geode::Button::createWithNode(spr, [this] (auto sender) {
@@ -145,9 +150,11 @@ void ETEditButtonBar::updatePage() {
     auto arr = fields->m_dots->getChildrenExt<CCNodeRGBA>();
 
     if (arr.empty()) return;
+    auto editorUI = ETEditorUI::get();
+    auto barScale = editorUI->m_toolbarHeight / 92;
 
-    float gap = 12.f;
-    float overallWidth = fields->m_dots->getContentWidth() - 15.f;
+    float gap = 12.f * barScale;
+    float overallWidth = fields->m_dots->getContentWidth() - 15.f * barScale;
 
     float width = (gap + arr[0]->getScaledContentWidth()) * fields->m_dots->getChildrenCount() - gap;
     float start = fields->m_dots->getContentWidth() / 2 - width / 2;
@@ -177,23 +184,35 @@ void ETEditButtonBar::goToPage(int page) {
 
 void ETEditButtonBar::showPage() {
     if (getUserFlag("disable-rewrite"_spr)) return;
-    
+    auto editorUI = ETEditorUI::get();
+    auto barScale = editorUI->m_toolbarHeight / 92;
+
     m_scrollLayer->m_extendedLayer->setContentSize(getContentSize());
     m_scrollLayer->m_extendedLayer->ignoreAnchorPointForPosition(false);
     m_scrollLayer->m_extendedLayer->setPosition(getContentSize() / 2);
 
+    auto fields = m_fields.self();
+
     auto menu = getChildByType<CCMenu>(0);
     if (menu) {
-        menu->setContentSize(getContentSize());
-        menu->setAnchorPoint({0.5f, 0.5f});
+        menu->setContentSize({getContentSize().width, fields->m_menuHeight});
+        menu->setAnchorPoint({0.5f, 1.f});
         menu->ignoreAnchorPointForPosition(false);
-        menu->setPosition(getContentSize() / 2);
+        menu->setPosition({getContentWidth() / 2, getContentHeight() - 7 * barScale});
 
         auto leftBtn = menu->getChildByType<CCMenuItemSpriteExtra*>(0);
         auto rightBtn = menu->getChildByType<CCMenuItemSpriteExtra*>(1);
 
-        if (leftBtn) leftBtn->setPosition({leftBtn->getContentWidth() / 2 + 5, getContentHeight() / 2});
-        if (rightBtn) rightBtn->setPosition({getContentWidth() - leftBtn->getContentWidth() / 2 - 5, getContentHeight() / 2});
+        if (leftBtn) {
+            leftBtn->setPosition({leftBtn->getScaledContentWidth() / 2 + 5 * barScale, menu->getContentHeight() / 2});
+            leftBtn->setScale(barScale);
+            leftBtn->m_baseScale = barScale;
+        }
+        if (rightBtn) {
+            rightBtn->setPosition({getContentWidth() - leftBtn->getScaledContentWidth() / 2 - 5 * barScale, menu->getContentHeight() / 2});
+            rightBtn->setScale(barScale);
+            rightBtn->m_baseScale = barScale;
+        }
     }
 
     for (auto page : m_scrollLayer->m_pages->asExt<ButtonPage>()) {

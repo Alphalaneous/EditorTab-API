@@ -232,6 +232,9 @@ void ETEditorUI::setupButtons() {
     });
     fields->m_nextArrow->getChildByType<CCSprite>(0)->setFlipX(true);
 
+    m_uiItems->addObject(fields->m_prevArrow);
+    m_uiItems->addObject(fields->m_nextArrow);
+
     fields->m_prevArrow->setPosition({15, fields->m_arrowMenu->getContentHeight() / 2});
     fields->m_nextArrow->setPosition({fields->m_arrowMenu->getContentWidth() - 15, fields->m_arrowMenu->getContentHeight() / 2});
 
@@ -258,6 +261,8 @@ void ETEditorUI::setupButtons() {
 
 void ETEditorUI::resizeButtons() {
     auto fields = m_fields.self();
+    if (!m_tabsMenu || !fields->m_arrowMenu || !fields->m_prevArrow || !fields->m_nextArrow) return;
+
     m_tabsMenu->setContentWidth(getContentWidth() / m_tabsMenu->getScale());
 
     auto tabWidth = m_tabsMenu->getContentWidth() - 36;
@@ -272,7 +277,7 @@ void ETEditorUI::resizeButtons() {
 
     m_tabsMenu->updateLayout();
 
-    switchMode(alpha::editor_tabs::BUILD);
+    switchMode(fields->m_currentMode);
 }
 
 void ETEditorUI::switchMode(ZStringView mode) {
@@ -537,6 +542,12 @@ void ETEditorUI::updateCreateMenu(bool selectTab) {
         fields->m_tabIndex[fields->m_currentMode] = idx;
         switchMode(fields->m_currentMode);
     }
+
+    if (!fields->m_uiVisible) {
+        setTabVisible(fields->m_currentTab.tab, false);
+    }
+
+    fixBetterEdit();
 }
 
 void ETEditorUI::clickOnPosition(cocos2d::CCPoint position) {
@@ -544,6 +555,12 @@ void ETEditorUI::clickOnPosition(cocos2d::CCPoint position) {
     auto fields = m_fields.self();
     if (!fields->m_initialized) return;
     switchMode(fields->m_currentMode);
+
+    if (!fields->m_uiVisible) {
+        setTabVisible(fields->m_currentTab.tab, false);
+    }
+
+    fixBetterEdit();
 }
 
 void ETEditorUI::addTab(geode::ZStringView tabID, geode::ZStringView modeID, const CreateTab&& createTab, const CreateTabIcon&& createIcon, const ToggleTab&& toggleTab, const ReloadTab&& reloadTab) {

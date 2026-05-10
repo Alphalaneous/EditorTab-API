@@ -75,4 +75,7 @@ namespace alpha::editor_tabs {
 
     inline void removeTab(geode::ZStringView tabID)
     GEODE_EVENT_EXPORT_NORES(&removeTab, (tabID));
+
+    inline void updateTabMenu()
+    GEODE_EVENT_EXPORT_NORES(&updateTabMenu, ());
 };

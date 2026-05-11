@@ -1,3 +1,6 @@
+# 2.1.8
+- Fix the BetterEdit custom move menu disappearing
+
 # 2.1.7
 - Fix another BetterEdit bug
 

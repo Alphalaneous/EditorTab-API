@@ -436,8 +436,10 @@ void ETEditorUI::fixBetterEdit() {
 
     auto customMoveMenu = getChildByID("hjfod.betteredit/custom-move-menu");
     if (customMoveMenu) {
-        auto barScale = m_toolbarHeight / 92;
-        customMoveMenu->setScale(barScale);
+        runAction(CallFuncExt::create([this, customMoveMenu] {
+            auto barScale = m_toolbarHeight / 92;
+            customMoveMenu->setScale(barScale);
+        }));
 
         customMoveMenu->setVisible(fields->m_currentTab.id == "edit");
         auto editTabRes = getTab("edit");

@@ -1,3 +1,6 @@
+# 2.1.9
+- Fix a bug where the edit menu would switch pages when free rotate was enabled, and also hide the buttons and misalign buttons.
+
 # 2.1.8
 - Fix the BetterEdit custom move menu disappearing
 

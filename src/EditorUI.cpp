@@ -441,7 +441,7 @@ void ETEditorUI::fixBetterEdit() {
             customMoveMenu->setScale(barScale);
         }));
 
-        customMoveMenu->setVisible(fields->m_currentTab.id == "edit");
+        customMoveMenu->setVisible(fields->m_currentTab.id == "edit" && fields->m_uiVisible);
         auto editTabRes = getTab("edit");
         if (!editTabRes) return;
         auto& editTab = editTabRes.unwrap();
@@ -559,12 +559,10 @@ void ETEditorUI::clickOnPosition(cocos2d::CCPoint position) {
     EditorUI::clickOnPosition(position);
     auto fields = m_fields.self();
     if (!fields->m_initialized) return;
-    switchMode(fields->m_currentMode);
 
     if (!fields->m_uiVisible) {
         setTabVisible(fields->m_currentTab.tab, false);
     }
-
     fixBetterEdit();
 }
 

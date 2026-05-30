@@ -524,35 +524,37 @@ void ETEditorUI::setTabVisible(CCNode* tab, bool visible) {
 void ETEditorUI::updateCreateMenu(bool selectTab) {
     EditorUI::updateCreateMenu(selectTab);
     updateGridNodeSize();
+    runAction(CallFuncExt::create([this, selectTab] {
+        auto fields = m_fields.self();
 
-    auto fields = m_fields.self();
-
-    if (selectTab) {
-        int page = m_selectedTab / fields->m_maxTabs;
-        fields->m_tabIndex[fields->m_currentMode] = m_selectedTab;
-        switchMode(fields->m_currentMode);
-        goToPage(page);
-        if (fields->m_currentMode == alpha::editor_tabs::BUILD && m_createButtonBar && m_createButtonBar->m_hasCreateItems && m_createButtonBar->m_buttonArray) {
-            for (auto item : m_createButtonBar->m_buttonArray->asExt<CreateMenuItem>()) {
-                if (item->m_objectID == m_selectedObjectIndex) {
-                    m_createButtonBar->goToPage(item->m_pageIndex);
+        if (selectTab) {
+                int page = m_selectedTab / fields->m_maxTabs;
+                fields->m_tabIndex[fields->m_currentMode] = m_selectedTab;
+                goToPage(page);
+                if (fields->m_currentMode == alpha::editor_tabs::BUILD && m_createButtonBar && m_createButtonBar->m_hasCreateItems && m_createButtonBar->m_buttonArray) {
+                    for (auto item : m_createButtonBar->m_buttonArray->asExt<CreateMenuItem>()) {
+                        if (item->m_objectID == m_selectedObjectIndex) {
+                            m_createButtonBar->goToPage(item->m_pageIndex);
+                            break;
+                        }
+                    }
                 }
-            }
+                switchMode(fields->m_currentMode);
+            return;
         }
-        return;
-    }
 
-    if (fields->m_initialized) {
-        auto idx = fields->m_tabIndex[fields->m_currentMode];
-        fields->m_tabIndex[fields->m_currentMode] = idx;
-        switchMode(fields->m_currentMode);
-    }
+        if (fields->m_initialized) {
+            auto idx = fields->m_tabIndex[fields->m_currentMode];
+            fields->m_tabIndex[fields->m_currentMode] = idx;
+            switchMode(fields->m_currentMode);
+        }
 
-    if (!fields->m_uiVisible) {
-        setTabVisible(fields->m_currentTab.tab, false);
-    }
+        if (!fields->m_uiVisible) {
+            setTabVisible(fields->m_currentTab.tab, false);
+        }
 
-    fixBetterEdit();
+        fixBetterEdit();
+    }));
 }
 
 void ETEditorUI::clickOnPosition(cocos2d::CCPoint position) {

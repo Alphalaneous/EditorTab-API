@@ -1,3 +1,6 @@
+# 2.1.10
+- Fix a bug where the create tabs would cause misaligned buttons when clicking on objects in the editor.
+
 # 2.1.9
 - Fix a bug where the edit menu would switch pages when free rotate was enabled, and also hide the buttons and misalign buttons.
 

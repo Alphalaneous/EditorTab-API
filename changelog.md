@@ -1,3 +1,7 @@
+# 2.1.11
+- Fix build tab togglers not being added to m_tabsArray
+- Fix switchTab not calling the toggle callback
+
 # 2.1.10
 - Fix a bug where the create tabs would cause misaligned buttons when clicking on objects in the editor.
 

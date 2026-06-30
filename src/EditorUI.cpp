@@ -254,6 +254,10 @@ void ETEditorUI::setupButtons() {
 
             m_tabsMenu->addChild(toggler);
 
+            if (tab.mode == BUILD) {
+                m_tabsArray->addObject(toggler);
+            }
+
             idx++;
         }
     }
@@ -366,6 +370,7 @@ void ETEditorUI::goToPage(int page) {
 
 void ETEditorUI::switchTab(ZStringView id) {
     auto fields = m_fields.self();
+    int oldIdx = fields->m_tabIndex[fields->m_currentMode];
 
     for (const auto& [k, v] : fields->m_tabs) {
         for (const auto& tabData : v) {
@@ -374,6 +379,7 @@ void ETEditorUI::switchTab(ZStringView id) {
             fields->m_tabIndex[tabData.mode] = tabData.idx;
 
             switchMode(tabData.mode);
+            if (tabData.onTab) tabData.onTab(true, tabData.tab);
 
             int page = tabData.idx / fields->m_maxTabs;
             goToPage(page);

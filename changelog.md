@@ -1,3 +1,6 @@
+# 2.1.12
+- Stop relying on m_toolbarHeight
+
 # 2.1.11
 - Fix build tab togglers not being added to m_tabsArray
 - Fix switchTab not calling the toggle callback

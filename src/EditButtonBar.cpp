@@ -26,9 +26,9 @@ void ETEditButtonBar::setupChanges(int c, int r) {
         widthOffset = spacerLeft->getPositionX() + (editorUI->getContentWidth() - spacerRight->getPositionX());
     }
 
-    auto barScale = editorUI->m_toolbarHeight / 92;
+    auto barScale = editorUI->m_positionSlider->getScale();
 
-    setContentSize({editorUI->getContentWidth() - widthOffset, editorUI->m_toolbarHeight});
+    setContentSize({editorUI->getContentWidth() - widthOffset, 92 * barScale});
     setAnchorPoint({0.5f, 0.f});
     setScale(1);
 
@@ -151,7 +151,7 @@ void ETEditButtonBar::updatePage() {
 
     if (arr.empty()) return;
     auto editorUI = ETEditorUI::get();
-    auto barScale = editorUI->m_toolbarHeight / 92;
+    auto barScale = editorUI->m_positionSlider->getScale();
 
     float gap = 12.f * barScale;
     float overallWidth = fields->m_dots->getContentWidth() - 15.f * barScale;
@@ -185,7 +185,7 @@ void ETEditButtonBar::goToPage(int page) {
 void ETEditButtonBar::showPage() {
     if (getUserFlag("disable-rewrite"_spr)) return;
     auto editorUI = ETEditorUI::get();
-    auto barScale = editorUI->m_toolbarHeight / 92;
+    auto barScale = editorUI->m_positionSlider->getScale();
 
     m_scrollLayer->m_extendedLayer->setContentSize(getContentSize());
     m_scrollLayer->m_extendedLayer->ignoreAnchorPointForPosition(false);

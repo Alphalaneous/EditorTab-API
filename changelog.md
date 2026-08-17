@@ -1,3 +1,6 @@
+# 2.1.13
+- Fix toolbar scale
+
 # 2.1.12
 - Stop relying on m_toolbarHeight
 

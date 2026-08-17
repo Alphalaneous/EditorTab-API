@@ -26,7 +26,7 @@ void ETEditButtonBar::setupChanges(int c, int r) {
         widthOffset = spacerLeft->getPositionX() + (editorUI->getContentWidth() - spacerRight->getPositionX());
     }
 
-    auto barScale = editorUI->m_positionSlider->getScale();
+    auto barScale = editorUI->getChildByID("background-sprite")->getScaleY();
 
     setContentSize({editorUI->getContentWidth() - widthOffset, 92 * barScale});
     setAnchorPoint({0.5f, 0.f});

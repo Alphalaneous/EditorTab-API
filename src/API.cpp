@@ -205,14 +205,14 @@ namespace alpha::editor_tabs {
         return EditorTab::create();
     }
 
-    geode::Result<ZStringView> idForBuildTabIndex(unsigned int index) {
+    geode::Result<std::string_view> idForBuildTabIndex(unsigned int index) {
         auto editorUI = ETEditorUI::get();
         if (!editorUI) return Err("Not in Editor");
         
         return editorUI->idForBuildTabIndex(index);
     }
 
-    geode::Result<int> indexForBuildTabID(ZStringView id) {
+    geode::Result<int> indexForBuildTabID(std::string_view id) {
         auto editorUI = ETEditorUI::get();
         if (!editorUI) return Err("Not in Editor");
 

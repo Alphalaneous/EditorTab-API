@@ -199,10 +199,10 @@ namespace alpha::editor_tabs {
     inline EditButtonBar* createTabNode()
     GEODE_EVENT_EXPORT_NORES(&createTabNode, ());
 
-    inline geode::Result<geode::ZStringView> idForBuildTabIndex(unsigned int index)
+    inline geode::Result<std::string_view> idForBuildTabIndex(unsigned int index)
     GEODE_EVENT_EXPORT(&idForBuildTabIndex, (index));
     
-    inline geode::Result<int> indexForBuildTabID(geode::ZStringView id)
+    inline geode::Result<int> indexForBuildTabID(std::string_view id)
     GEODE_EVENT_EXPORT(&indexForBuildTabID, (id));
 
     inline void removeMode(geode::ZStringView ID)

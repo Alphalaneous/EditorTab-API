@@ -45,15 +45,15 @@ class $modify(ETEditorUI, EditorUI) {
     void updateSpecialTabVisibility();
 
     CCNode* iconForIdx(int idx);
-    Result<ZStringView> idForBuildTabIndex(unsigned int index);
-    Result<int> indexForBuildTabID(ZStringView id);
+    Result<std::string_view> idForBuildTabIndex(unsigned int index);
+    Result<int> indexForBuildTabID(std::string_view id);
 
     void setupBuildMode();
     void setupEditMode();
     void setupDeleteMode();
     void setupViewMode();
 
-    static constexpr std::array<std::string, 14> TabIDs {
+    static constexpr std::array<std::string_view, 14> TabIDs {
         "block",
         "outline",
         "slope",

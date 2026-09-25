@@ -199,7 +199,7 @@ void ETEditorUI::selectBuildTab(int tab) {
 
     auto mode = static_cast<::internal::Mode*>(ModeHandler::get()->getCurrentMode());
     if (mode && mode->getID() == alpha::editor_tabs::Build) {
-        mode->switchTab(idForBuildTabIndex(tab).unwrapOrDefault());
+        mode->switchTab(std::string(idForBuildTabIndex(tab).unwrapOrDefault()));
     }
 }
 
@@ -281,7 +281,7 @@ CCNode* ETEditorUI::iconForIdx(int idx) {
     return CCSprite::createWithSpriteFrameName(std::string(TabIcons[idx]).c_str());
 }
 
-Result<int> ETEditorUI::indexForBuildTabID(ZStringView id) {
+Result<int> ETEditorUI::indexForBuildTabID(std::string_view id) {
     for (int i = 0; i < TabIDs.size(); i++) {
         if (TabIDs[i] == id) {
             return Ok(i);
@@ -290,7 +290,7 @@ Result<int> ETEditorUI::indexForBuildTabID(ZStringView id) {
     return Err("Tab with ID doesn't exist");
 }
 
-Result<ZStringView> ETEditorUI::idForBuildTabIndex(unsigned int index) {
+Result<std::string_view> ETEditorUI::idForBuildTabIndex(unsigned int index) {
     if (index >= TabIDs.size()) return Err("Index too high");
     return Ok(TabIDs[index]);
 }
@@ -306,7 +306,7 @@ void ETEditorUI::setupBuildMode() {
     for (auto bar : m_createButtonBars->asExt<EditButtonBar>()) {
         bar->removeFromParent();
 
-        auto tabID = idForBuildTabIndex(bar->m_tabIndex).unwrapOrDefault();
+        auto tabID = std::string(idForBuildTabIndex(bar->m_tabIndex).unwrapOrDefault());
 
         for (auto item : bar->m_buttonArray->asExt<CCNode>()) {
             item->removeFromParent();

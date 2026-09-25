@@ -1,5 +1,6 @@
 #include "EditorPauseLayer.hpp"
 #include "EditorUI.hpp"
+#include "ModeHandler.hpp"
 
 void MyEditorPauseLayer::onResume(CCObject* sender) {
     auto editorUI = static_cast<ETEditorUI*>(m_editorLayer->m_editorUI);
@@ -8,5 +9,7 @@ void MyEditorPauseLayer::onResume(CCObject* sender) {
 
     EditorPauseLayer::onResume(sender);
 
-    if (reload) editorUI->reloadEditTabs();
+    if (reload) {
+        ModeHandler::get()->reloadAllModes();
+    }
 }

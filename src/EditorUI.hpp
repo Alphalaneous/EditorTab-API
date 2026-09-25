@@ -2,107 +2,71 @@
 
 #include <Geode/Geode.hpp>
 #include <Geode/modify/EditorUI.hpp>
-#include "../include/EditorTabAPI.hpp"
+#include "ModeHandler.hpp"
 
 using namespace geode::prelude;
 
-struct InternalTabData {
-    std::string id;
-    std::string mode;
-    Ref<CCNode> tab;
-    Ref<CCNode> buttonTopOn;
-    Ref<CCNode> buttonTopOff;
-    std::function<void(bool, CCNode*)> onTab;
-    std::function<void(int, int, CCNode*)> onReload;
-
-    Ref<CCMenuItemToggler> toggler;
-    int idx;
-
-    bool operator==(const InternalTabData& data) const {
-        return this->id == data.id;
-    }
-};
-
-using namespace alpha::editor_tabs;
-
 class $modify(ETEditorUI, EditorUI) {
-public:
-    static ETEditorUI* s_instance;
+
+    static void onModify(auto& self) {
+        (void) self.setHookPriority("EditorUI::toggleMode", Priority::Replace);
+        (void) self.setHookPriority("EditorUI::selectBuildTab", Priority::Replace);
+    }
 
     struct Fields {
-        StringMap<std::vector<InternalTabData>> m_tabs;
-        StringMap<int> m_tabIndex;
-        StringMap<int> m_tabPage;
-        std::string m_currentMode;
-        bool m_initialized = false;
-        bool m_uiVisible = true;
-        bool m_changeModeSprites = true;
-        int m_maxTabs = 14;
-        InternalTabData m_currentTab;
-        CCMenu* m_arrowMenu;
-        CCMenuItemSpriteExtra* m_prevArrow;
-        CCMenuItemSpriteExtra* m_nextArrow;
-        StringMap<std::vector<geode::Function<void(ZStringView id)>>> m_modeCallbacks;
-        StringMap<std::vector<geode::Function<void(ZStringView id)>>> m_tabCallbacks;
-        std::vector<geode::Function<void()>> m_queuedTabs;
+        std::shared_ptr<ModeHandler> m_modeHandler;
+        bool m_initialized;
+        std::vector<CCMenuItemToggler*> m_modeToggles;
+
         ~Fields() {
             s_instance = nullptr;
         }
     };
 
-    static void onModify(auto& self) {
-        (void) self.setHookPriority("EditorUI::init", Priority::EarlyPost);
-        (void) self.setHookPriority("EditorUI::toggleMode", Priority::Late);
-    }
+    static ETEditorUI* s_instance;
 
     static ETEditorUI* get();
 
     bool init(LevelEditorLayer* editorLayer);
-    void setupTabs();
-    void showUI(bool show);
-    void onPause(CCObject* sender);
-    InternalTabData tabWithSpriteFrame(ZStringView id, ZStringView mode, CCNode* tab, ZStringView frameName);
-    InternalTabData tabWithNodeCallback(ZStringView id, ZStringView mode, CCNode* tab, std::function<CCNode*()>&& callback);
-    void fitNode(CCNode* node, const CCSize& size);
-    CCMenuItemToggler* createToggler(const InternalTabData& tabData);
-    void setupButtons();
-    void resizeButtons();
-    void setupButton(InternalTabData& tabData);
-    void switchTab(const InternalTabData& tabData);
-    void switchTab(ZStringView id);
-    void switchMode(ZStringView mode);
-    void toggleModeInternal();
-    void toggleMode(CCObject* sender);
-    void reloadEditTabs();
-    void setTabVisible(CCNode* tab, bool visible);
+    bool initialized();
+
+    CCMenuItemToggler* createModeToggle(ZStringView ID, int tag, ZStringView sprite);
+
+    void toggleMode(cocos2d::CCObject* sender);
+    void updateModeToggles(int mode);
+
+    void setupCreateMenu();
     void updateCreateMenu(bool selectTab);
-    void clickOnPosition(cocos2d::CCPoint position);
+    void createMoveMenu();
+    void setupDeleteMenu();
+    void selectBuildTab(int tab);
+    void showUI(bool show);
+    void updateButtons();
+    void updateSpecialTabVisibility();
 
-    void fixBetterEdit();
+    CCNode* iconForIdx(int idx);
+    Result<ZStringView> idForBuildTabIndex(unsigned int index);
+    Result<int> indexForBuildTabID(ZStringView id);
 
-    void goToPage(int page);
+    void setupBuildMode();
+    void setupEditMode();
+    void setupDeleteMode();
+    void setupViewMode();
 
-    void addTab(geode::ZStringView tabID, geode::ZStringView modeID, const CreateTab&& createTab, const CreateTabIcon&& createIcon, const ToggleTab&& toggleTab, const ReloadTab&& reloadTab);
-    void addTabInternal(geode::ZStringView tabID, geode::ZStringView modeID, const CreateTab&& createTab, const CreateTabIcon&& createIcon, const ToggleTab&& toggleTab, const ReloadTab&& reloadTab);
-    void removeTab(geode::ZStringView tabID);
-    Result<const InternalTabData&> getTab(geode::ZStringView tabID);
-    Result<int> getTabIndex(CCNode* tab);
-    Result<geode::ZStringView> getTabID(CCNode* tab);
-    Result<geode::ZStringView> getTabIDByIndex(int index, ZStringView modeID);
-    Result<Ref<CCNode>> getTabByIndex(int index, ZStringView modeID);
-    std::vector<CCNode*> getAllTabs();
-};
-
-class $modify(InstanceEditorUI, EditorUI) {
-    static void onModify(auto& self) {
-        (void) self.setHookPriority("EditorUI::init", Priority::VeryEarlyPre);
-    }
-    bool init(LevelEditorLayer* editorLayer);
-};
-
-class $modify(LateEditorUI, EditorUI) {
-    static void onModify(auto& self) {
-        (void) self.setHookPriority("EditorUI::init", Priority::VeryLatePost);
-    }
-    bool init(LevelEditorLayer* editorLayer);
+    static constexpr std::array<std::string, 14> TabIDs {
+        "block",
+        "outline",
+        "slope",
+        "hazard",
+        "3d",
+        "portal",
+        "monster",
+        "pixel",
+        "collectible",
+        "icon",
+        "deco",
+        "sawblade",
+        "trigger",
+        "custom"
+    };
 };

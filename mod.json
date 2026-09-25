@@ -1,16 +1,16 @@
 {
-	"geode": "5.8.2",
+	"geode": "5.10.1",
 	"gd": {
 		"win": "2.2081",	
 		"mac": "2.2081",	
 		"android": "2.2081",
 		"ios": "2.2081"
 	},
-	"version": "v2.1.13",
+	"version": "v3.0.0",
 	"id": "alphalaneous.editortab_api",
-	"name": "EditorTab API",
+	"name": "Editor Tab API",
 	"developer": "Alphalaneous",
-	"description": "API for editor tabs",
+	"description": "API for creating custom editor tabs",
 	"dependencies": {
 		"geode.node-ids": ">=1.20.0"
 	},
@@ -20,11 +20,15 @@
         ]
     },
 	"tags": [
-		"editor", "developer", "api", "performance"
+		"editor", "developer", "api"
 	],
 	"links": {
         "homepage": "https://linktr.ee/Alphalaneous",
-        "source": "https://github.com/Alphalaneous/EditorTab-API",
-        "community": "https://discord.gg/Txn2CA5dHF"
-    }
+        "source": "https://github.com/Alphalaneous/EditorTab-API"
+    },
+	"resources": {
+		"sprites": [
+			"resources/*.png"
+		]
+	}
 }

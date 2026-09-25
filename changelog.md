@@ -1,3 +1,6 @@
+# 3.0.0
+- Rewrite the mod for 2.209
+
 # 2.1.13
 - Fix toolbar scale
 

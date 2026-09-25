@@ -1,93 +1,252 @@
 #include "EditorUI.hpp"
-#include "EditButtonBar.hpp"
+#include "EditorTab.hpp"
+#include "ModeHandler.hpp"
+#include "Mode.hpp"
+#include "Tab.hpp"
+#include "TabMenu.hpp"
 
 ETEditorUI* ETEditorUI::s_instance = nullptr;
+
+bool ETEditorUI::init(LevelEditorLayer* editorLayer) {
+    s_instance = this;
+
+    auto fields = m_fields.self();
+    fields->m_modeHandler = std::make_shared<ModeHandler>();
+
+    if (!EditorUI::init(editorLayer)) return false;
+
+    auto spacerLeft = getChildByID("spacer-line-left");
+    spacerLeft->setPositionX(96.f);
+
+    auto categoriesMenu = getChildByID("toolbar-categories-menu");
+    categoriesMenu->setContentSize({90.f, 90.f});
+    categoriesMenu->setPositionX(47.f);
+    auto layout = static_cast<AxisLayout*>(categoriesMenu->getLayout());
+    layout->setAxis(Axis::Row);
+    layout->setGrowCrossAxis(true);
+    layout->setAxisReverse(false);
+
+    categoriesMenu->removeAllChildren();
+
+    auto buildToggle = createModeToggle(alpha::editor_tabs::Build, 2, "build.png"_spr);
+    categoriesMenu->addChild(buildToggle);
+    m_uiItems->addObject(buildToggle);
+
+    auto editToggle = createModeToggle(alpha::editor_tabs::Edit, 3, "edit.png"_spr);
+    categoriesMenu->addChild(editToggle);
+    m_uiItems->addObject(editToggle);
+
+    auto deleteToggle = createModeToggle(alpha::editor_tabs::Delete, 1, "delete.png"_spr);
+    categoriesMenu->addChild(deleteToggle);
+    m_uiItems->addObject(deleteToggle);
+
+    auto viewToggle = createModeToggle(alpha::editor_tabs::View, 4, "view.png"_spr);
+    categoriesMenu->addChild(viewToggle);
+    m_uiItems->addObject(viewToggle);
+
+    categoriesMenu->updateLayout();
+
+    buildToggle->toggle(true);
+
+    auto winSize = CCDirector::get()->getWinSize();
+
+    auto newTabMenu = TabMenu::create();
+    newTabMenu->setPosition({winSize.width / 2.f, m_tabsMenu->getPositionY()});
+    newTabMenu->setContentSize(m_tabsMenu->getContentSize());
+    newTabMenu->setScale(m_tabsMenu->getScale());
+    newTabMenu->setZOrder(m_tabsMenu->getZOrder());
+    newTabMenu->setID(m_tabsMenu->getID());
+
+    m_tabsMenu->removeFromParent();
+    m_tabsMenu = newTabMenu;
+
+    addChild(m_tabsMenu);
+    m_uiItems->addObject(m_tabsMenu);
+
+    setupBuildMode();
+    setupEditMode();
+    setupDeleteMode();
+    setupViewMode();
+
+    ModeHandler::get()->switchMode(alpha::editor_tabs::Build);
+
+    return true;
+}
 
 ETEditorUI* ETEditorUI::get() {
     return s_instance;
 }
 
-bool ETEditorUI::init(LevelEditorLayer* editorLayer) {
-    if (!EditorUI::init(editorLayer)) return false;
+CCMenuItemToggler* ETEditorUI::createModeToggle(ZStringView ID, int tag, ZStringView sprite) {
+    auto spr = CCSprite::create(sprite.c_str());
+    
+    auto sprOn = ButtonSprite::create(spr, 40, true, 40.f, "GJ_button_02.png", 1.f);
+    auto sprOff = ButtonSprite::create(spr, 40, true, 40.f, "GJ_button_04.png", 1.f);
+    
+    sprOn->setContentSize({40.f, 40.f});
+    sprOff->setContentSize({40.f, 40.f});
+
+    sprOn->updateSpriteOffset({0.f, -1.5f});
+    sprOff->updateSpriteOffset({0.f, -1.5f});
+
+    auto toggler = CCMenuItemToggler::create(sprOff, sprOn, this, menu_selector(EditorUI::toggleMode));
+    toggler->setTag(tag);
+    toggler->m_notClickable = true;
+
+    m_fields->m_modeToggles.push_back(toggler);
+
+    return toggler;
+}
+
+void ETEditorUI::setupCreateMenu() {
+    EditorUI::setupCreateMenu();
+
+    m_tabsMenu->removeAllChildren();
+    m_tabsArray->removeAllObjects();
 
     auto fields = m_fields.self();
 
-    m_tabsMenu->removeAllChildren();
-
-    m_tabsMenu->setAnchorPoint({0.5f, 0.f});
-    m_tabsMenu->setPosition({getContentWidth() / 2, m_toolbarHeight - 1});
-
-    setupTabs();
-
+    fields->m_modeHandler->setupModes();
     fields->m_initialized = true;
-
-    for (auto& queued : fields->m_queuedTabs) {
-        queued();
-    }
-    
-    fields->m_queuedTabs.clear();
-
-    return true;
 }
 
-bool LateEditorUI::init(LevelEditorLayer* editorLayer) {
-    if (!EditorUI::init(editorLayer)) return false;
-    ETEditorUI::get()->reloadEditTabs();
-    ETEditorUI::get()->resizeButtons();
-    return true;
+void ETEditorUI::updateModeToggles(int mode) {
+    auto fields = m_fields.self();
+
+    for (auto toggler : fields->m_modeToggles) {
+        toggler->toggle(mode == toggler->getTag());
+    }
+}
+
+void ETEditorUI::toggleMode(cocos2d::CCObject* sender) {
+    int mode = sender->getTag();
+
+    if (m_selectedMode != mode) {
+        auto fields = m_fields.self();
+
+        updateModeToggles(sender->getTag());
+
+        std::string modeID;
+        switch (sender->getTag()) {
+            case 1: {
+                modeID = alpha::editor_tabs::Delete;
+                break;
+            }
+            case 2: {
+                modeID = alpha::editor_tabs::Build;
+                break;
+            }
+            case 3: {
+                modeID = alpha::editor_tabs::Edit;
+                break;
+            }
+            case 4: {
+                modeID = alpha::editor_tabs::View;
+                break;
+            }
+        }
+
+        ModeHandler::get()->switchMode(modeID);
+        resetUI();
+    }
+
+    updateSpecialTabVisibility();
 }
 
 void ETEditorUI::showUI(bool show) {
     EditorUI::showUI(show);
-    auto fields = m_fields.self();
-    fields->m_uiVisible = show;
+    
+    if (show) {
+        updateSpecialTabVisibility();
+    }
 
-    auto& currentTabs = fields->m_tabs[fields->m_currentMode];
+    auto mode = static_cast<::internal::Mode*>(ModeHandler::get()->getCurrentMode());
+    if (!mode) return;
 
-    m_tabsMenu->setVisible(currentTabs.size() > 1 && show);
-
-    if (show) switchMode(fields->m_currentMode);
+    if (show) {
+        mode->showMode();
+    }
     else {
-        for (const auto& [k, v] : fields->m_tabs) {
-            for (const auto& tabData : v) {
-                setTabVisible(tabData.tab, false);
-            }
+        mode->hideMode();
+    }
+}
+
+void ETEditorUI::updateSpecialTabVisibility() {
+    auto mode = static_cast<::internal::Mode*>(ModeHandler::get()->getCurrentMode());
+    if (!mode) return;
+
+    if (mode->getID() == alpha::editor_tabs::Delete) {
+        auto tab = static_cast<::internal::Tab*>(mode->getCurrentTab());
+        m_deleteMenu->setVisible(tab->getID() == "delete");
+    }
+    if (mode->getID() == alpha::editor_tabs::Edit) {
+        auto tab = static_cast<::internal::Tab*>(mode->getCurrentTab());
+        m_editButtonBar->setVisible(tab->getID() == "edit");
+    }
+}
+
+void ETEditorUI::updateButtons() {
+    EditorUI::updateButtons();
+    updateSpecialTabVisibility();
+}
+
+bool ETEditorUI::initialized() {
+    return m_fields->m_initialized;
+}
+
+void ETEditorUI::selectBuildTab(int tab) {
+    EditorUI::selectBuildTab(tab);
+
+    auto mode = static_cast<::internal::Mode*>(ModeHandler::get()->getCurrentMode());
+    if (mode && mode->getID() == alpha::editor_tabs::Build) {
+        mode->switchTab(idForBuildTabIndex(tab).unwrapOrDefault());
+    }
+}
+
+void ETEditorUI::updateCreateMenu(bool selectTab) {
+    if (m_selectedMode != 2) return;
+    
+    for (auto item : CCArrayExt<CreateMenuItem, false>(m_createButtonArray)) {
+        enableButton(item);
+    }
+
+    for (auto item : CCArrayExt<CreateMenuItem, false>(m_customObjectButtonArray)) {
+        enableButton(item);
+    }
+
+    for (auto item : CCArrayExt<CreateMenuItem, false>(m_createButtonArray)) {
+        if (item->m_objectID == m_selectedObjectIndex) {
+            disableButton(item);
+            if (!selectTab) return;
+            
+            selectBuildTab(item->m_tabIndex);
+            m_createButtonBar->goToPage(item->m_pageIndex);
+            return;
+        }
+    }
+
+    for (auto item : CCArrayExt<CreateMenuItem, false>(m_customObjectButtonArray)) {
+        if (item->m_objectID == m_selectedObjectIndex) {
+            disableButton(item);
+            if (!selectTab) return;
+            
+            selectBuildTab(item->m_tabIndex);
+            m_createButtonBar->goToPage(item->m_pageIndex);
+            return;
         }
     }
 }
 
-void ETEditorUI::onPause(CCObject* sender) {
-    auto fields = m_fields.self();
-    auto currentTab = fields->m_currentTab;
-
-    EditorUI::onPause(sender);
-
-    switchTab(currentTab);
+void ETEditorUI::createMoveMenu() {
+    EditorUI::createMoveMenu();
 }
 
-void ETEditorUI::setupTabs() {
+void ETEditorUI::setupDeleteMenu() {
+    EditorUI::setupDeleteMenu();
+}
 
-    auto fields = m_fields.self();
-
-    auto& createTab = fields->m_tabs[alpha::editor_tabs::BUILD];
-    auto arr =  m_createButtonBars->asExt<CCNode>();
-    
-    auto buildMode = alpha::editor_tabs::BUILD;
-
-    createTab.push_back(tabWithSpriteFrame("block", buildMode, arr[0], "square_01_001.png"));
-    createTab.push_back(tabWithSpriteFrame("outline", buildMode, arr[1], "blockOutline_01_001.png"));
-    createTab.push_back(tabWithSpriteFrame("slope", buildMode, arr[2], "triangle_a_02_001.png"));
-    createTab.push_back(tabWithSpriteFrame("hazard", buildMode, arr[3], "spike_01_001.png"));
-    createTab.push_back(tabWithSpriteFrame("3d", buildMode, arr[4], "persp_outline_01_001.png"));
-    createTab.push_back(tabWithSpriteFrame("portal", buildMode, arr[5], "ring_01_001.png"));
-    createTab.push_back(tabWithSpriteFrame("monster", buildMode, arr[6], "GJBeast01_01_001.png"));
-    createTab.push_back(tabWithSpriteFrame("pixel", buildMode, arr[7], "pixelb_03_01_001.png"));
-    createTab.push_back(tabWithSpriteFrame("collectible", buildMode, arr[8], "pixelitem_001_001.png"));
-    createTab.push_back(tabWithSpriteFrame("icon", buildMode, arr[9], "particle_01_001.png"));
-    createTab.push_back(tabWithSpriteFrame("deco", buildMode, arr[10], "d_spikes_01_001.png"));
-    createTab.push_back(tabWithSpriteFrame("sawblade", buildMode, arr[11], "sawblade_02_001.png"));
-    createTab.push_back(tabWithSpriteFrame("trigger", buildMode, arr[12], "edit_eTintCol01Btn_001.png"));
-    createTab.push_back(tabWithNodeCallback("custom", buildMode, arr[13], [this] {
+CCNode* ETEditorUI::iconForIdx(int idx) {
+    if (idx == 13) {
         auto container = CCNodeRGBA::create();
         container->setCascadeColorEnabled(true);
         container->setCascadeOpacityEnabled(true);
@@ -96,631 +255,122 @@ void ETEditorUI::setupTabs() {
         auto label = CCLabelBMFont::create("C", "bigFont.fnt");
         container->setContentSize(label->getContentSize());
 
-        label->setScale(1.2f);
-        label->setPosition(container->getContentSize()/2 + CCPoint{0, 1});
+        label->setScale(1.25f);
+        label->setPosition(container->getContentSize() / 2.f + CCPoint{0.f, 2.5f});
 
         container->addChild(label);
-
         return container;
-    }));
-
-    fields->m_tabs[alpha::editor_tabs::EDIT].push_back(tabWithSpriteFrame("edit", alpha::editor_tabs::EDIT, m_editButtonBar, "GJ_hammerIcon_001.png"));
-    fields->m_tabs[alpha::editor_tabs::DELETE].push_back(tabWithSpriteFrame("delete", alpha::editor_tabs::DELETE, m_deleteMenu, "edit_delBtn_001.png"));
-
-    setupButtons();
-
-    switchMode(alpha::editor_tabs::BUILD);
-}
-
-InternalTabData ETEditorUI::tabWithSpriteFrame(ZStringView id, ZStringView mode, CCNode* tab, ZStringView frameName) {
-    auto sprOn = CCSprite::createWithSpriteFrameName(frameName.c_str());
-
-    auto sprOff = CCSprite::createWithSpriteFrameName(frameName.c_str());
-    sprOff->setOpacity(150);
-    
-    return {id, mode, tab, sprOn, sprOff};
-}
-
-InternalTabData ETEditorUI::tabWithNodeCallback(ZStringView id, ZStringView mode, CCNode* tab, std::function<CCNode*()>&& callback) {
-    auto sprOn = callback();
-
-    auto sprOff = callback();
-    if (auto rgba = typeinfo_cast<CCRGBAProtocol*>(sprOff)) {
-        rgba->setOpacity(150);
     }
-    
-    return {id, mode, tab, sprOn, sprOff};
+
+    static constexpr std::array<std::string_view, 13> TabIcons {
+        "square_01_001.png",
+        "blockOutline_01_001.png",
+        "triangle_a_02_001.png",
+        "spike_01_001.png",
+        "persp_outline_01_001.png",
+        "ring_01_001.png",
+        "GJBeast01_01_001.png",
+        "pixelb_03_01_001.png",
+        "pixelitem_001_001.png",
+        "particle_01_001.png",
+        "d_spikes_01_001.png",
+        "sawblade_02_001.png",
+        "edit_eTintCol01Btn_001.png"
+    };
+
+    return CCSprite::createWithSpriteFrameName(std::string(TabIcons[idx]).c_str());
 }
 
-void ETEditorUI::fitNode(CCNode* node, const CCSize& size) {
-    float scaleX = size.width / node->getContentWidth();
-    float scaleY = size.height / node->getContentHeight();
-    float scale = std::min(scaleX, scaleY);
-
-    node->setScale(scale);
-}
-
-CCMenuItemToggler* ETEditorUI::createToggler(const InternalTabData& tabData) {
-
-    auto tabOn = CCSprite::createWithSpriteFrameName("GJ_tabOn_001.png");
-    auto tabOff = CCSprite::createWithSpriteFrameName("GJ_tabOff_001.png");
-    tabOff->setOpacity(150);
-
-    fitNode(tabData.buttonTopOn, {tabOn->getContentWidth() - 7, tabOn->getContentHeight() - 5});
-    fitNode(tabData.buttonTopOff, {tabOff->getContentWidth() - 7, tabOff->getContentHeight() - 5});
-
-    tabData.buttonTopOn->setPosition({tabOn->getContentWidth() / 2, tabOn->getContentHeight() / 2 - 1});
-    tabData.buttonTopOff->setPosition({tabOff->getContentWidth() / 2, tabOff->getContentHeight() / 2 - 1});
-
-    tabOn->addChild(tabData.buttonTopOn);
-    tabOff->addChild(tabData.buttonTopOff);
-
-    auto toggler = CCMenuItemExt::createToggler(tabOn, tabOff, [this](CCMenuItemToggler* toggler) {
-        auto fields = m_fields.self();
-
-        for (const auto& tab : fields->m_tabs[fields->m_currentMode]) {
-            if (tab.toggler != toggler) {
-                setTabVisible(tab.tab, false);
-                tab.toggler->toggle(false);
-                tab.toggler->setClickable(true);
-            }
+Result<int> ETEditorUI::indexForBuildTabID(ZStringView id) {
+    for (int i = 0; i < TabIDs.size(); i++) {
+        if (TabIDs[i] == id) {
+            return Ok(i);
         }
+    }
+    return Err("Tab with ID doesn't exist");
+}
+
+Result<ZStringView> ETEditorUI::idForBuildTabIndex(unsigned int index) {
+    if (index >= TabIDs.size()) return Err("Index too high");
+    return Ok(TabIDs[index]);
+}
+
+void ETEditorUI::setupBuildMode() {
+    auto mode = ModeHandler::get()->createMode(alpha::editor_tabs::Build);
+    auto internalMode = static_cast<::internal::Mode*>(mode);
+
+    auto newBars = CCArray::create();
+
+    int prio = -1000 * m_createButtonBars->count();
+
+    for (auto bar : m_createButtonBars->asExt<EditButtonBar>()) {
+        bar->removeFromParent();
+
+        auto tabID = idForBuildTabIndex(bar->m_tabIndex).unwrapOrDefault();
+
+        for (auto item : bar->m_buttonArray->asExt<CCNode>()) {
+            item->removeFromParent();
+        }
+
+        auto newBar = alpha::editor_tabs::EditorTab::create(bar->m_buttonArray, bar->m_tabIndex, bar->m_hasCreateItems);
+        internalMode->createTab(tabID, newBar, iconForIdx(bar->m_tabIndex), prio);
         
-        auto& tabData = fields->m_tabs[fields->m_currentMode][toggler->getTag()];
-        switchTab(tabData);
+        newBars->addObject(newBar);
+
+        prio += 1000;
+    }
+
+    m_createButtonBars->removeAllObjects();
+    m_createButtonBars->addObjectsFromArray(newBars);
+
+    m_createButtonBar = internalMode->getTab("block")->getNode();
+}
+
+void ETEditorUI::setupEditMode() {
+    auto mode = ModeHandler::get()->createMode(alpha::editor_tabs::Edit);
+    auto internalMode = static_cast<::internal::Mode*>(mode);
+
+    Ref<EditButtonBar> bar = m_editButtonBar;
+    bar->removeFromParent();
+
+    for (auto item : bar->m_buttonArray->asExt<CCNode>()) {
+        item->removeFromParent();
+    }
+
+    m_editButtonBar = alpha::editor_tabs::EditorTab::create(bar->m_buttonArray, bar->m_tabIndex, bar->m_hasCreateItems);
+    internalMode->createTab("edit", m_editButtonBar, CCSprite::createWithSpriteFrameName("GJ_hammerIcon_001.png"), -1000);
+}
+
+void ETEditorUI::setupDeleteMode() {
+    auto mode = ModeHandler::get()->createMode(alpha::editor_tabs::Delete);
+    auto internalMode = static_cast<::internal::Mode*>(mode);
+
+    auto deleteTab = alpha::editor_tabs::EditorTab::create();
+
+    m_deleteMenu->ignoreAnchorPointForPosition(false);
+    m_deleteMenu->setContentSize({0.f, 0.f});
+
+    auto tab = internalMode->createTab("delete", deleteTab, CCSprite::create("delete-tab.png"_spr), -1000);
+
+    auto centerWorld = deleteTab->convertToWorldSpace(deleteTab->getContentSize() / 2.f);
+    m_deleteMenu->setPosition(centerWorld);
+
+    addEventListener(tab::SwitchTabEvent(tab), [this] (bool show) {
+        m_deleteMenu->setVisible(show);
     });
 
-    toggler->setID(fmt::format("{}-tab", tabData.id));
-
-    return toggler;
-}
-
-void ETEditorUI::setupButton(InternalTabData& tabData) {
-    auto fields = m_fields.self();
-
-    auto toggler = createToggler(tabData);
-    int idx = fields->m_tabs[tabData.mode].size();
-
-    toggler->setTag(idx);
-    tabData.idx = idx;
-    toggler->setVisible(false);
-
-    m_tabsMenu->addChild(toggler);
-    tabData.toggler = toggler;
-
-    m_tabsMenu->updateLayout();
-}
-
-void ETEditorUI::setupButtons() {
-    auto fields = m_fields.self();
-
-    m_tabsMenu->setContentWidth(getContentWidth() / m_tabsMenu->getScale());
-
-    auto tabWidth = m_tabsMenu->getContentWidth() - 36;
-    fields->m_maxTabs = (tabWidth - 2) / 34;
-
-    fields->m_arrowMenu = CCMenu::create();
-    fields->m_arrowMenu->setContentSize(m_tabsMenu->getContentSize());
-    fields->m_arrowMenu->ignoreAnchorPointForPosition(false);
-    fields->m_arrowMenu->setPosition(m_tabsMenu->getPosition());
-    fields->m_arrowMenu->setAnchorPoint(m_tabsMenu->getAnchorPoint());
-    fields->m_arrowMenu->setID("tabs-navigation-menu"_spr);
-    fields->m_arrowMenu->setScale(m_tabsMenu->getScale());
-
-    fields->m_prevArrow = CCMenuItemExt::createSpriteExtraWithFrameName("GJ_arrow_02_001.png", 0.4f, [this, fields] (auto btn) {
-        auto currentPage = fields->m_tabPage[fields->m_currentMode];
-        auto maxPages = std::ceil(fields->m_tabs[fields->m_currentMode].size() / static_cast<float>(fields->m_maxTabs));
-
-        currentPage--;
-        if (currentPage < 0) {
-            currentPage = maxPages - 1;
-        }
-
-        goToPage(currentPage);
+    addEventListener(tab::ResizeTabEvent(tab), [this, deleteTab] (const CCSize& size, float scale) {
+        m_deleteMenu->setScale(scale);
+        auto centerWorld = deleteTab->convertToWorldSpace(size / 2.f);
+        m_deleteMenu->setPosition(centerWorld);
     });
-
-    fields->m_nextArrow = CCMenuItemExt::createSpriteExtraWithFrameName("GJ_arrow_02_001.png", 0.4f, [this, fields] (auto btn) {
-        auto currentPage = fields->m_tabPage[fields->m_currentMode];
-        auto maxPages = std::ceil(fields->m_tabs[fields->m_currentMode].size() / static_cast<float>(fields->m_maxTabs));
-
-        currentPage++;
-        if (currentPage > maxPages - 1) {
-            currentPage = 0;
-        }
-
-        goToPage(currentPage);
-    });
-    fields->m_nextArrow->getChildByType<CCSprite>(0)->setFlipX(true);
-
-    m_uiItems->addObject(fields->m_prevArrow);
-    m_uiItems->addObject(fields->m_nextArrow);
-
-    fields->m_prevArrow->setPosition({15, fields->m_arrowMenu->getContentHeight() / 2});
-    fields->m_nextArrow->setPosition({fields->m_arrowMenu->getContentWidth() - 15, fields->m_arrowMenu->getContentHeight() / 2});
-
-    fields->m_arrowMenu->addChild(fields->m_prevArrow);
-    fields->m_arrowMenu->addChild(fields->m_nextArrow);
-
-    addChild(fields->m_arrowMenu);
-
-    for (auto& [k, v] : fields->m_tabs) {
-        int idx = 0;
-        for (auto& tab : v) {
-            tab.idx = idx;
-            auto toggler = createToggler(tab);
-            toggler->setTag(idx);
-            toggler->setVisible(false);
-            tab.toggler = toggler;
-
-            m_tabsMenu->addChild(toggler);
-
-            if (tab.mode == BUILD) {
-                m_tabsArray->addObject(toggler);
-            }
-
-            idx++;
-        }
-    }
 }
 
-void ETEditorUI::resizeButtons() {
-    auto fields = m_fields.self();
-    if (!m_tabsMenu || !fields->m_arrowMenu || !fields->m_prevArrow || !fields->m_nextArrow) return;
+void ETEditorUI::setupViewMode() {
+    auto mode = ModeHandler::get()->createMode(alpha::editor_tabs::View);
+    auto internalMode = static_cast<::internal::Mode*>(mode);
 
-    m_tabsMenu->setContentWidth(getContentWidth() / m_tabsMenu->getScale());
+    auto viewTab = alpha::editor_tabs::EditorTab::create();
 
-    auto tabWidth = m_tabsMenu->getContentWidth() - 36;
-    fields->m_maxTabs = (tabWidth - 2) / 34;
-
-    fields->m_arrowMenu->setContentSize(m_tabsMenu->getContentSize());
-    fields->m_arrowMenu->setPosition(m_tabsMenu->getPosition());
-    fields->m_arrowMenu->setScale(m_tabsMenu->getScale());
-
-    fields->m_prevArrow->setPosition({15, fields->m_arrowMenu->getContentHeight() / 2});
-    fields->m_nextArrow->setPosition({fields->m_arrowMenu->getContentWidth() - 15, fields->m_arrowMenu->getContentHeight() / 2});
-
-    m_tabsMenu->updateLayout();
-
-    switchMode(fields->m_currentMode);
-}
-
-void ETEditorUI::switchMode(ZStringView mode) {
-    auto fields = m_fields.self();
-    
-    auto oldMode = fields->m_currentMode;
-
-    if (mode == alpha::editor_tabs::BUILD) {
-        m_selectedMode = 2;
-    }
-    else if (mode == alpha::editor_tabs::EDIT) {
-        m_selectedMode = 3;
-    }
-    else if (mode == alpha::editor_tabs::DELETE) {
-        m_selectedMode = 1;
-    }
-    else {
-        m_selectedMode = -1;
-    }
-
-    fields->m_currentMode = mode;
-
-    auto& currentTabs = fields->m_tabs[mode];
-    auto idx = fields->m_tabIndex[mode];
-
-    for (const auto& [k, v] : fields->m_tabs) {
-        for (const auto& tabData : v) {
-            setTabVisible(tabData.tab, false);
-            tabData.toggler->setVisible(false);
-        }
-    }
-
-    auto& currentTab = currentTabs[idx];
-
-    for (const auto& tabData : currentTabs) {
-        tabData.toggler->setVisible(true);
-
-        if (tabData.toggler != currentTab.toggler) {
-            tabData.toggler->toggle(false);
-        }
-    }
-
-    auto currentPage = fields->m_tabPage[fields->m_currentMode];
-    switchTab(currentTab);
-    goToPage(currentPage);
-
-    m_tabsMenu->setVisible(currentTabs.size() > 1 && fields->m_uiVisible);
-    m_tabsMenu->updateLayout();
-
-    fields->m_arrowMenu->setVisible(currentTabs.size() > fields->m_maxTabs);
-
-    toggleModeInternal();
-
-    if (oldMode != fields->m_currentMode) {
-        for (auto& [k, v] : fields->m_modeCallbacks) {
-            for (auto& c : v) {
-                if (c) c(fields->m_currentMode);
-            }
-        }
-        for (auto& [k, v] : fields->m_tabCallbacks) {
-            for (auto& c : v) {
-                if (c) c(fields->m_currentTab.id);
-            }
-        }
-    }
-
-    updateGridNodeSize();
-    fixBetterEdit();
-}
-
-void ETEditorUI::goToPage(int page) {
-    auto fields = m_fields.self();
-    
-    fields->m_tabPage[fields->m_currentMode] = page;
-    
-    auto& currentTabs = fields->m_tabs[fields->m_currentMode];
-
-    for (const auto& tabData : currentTabs) {
-        int tabPage = tabData.idx / fields->m_maxTabs;
-        tabData.toggler->setVisible(page == tabPage);
-    }
-
-    m_tabsMenu->updateLayout();
-    updateGridNodeSize();
-}
-
-void ETEditorUI::switchTab(ZStringView id) {
-    auto fields = m_fields.self();
-    int oldIdx = fields->m_tabIndex[fields->m_currentMode];
-
-    for (const auto& [k, v] : fields->m_tabs) {
-        for (const auto& tabData : v) {
-            if (tabData.id != id) continue;
-            fields->m_currentTab = tabData;
-            fields->m_tabIndex[tabData.mode] = tabData.idx;
-
-            switchMode(tabData.mode);
-            if (tabData.onTab) tabData.onTab(true, tabData.tab);
-
-            int page = tabData.idx / fields->m_maxTabs;
-            goToPage(page);
-
-            break;
-        }
-    }
-
-    updateGridNodeSize();
-    fixBetterEdit();
-}
-
-void ETEditorUI::switchTab(const InternalTabData& tabData) {
-    auto fields = m_fields.self();
-
-    setTabVisible(tabData.tab, true);
-    int oldIdx = fields->m_tabIndex[fields->m_currentMode];
-    fields->m_tabIndex[fields->m_currentMode] = tabData.idx;
-
-    for (const auto& [k, v] : fields->m_tabs) {
-        for (const auto& tabData : v) {
-            tabData.toggler->toggle(false);
-        }
-    }
-
-    tabData.toggler->setClickable(false);
-    tabData.toggler->toggle(true);
-
-    auto& currentTab = fields->m_currentTab;
-
-    if (tabData.toggler != currentTab.toggler) {
-        if (tabData.onTab) tabData.onTab(true, tabData.tab);
-        if (currentTab.onTab) currentTab.onTab(false, currentTab.tab);
-    }
-
-    fields->m_currentTab = tabData;
-
-    int page = tabData.idx / fields->m_maxTabs;
-    goToPage(page);
-
-    if (fields->m_currentMode == alpha::editor_tabs::BUILD) {
-        m_createButtonBar = typeinfo_cast<EditButtonBar*>(currentTab.tab.data());
-    }
-
-    if (oldIdx != tabData.idx) {
-        for (auto& [k, v] : fields->m_tabCallbacks) {
-            for (auto& c : v) {
-                if (c) c(fields->m_currentTab.id);
-            }
-        }
-    }
-
-    updateGridNodeSize();
-    fixBetterEdit();
-}
-
-void ETEditorUI::fixBetterEdit() {
-    auto fields = m_fields.self();
-    if (fields->m_currentMode != alpha::editor_tabs::EDIT) return;
-
-    auto customMoveMenu = getChildByID("hjfod.betteredit/custom-move-menu");
-    if (customMoveMenu) {
-        customMoveMenu->setScale(m_positionSlider->getScale());
-        customMoveMenu->setVisible(fields->m_currentTab.id == "edit" && fields->m_uiVisible);
-        auto editTabRes = getTab("edit");
-        if (!editTabRes) return;
-        auto& editTab = editTabRes.unwrap();
-        editTab.tab->setVisible(false);
-    }
-}
-
-void ETEditorUI::toggleModeInternal() {
-    auto fields = m_fields.self();
-
-    if (fields->m_changeModeSprites) {
-        m_buildModeBtn->setSprite(CCSprite::createWithSpriteFrameName("edit_buildBtn_001.png"));
-        m_editModeBtn->setSprite(CCSprite::createWithSpriteFrameName("edit_editBtn_001.png"));
-        m_deleteModeBtn->setSprite(CCSprite::createWithSpriteFrameName("edit_deleteBtn_001.png"));
-
-        if (fields->m_currentMode == alpha::editor_tabs::BUILD) {
-            m_buildModeBtn->setSprite(CCSprite::createWithSpriteFrameName("edit_buildSBtn_001.png"));
-        }
-        if (fields->m_currentMode == alpha::editor_tabs::EDIT) {
-            m_editModeBtn->setSprite(CCSprite::createWithSpriteFrameName("edit_editSBtn_001.png"));
-        }
-        if (fields->m_currentMode == alpha::editor_tabs::DELETE) {
-            m_deleteModeBtn->setSprite(CCSprite::createWithSpriteFrameName("edit_deleteSBtn_001.png"));
-        }
-    }
-    updateGridNodeSize();
-}
-
-void ETEditorUI::toggleMode(CCObject* sender) {
-    auto fields = m_fields.self();
-
-    if (!sender) return;
-
-    m_selectedMode = sender->getTag();
-    resetUI();
-
-    if (!fields->m_initialized) return;
-
-    switch (sender->getTag()) {
-        case 3: {
-            switchMode(alpha::editor_tabs::EDIT);
-            break;
-        }
-        case 2: {
-            switchMode(alpha::editor_tabs::BUILD);
-            break;
-        }
-        case 1: {
-            switchMode(alpha::editor_tabs::DELETE);
-            break;
-        }
-    }
-    updateGridNodeSize();
-}
-
-void ETEditorUI::reloadEditTabs() {
-    auto fields = m_fields.self();
-
-    auto rows = GameManager::get()->getIntGameVariable("0049");
-    auto cols = GameManager::get()->getIntGameVariable("0050");
-
-    for (const auto& [k, v] : fields->m_tabs) {
-        for (const auto& tabData : v) {
-            auto bar = typeinfo_cast<EditButtonBar*>(tabData.tab.data());
-            if (bar) bar->reloadItems(rows, cols);
-
-            if (tabData.onReload) tabData.onReload(rows, cols, tabData.tab);
-        }
-    }
-}
-
-void ETEditorUI::setTabVisible(CCNode* tab, bool visible) {
-    if (auto bar = static_cast<ETEditButtonBar*>(typeinfo_cast<EditButtonBar*>(tab))) {
-        bar->optimizedSetVisible(visible);
-        return;
-    }
-    tab->setVisible(visible);
-}
-
-void ETEditorUI::updateCreateMenu(bool selectTab) {
-    EditorUI::updateCreateMenu(selectTab);
-    updateGridNodeSize();
-    runAction(CallFuncExt::create([this, selectTab] {
-        auto fields = m_fields.self();
-
-        if (selectTab) {
-                int page = m_selectedTab / fields->m_maxTabs;
-                fields->m_tabIndex[fields->m_currentMode] = m_selectedTab;
-                goToPage(page);
-                if (fields->m_currentMode == alpha::editor_tabs::BUILD && m_createButtonBar && m_createButtonBar->m_hasCreateItems && m_createButtonBar->m_buttonArray) {
-                    for (auto item : m_createButtonBar->m_buttonArray->asExt<CreateMenuItem>()) {
-                        if (item->m_objectID == m_selectedObjectIndex) {
-                            m_createButtonBar->goToPage(item->m_pageIndex);
-                            break;
-                        }
-                    }
-                }
-                switchMode(fields->m_currentMode);
-            return;
-        }
-
-        if (fields->m_initialized) {
-            auto idx = fields->m_tabIndex[fields->m_currentMode];
-            fields->m_tabIndex[fields->m_currentMode] = idx;
-            switchMode(fields->m_currentMode);
-        }
-
-        if (!fields->m_uiVisible) {
-            setTabVisible(fields->m_currentTab.tab, false);
-        }
-
-        fixBetterEdit();
-    }));
-}
-
-void ETEditorUI::clickOnPosition(cocos2d::CCPoint position) {
-    EditorUI::clickOnPosition(position);
-    auto fields = m_fields.self();
-    if (!fields->m_initialized) return;
-
-    if (!fields->m_uiVisible) {
-        setTabVisible(fields->m_currentTab.tab, false);
-    }
-    fixBetterEdit();
-}
-
-void ETEditorUI::addTab(geode::ZStringView tabID, geode::ZStringView modeID, const CreateTab&& createTab, const CreateTabIcon&& createIcon, const ToggleTab&& toggleTab, const ReloadTab&& reloadTab) {
-    auto fields = m_fields.self();
-
-    if (fields->m_initialized) {
-        addTabInternal(std::move(tabID), std::move(modeID), std::move(createTab), std::move(createIcon), std::move(toggleTab), std::move(reloadTab));
-    }
-    else {
-        fields->m_queuedTabs.push_back([this, tabID = std::move(tabID), modeID = std::move(modeID), createTab = std::move(createTab), createIcon = std::move(createIcon), toggleTab = std::move(toggleTab), reloadTab = std::move(reloadTab)] {
-            addTabInternal(std::move(tabID), std::move(modeID), std::move(createTab), std::move(createIcon), std::move(toggleTab), std::move(reloadTab));
-        });
-    }
-}
-
-void ETEditorUI::addTabInternal(geode::ZStringView tabID, geode::ZStringView modeID, const CreateTab&& createTab, const CreateTabIcon&& createIcon, const ToggleTab&& toggleTab, const ReloadTab&& reloadTab) {
-    auto fields = m_fields.self();
-    
-    auto sprOn = createIcon();
-
-    auto sprOff = createIcon();
-    if (auto rgba = typeinfo_cast<CCRGBAProtocol*>(sprOff)) {
-        rgba->setOpacity(150);
-    }
-
-    auto tab = createTab();
-    tab->setID(fmt::format("{}-tab-bar", tabID));
-    setTabVisible(tab, false);
-
-    tab->setZOrder(10);
-    addChild(tab);
-    
-    auto tabData = InternalTabData{tabID, modeID, tab, sprOn, sprOff, std::move(toggleTab), std::move(reloadTab)};
-    setupButton(tabData);
-
-    if (modeID == fields->m_currentMode) {
-        tabData.toggler->setVisible(true);
-        m_tabsMenu->updateLayout();
-    }
-
-    fields->m_tabs[modeID].push_back(std::move(tabData));
-
-    switchMode(fields->m_currentMode);
-}
-
-void ETEditorUI::removeTab(geode::ZStringView tabID) {
-    auto fields = m_fields.self();
-
-    for (auto& [k, v] : fields->m_tabs) {
-        for (const auto& tabData : v) {
-            if (tabData.id != tabID) continue;
-            auto& tabIndex = fields->m_tabIndex[fields->m_currentMode];
-
-            tabData.toggler->removeFromParent();
-            tabData.tab->removeFromParent();
-
-            if (tabData.mode == fields->m_currentMode) {
-                m_tabsMenu->setVisible(v.size() > 2);
-                m_tabsMenu->updateLayout();
-
-                if (tabData.idx == tabIndex) {
-                    tabIndex = std::max(tabIndex - 1, 0);
-                }
-            }
-            
-            v.erase(std::find(v.begin(), v.end(), tabData));
-
-            if (v.size() == 0) {
-                switchMode(alpha::editor_tabs::BUILD);
-                break;
-            }
-
-            switchTab(v[tabIndex]);
-            break;
-        }
-    }
-}
-
-Result<const InternalTabData&> ETEditorUI::getTab(geode::ZStringView tabID) {
-    auto fields = m_fields.self();
-
-    for (auto& [k, v] : fields->m_tabs) {
-        for (const auto& tabData : v) {
-            if (tabData.id == tabID) return geode::Ok(tabData);
-        }
-    }
-
-    return geode::Err("Tab not found");
-}
-
-Result<int> ETEditorUI::getTabIndex(CCNode* tab) {
-    auto fields = m_fields.self();
-
-    for (auto& [k, v] : fields->m_tabs) {
-        for (const auto& tabData : v) {
-            if (tabData.tab == tab) return geode::Ok(tabData.idx);
-        }
-    }
-
-    return geode::Err("Tab not found");
-}
-
-Result<geode::ZStringView> ETEditorUI::getTabID(CCNode* tab) {
-    auto fields = m_fields.self();
-
-    for (auto& [k, v] : fields->m_tabs) {
-        for (const auto& tabData : v) {
-            if (tabData.tab == tab) return geode::Ok(tabData.id);
-        }
-    }
-
-    return geode::Err("Tab not found");
-}
-
-Result<Ref<CCNode>> ETEditorUI::getTabByIndex(int index, ZStringView modeID) {
-    auto fields = m_fields.self();
-
-    auto& tabs = fields->m_tabs[modeID];
-
-    for (const auto& tabData : tabs) {
-        if (tabData.idx == index) return geode::Ok(tabData.tab);
-    }
-    
-    return geode::Err("Tab not found");
-}
-
-Result<geode::ZStringView> ETEditorUI::getTabIDByIndex(int index, ZStringView modeID) {
-    auto fields = m_fields.self();
-
-    auto& tabs = fields->m_tabs[modeID];
-
-    for (const auto& tabData : tabs) {
-        if (tabData.idx == index) return geode::Ok(tabData.id);
-    }
-    
-    return geode::Err("Tab not found");
-}
-
-std::vector<CCNode*> ETEditorUI::getAllTabs() {
-    auto fields = m_fields.self();
-
-    std::vector<CCNode*> tabs;
-
-    for (auto& [k, v] : fields->m_tabs) {
-        for (const auto& tabData : v) {
-            tabs.push_back(tabData.tab);
-        }
-    }
-
-    return tabs;
-}
-
-bool InstanceEditorUI::init(LevelEditorLayer* editorLayer) {
-    ETEditorUI::s_instance = static_cast<ETEditorUI*>(static_cast<EditorUI*>(this));
-    return EditorUI::init(editorLayer);
+    internalMode->createTab("view", viewTab, CCSprite::create("view-tab.png"_spr), -1000);
 }

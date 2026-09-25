@@ -2,29 +2,20 @@
 
 #include <Geode/Geode.hpp>
 #include <Geode/modify/EditButtonBar.hpp>
-#include <Geode/modify/BoomScrollLayer.hpp>
 
 using namespace geode::prelude;
 
 class $modify(ETEditButtonBar, EditButtonBar) {
-    struct Fields {
-        CCNode* m_dots;
-        float m_menuHeight;
-    };
 
     static void onModify(auto& self) {
-        (void) self.setHookPriority("EditButtonBar::loadFromItems", Priority::EarlyPost);
+        (void) self.setHookPriority("EditButtonBar::loadFromItems", Priority::Replace);
+        (void) self.setHookPriority("EditButtonBar::goToPage", Priority::Replace);
+        (void) self.setHookPriority("EditButtonBar::onLeft", Priority::Replace);
+        (void) self.setHookPriority("EditButtonBar::onRight", Priority::Replace);
     }
 
-    static EditButtonBar* create(cocos2d::CCArray* objects, cocos2d::CCPoint position, int tab, bool hasCreateItems, int columns, int rows);
-
-    void setupChanges(int c, int r);
-    void loadFromItems(CCArray* items, int c, int r, bool preserve);
+    void loadFromItems(CCArray* items, int columns, int rows, bool preserve);
     void goToPage(int page);
-    void optimizedSetVisible(bool visible);
-
-    void updatePage();
-    void showPage();
-    void onLeft(cocos2d::CCObject* sender);
-    void onRight(cocos2d::CCObject* sender);
+    void onLeft(CCObject* sender);
+    void onRight(CCObject* sender);
 };

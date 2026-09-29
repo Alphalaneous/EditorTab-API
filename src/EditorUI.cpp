@@ -221,34 +221,32 @@ void ETEditorUI::selectBuildTab(int tab) {
 
 void ETEditorUI::updateCreateMenu(bool selectTab) {
     if (m_selectedMode != 2) return;
+
+    bool selectedItemFound = false;
     
     for (auto item : CCArrayExt<CreateMenuItem, false>(m_createButtonArray)) {
         enableButton(item);
-    }
 
-    for (auto item : CCArrayExt<CreateMenuItem, false>(m_customObjectButtonArray)) {
-        enableButton(item);
-    }
-
-    for (auto item : CCArrayExt<CreateMenuItem, false>(m_createButtonArray)) {
-        if (item->m_objectID == m_selectedObjectIndex) {
+        if (!selectedItemFound && item->m_objectID == m_selectedObjectIndex) {
             disableButton(item);
-            if (!selectTab) return;
+            if (!selectTab) continue;
             
             selectBuildTab(item->m_tabIndex);
             m_createButtonBar->goToPage(item->m_pageIndex);
-            return;
+            selectedItemFound = true;
         }
     }
 
     for (auto item : CCArrayExt<CreateMenuItem, false>(m_customObjectButtonArray)) {
-        if (item->m_objectID == m_selectedObjectIndex) {
+        enableButton(item);
+
+        if (!selectedItemFound && item->m_objectID == m_selectedObjectIndex) {
             disableButton(item);
-            if (!selectTab) return;
+            if (!selectTab) continue;
             
             selectBuildTab(item->m_tabIndex);
             m_createButtonBar->goToPage(item->m_pageIndex);
-            return;
+            selectedItemFound = true;
         }
     }
 }

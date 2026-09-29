@@ -64,6 +64,10 @@ alpha::editor_tabs::Tab* Mode::createTab(geode::ZStringView ID, EditButtonBar* n
         editor->m_tabsArray->addObject(toggle);
     }
 
+    if (impl()->m_id == alpha::editor_tabs::Build) {
+        editor->m_createButtonBars->addObject(node);
+    }
+
     auto editorTab = typeinfo_cast<alpha::editor_tabs::EditorTab*>(node);
     if (editorTab) {
         editorTab->setTab(tab.get());
@@ -79,12 +83,17 @@ void Mode::removeTab(ZStringView ID) {
 void Mode::removeTab(alpha::editor_tabs::Tab* tab) {
     if (!tab) return;
 
+    auto editor = ETEditorUI::get();
+
     auto internalTab = static_cast<::internal::Tab*>(tab);
+
+    if (impl()->m_id == alpha::editor_tabs::Build) {
+        editor->m_createButtonBars->removeObject(internalTab->getNode());
+    }
 
     internalTab->getNode()->removeFromParent();
     internalTab->getTabToggle()->removeFromParent();
 
-    auto editor = ETEditorUI::get();
     editor->m_tabsMenu->updateLayout();
 
     int prevIdx = 0;
@@ -167,6 +176,7 @@ void Mode::switchTab(alpha::editor_tabs::Tab* tab) {
         if (impl()->m_id == alpha::editor_tabs::Build) {
             auto editor = ETEditorUI::get();
             editor->m_createButtonBar = internalTab->getNode();
+            editor->m_selectedTab = editor->indexForBuildTabID(internalTab->getID()).unwrapOrDefault();
         }
     }
     else {

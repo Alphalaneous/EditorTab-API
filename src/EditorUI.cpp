@@ -68,7 +68,23 @@ bool ETEditorUI::init(LevelEditorLayer* editorLayer) {
     setupDeleteMode();
     setupViewMode();
 
-    ModeHandler::get()->switchMode(alpha::editor_tabs::Build);
+    for (auto bar : CCArrayExt<EditButtonBar, false>(m_createButtonBars)) {
+        auto lastBuildPage = m_editorLayer->m_level->getLastBuildPageForTab(bar->m_tabIndex);
+        bar->goToPage(lastBuildPage);
+    }
+
+    auto buildMode = ModeHandler::get()->getMode(alpha::editor_tabs::Build);
+    auto internalMode = static_cast<::internal::Mode*>(buildMode);
+
+    internalMode->show();
+
+    auto tab = internalMode->getTab(std::string(idForBuildTabIndex(m_editorLayer->m_level->m_lastBuildTab).unwrapOrDefault()));
+    auto internalTab = static_cast<::internal::Tab*>(tab);
+
+    internalMode->switchTab(tab);
+
+    auto node = internalTab->getNode();
+    node->goToPage(m_editorLayer->m_level->m_lastBuildPage);
 
     return true;
 }
@@ -282,16 +298,33 @@ CCNode* ETEditorUI::iconForIdx(int idx) {
 }
 
 Result<int> ETEditorUI::indexForBuildTabID(std::string_view id) {
-    for (int i = 0; i < TabIDs.size(); i++) {
-        if (TabIDs[i] == id) {
-            return Ok(i);
+    auto mode = ModeHandler::get()->getMode(alpha::editor_tabs::Build);
+    auto internalMode = static_cast<::internal::Mode*>(mode);
+
+    int idx = 0;
+    for (const auto& tab : internalMode->getAllTabs()) {
+        auto internalTab = static_cast<::internal::Tab*>(tab.get());
+        if (internalTab->getID() == id) {
+            return Ok(idx);
         }
+        idx++;
     }
+
     return Err("Tab with ID doesn't exist");
 }
 
 Result<std::string_view> ETEditorUI::idForBuildTabIndex(unsigned int index) {
-    if (index >= TabIDs.size()) return Err("Index too high");
+    if (index >= TabIDs.size()) {
+        auto mode = ModeHandler::get()->getMode(alpha::editor_tabs::Build);
+        auto internalMode = static_cast<::internal::Mode*>(mode);
+
+        if (index < internalMode->getAllTabs().size()) {
+            auto internalTab = static_cast<::internal::Tab*>(internalMode->getAllTabs()[index].get());
+            return Ok(internalTab->getID());
+        }
+
+        return Err("Index too high");
+    }
     return Ok(TabIDs[index]);
 }
 
@@ -303,7 +336,10 @@ void ETEditorUI::setupBuildMode() {
 
     int prio = -1000 * m_createButtonBars->count();
 
-    for (auto bar : m_createButtonBars->asExt<EditButtonBar>()) {
+    auto barsCopy = m_createButtonBars->shallowCopy();
+    m_createButtonBars->removeAllObjects();
+
+    for (auto bar : barsCopy->asExt<EditButtonBar>()) {
         bar->removeFromParent();
 
         auto tabID = std::string(idForBuildTabIndex(bar->m_tabIndex).unwrapOrDefault());
@@ -319,11 +355,6 @@ void ETEditorUI::setupBuildMode() {
 
         prio += 1000;
     }
-
-    m_createButtonBars->removeAllObjects();
-    m_createButtonBars->addObjectsFromArray(newBars);
-
-    m_createButtonBar = internalMode->getTab("block")->getNode();
 }
 
 void ETEditorUI::setupEditMode() {

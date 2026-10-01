@@ -202,6 +202,20 @@ ZStringView getCurrentModeID() {
     return handler->getCurrentModeID();
 }
 
+Tab* getCurrentTab() {
+    auto handler = ModeHandler::get();
+    if (!handler) return nullptr;
+
+    return handler->getCurrentTab();
+}
+
+ZStringView getCurrentTabID() {
+    auto handler = ModeHandler::get();
+    if (!handler) return nullptr;
+
+    return handler->getCurrentTabID();
+}
+
 Mode* createMode(geode::ZStringView ID) {
     auto handler = ModeHandler::get();
     if (!handler) return nullptr;

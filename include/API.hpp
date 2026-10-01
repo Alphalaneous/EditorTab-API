@@ -195,6 +195,12 @@ GEODE_EVENT_EXPORT_NORES(&getCurrentMode, ());
 inline geode::ZStringView getCurrentModeID()
 GEODE_EVENT_EXPORT_NORES(&getCurrentModeID, ());
 
+inline Tab* getCurrentTab()
+GEODE_EVENT_EXPORT_NORES(&getCurrentTab, ());
+
+inline geode::ZStringView getCurrentTabID()
+GEODE_EVENT_EXPORT_NORES(&getCurrentTabID, ());
+
 inline std::span<const std::shared_ptr<Mode>> getAllModes()
 GEODE_EVENT_EXPORT_NORES(&getAllModes, ());
 

@@ -1,6 +1,7 @@
 #include "ModeHandler.hpp"
 #include "EditorUI.hpp"
 #include "Mode.hpp"
+#include "Tab.hpp"
 
 ModeHandler* ModeHandler::get() {
     auto editor = ETEditorUI::get();
@@ -90,6 +91,20 @@ geode::ZStringView ModeHandler::getCurrentModeID() {
 
 alpha::editor_tabs::Mode* ModeHandler::getCurrentMode() {
     return getMode(m_currentMode);
+}
+
+geode::ZStringView ModeHandler::getCurrentTabID() {
+    auto internalTab = static_cast<::internal::Tab*>(getCurrentTab());
+    if (!internalTab) return "";
+
+    return internalTab->getID();
+}
+
+alpha::editor_tabs::Tab* ModeHandler::getCurrentTab() {
+    auto internalMode = static_cast<::internal::Mode*>(getCurrentMode());
+    if (!internalMode) return nullptr;
+
+    return internalMode->getCurrentTab();
 }
 
 std::span<const std::shared_ptr<alpha::editor_tabs::Mode>> ModeHandler::getAllModes() {

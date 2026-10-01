@@ -15,6 +15,9 @@ public:
     alpha::editor_tabs::Mode* getCurrentMode();
     std::span<const std::shared_ptr<alpha::editor_tabs::Mode>> getAllModes();
 
+    geode::ZStringView getCurrentTabID();
+    alpha::editor_tabs::Tab* getCurrentTab();
+
     void setupModes();
 
     void removeMode(geode::ZStringView ID);

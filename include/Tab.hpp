@@ -2,6 +2,7 @@
 
 #include "API.hpp"
 #include "Geode/cocos/base_nodes/CCNode.h"
+#include <Geode/Result.hpp>
 #include <Geode/binding/CCMenuItemToggler.hpp>
 #include <Geode/binding/EditButtonBar.hpp>
 #include <Geode/utils/ZStringView.hpp>
@@ -68,6 +69,10 @@ public:
 
     Mode* getMode() {
         return alpha::editor_tabs::tab::getMode(this);
+    }
+
+    geode::Result<unsigned int> getIndex() {
+        return alpha::editor_tabs::tab::getIndex(this);
     }
 
     CCMenuItemToggler* getTabToggle() {

@@ -73,6 +73,16 @@ EditorTab* EditorTab::create() {
 
 bool EditorTab::init() {
     auto winSize = CCDirector::get()->getWinSize();
+
+    auto arr = CCArray::create();
+    arr->addObject(CCNode::create()); //fixes a bug in vanilla where 0 elements will loop forever
+    
+    m_scrollLayerRef = BoomScrollLayer::create(arr, 0, true);
+    m_scrollLayer = m_scrollLayerRef;
+
+    m_pagesArrayRef = CCArray::create();
+    m_pagesArray = m_pagesArrayRef;
+
     setAnchorPoint({0.5f, 0.f});
     setContentSize(getMinSize());
     setPosition({winSize.width / 2.f, 0.f});

@@ -148,3 +148,23 @@ void ModeHandler::reloadAllModes() {
         internalMode->reloadAllTabs();
     }
 }
+
+alpha::editor_tabs::Tab* ModeHandler::getTab(geode::ZStringView ID) {
+    for (const auto& mode : m_modes) {
+        auto internalMode = static_cast<::internal::Mode*>(mode.get());
+        auto tab = internalMode->getTab(ID);
+        if (tab) return tab;
+    }
+
+    return nullptr;
+}
+
+alpha::editor_tabs::Tab* ModeHandler::getTabByNode(EditButtonBar* node) {
+    for (const auto& mode : m_modes) {
+        auto internalMode = static_cast<::internal::Mode*>(mode.get());
+        auto tab = internalMode->getTabByNode(node);
+        if (tab) return tab;
+    }
+    
+    return nullptr;
+}

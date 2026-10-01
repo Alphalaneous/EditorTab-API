@@ -29,6 +29,8 @@ public:
     void setPriority(int priority);
     int getPriority();
 
+    Result<unsigned int> getIndex();
+
     alpha::editor_tabs::Mode* getMode();
     TabToggler* getTabToggle();
 

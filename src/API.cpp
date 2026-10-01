@@ -13,419 +13,268 @@ using namespace geode::prelude;
 
 namespace alpha::editor_tabs {
 
-    namespace mode {
-        ::internal::Mode* shadow(Mode* mode) {
-            return std::bit_cast<::internal::Mode*>(mode);
-        }
-
-        geode::ZStringView getID(Mode* mode) {
-            return shadow(mode)->getID();
-        }
-
-        void construct(Mode* mode, ZStringView ID) {
-            shadow(mode)->construct(ID);
-        }
-
-        void destruct(Mode* mode) {
-            shadow(mode)->destruct();
-        }
-
-        void show(Mode* mode) {
-            shadow(mode)->show();
-        }
-
-        alpha::editor_tabs::Tab* createTab(Mode* mode, geode::ZStringView ID, EditButtonBar* node, cocos2d::CCNode* icon, int priority)  {
-            return shadow(mode)->createTab(ID, node, icon, priority);
-        }
-
-        void removeTab(Mode* mode, geode::ZStringView ID) {
-            shadow(mode)->removeTab(ID);
-        }
-
-        void removeTab(Mode* mode, alpha::editor_tabs::Tab* tab) {
-            shadow(mode)->removeTab(tab);
-        }
-
-        Tab* getTab(Mode* mode, geode::ZStringView ID) {
-            return shadow(mode)->getTab(ID);
-        }
-
-        Tab* getCurrentTab(Mode* mode) {
-            return shadow(mode)->getCurrentTab();
-        }
-
-        std::span<const std::shared_ptr<Tab>> getAllTabs(Mode* mode) {
-            return shadow(mode)->getAllTabs();
-        }
-
-        void switchTab(Mode* mode, ZStringView ID) {
-            shadow(mode)->switchTab(ID);
-        }
-
-        void switchTab(Mode* mode, alpha::editor_tabs::Tab* tab) {
-            shadow(mode)->switchTab(tab);
-        }
-
-        void reloadAllTabs(Mode* mode) {
-            shadow(mode)->reloadAllTabs();
-        }
-
-        void removeSelf(Mode* mode) {
-            shadow(mode)->removeSelf();
-        }
-    }
-
-    namespace tab {
-        ::internal::Tab* shadow(Tab* tab) {
-            return std::bit_cast<::internal::Tab*>(tab);
-        }
-
-        geode::ZStringView getID(Tab* tab) {
-            return shadow(tab)->getID();
-        }
-
-        void construct(Tab* tab, ZStringView ID, EditButtonBar* node, cocos2d::CCNode* icon, int priority) {
-            shadow(tab)->construct(ID, node, icon, priority);
-        }
-
-        void destruct(Tab* tab) {
-            shadow(tab)->destruct();
-        }
-
-        void show(Tab* tab) {
-            shadow(tab)->show();
-        }
-
-        EditButtonBar* getNode(Tab* tab) {
-            return shadow(tab)->getNode();
-        }
-
-        CCNode* getIcon(Tab* tab) {
-            return shadow(tab)->getIcon();
-        }
-
-        void setPriority(Tab* tab, int priority) {
-            shadow(tab)->setPriority(priority);
-        }
-
-        int getPriority(Tab* tab) {
-            return shadow(tab)->getPriority();
-        }
-
-        void overrideSize(Tab* tab, bool override, int rows, int columns) {
-            shadow(tab)->overrideSize(override, rows, columns);
-        }
-
-        void overrideSize(Tab* tab, int rows, int columns) {
-            shadow(tab)->overrideSize(rows, columns);
-        }
+namespace mode {
 
-        int getRows(Tab* tab) {
-            return shadow(tab)->getRows();
-        }
+::internal::Mode* shadow(Mode* mode) {
+    return std::bit_cast<::internal::Mode*>(mode);
+}
 
-        int getColumns(Tab* tab) {
-            return shadow(tab)->getColumns();
-        }
+geode::ZStringView getID(Mode* mode) {
+    return shadow(mode)->getID();
+}
 
-        alpha::editor_tabs::Mode* getMode(Tab* tab) {
-            return shadow(tab)->getMode();
-        }
+void construct(Mode* mode, ZStringView ID) {
+    shadow(mode)->construct(ID);
+}
 
-        CCMenuItemToggler* getTabToggle(Tab* tab) {
-            return shadow(tab)->getTabToggle();
-        }
+void destruct(Mode* mode) {
+    shadow(mode)->destruct();
+}
 
-        void reloadItems(Tab* tab) {
-            return shadow(tab)->reloadItems();
-        }
+void show(Mode* mode) {
+    shadow(mode)->show();
+}
 
-        void setItemless(Tab* tab) {
-            return shadow(tab)->setItemless();
-        }
+alpha::editor_tabs::Tab* createTab(Mode* mode, geode::ZStringView ID, EditButtonBar* node, cocos2d::CCNode* icon, int priority)  {
+    return shadow(mode)->createTab(ID, node, icon, priority);
+}
 
-        void removeSelf(Tab* tab) {
-            return shadow(tab)->removeSelf();
-        }
+void removeTab(Mode* mode, geode::ZStringView ID) {
+    shadow(mode)->removeTab(ID);
+}
 
-        void setPageDotsClickable(Tab* tab, bool clickable) {
-            shadow(tab)->setPageDotsClickable(clickable);
-        }
+void removeTab(Mode* mode, alpha::editor_tabs::Tab* tab) {
+    shadow(mode)->removeTab(tab);
+}
 
-        bool arePageDotsClickable(Tab* tab) {
-            return shadow(tab)->arePageDotsClickable();
-        }
-    }
+Tab* getTab(Mode* mode, geode::ZStringView ID) {
+    return shadow(mode)->getTab(ID);
+}
 
-    Mode* getMode(geode::ZStringView ID) {
-        auto handler = ModeHandler::get();
-        if (!handler) return nullptr;
+Tab* getTabByNode(Mode* mode, EditButtonBar* node) {
+    return shadow(mode)->getTabByNode(node);
+}
 
-        return handler->getMode(ID);
-    }
+Tab* getTabByIndex(Mode* mode, unsigned int index) {
+    return shadow(mode)->getTabByIndex(index);
+}
 
-    Mode* getCurrentMode() {
-        auto handler = ModeHandler::get();
-        if (!handler) return nullptr;
+Tab* getCurrentTab(Mode* mode) {
+    return shadow(mode)->getCurrentTab();
+}
 
-        return handler->getCurrentMode();
-    }
+Result<unsigned int> getTabIndex(Mode* mode, ZStringView ID) {
+    return shadow(mode)->getTabIndex(ID);
+}
 
-    ZStringView getCurrentModeID() {
-        auto handler = ModeHandler::get();
-        if (!handler) return nullptr;
+Result<unsigned int> getTabIndex(Mode* mode, Tab* tab) {
+    return shadow(mode)->getTabIndex(tab);
+}
 
-        return handler->getCurrentModeID();
-    }
+std::span<const std::shared_ptr<Tab>> getAllTabs(Mode* mode) {
+    return shadow(mode)->getAllTabs();
+}
 
-    Mode* createMode(geode::ZStringView ID) {
-        auto handler = ModeHandler::get();
-        if (!handler) return nullptr;
+void switchTab(Mode* mode, ZStringView ID) {
+    shadow(mode)->switchTab(ID);
+}
 
-        return handler->createMode(ID);
-    }
+void switchTab(Mode* mode, alpha::editor_tabs::Tab* tab) {
+    shadow(mode)->switchTab(tab);
+}
 
-    Tab* getTab(geode::ZStringView ID) {
-        return nullptr;
-    }
+void reloadAllTabs(Mode* mode) {
+    shadow(mode)->reloadAllTabs();
+}
 
-    Tab* getTabByNode(EditButtonBar* node) {
-        return nullptr;
-    }
+void removeSelf(Mode* mode) {
+    shadow(mode)->removeSelf();
+}
 
-    EditButtonBar* createTabBar(cocos2d::CCArray* items, int tab, bool hasCreateItems) {
-        return EditorTab::create(items, tab, hasCreateItems);
-    }
+}
 
-    EditButtonBar* createTabBar(std::span<Ref<CCNode>> items, int tab, bool hasCreateItems) {
-        return EditorTab::create(items, tab, hasCreateItems);
-    }
+namespace tab {
 
-    EditButtonBar* createTabNode() {
-        return EditorTab::create();
-    }
+::internal::Tab* shadow(Tab* tab) {
+    return std::bit_cast<::internal::Tab*>(tab);
+}
 
-    geode::Result<std::string_view> idForBuildTabIndex(unsigned int index) {
-        auto editorUI = ETEditorUI::get();
-        if (!editorUI) return Err("Not in Editor");
-        
-        return editorUI->idForBuildTabIndex(index);
-    }
+geode::ZStringView getID(Tab* tab) {
+    return shadow(tab)->getID();
+}
 
-    geode::Result<int> indexForBuildTabID(std::string_view id) {
-        auto editorUI = ETEditorUI::get();
-        if (!editorUI) return Err("Not in Editor");
+void construct(Tab* tab, ZStringView ID, EditButtonBar* node, cocos2d::CCNode* icon, int priority) {
+    shadow(tab)->construct(ID, node, icon, priority);
+}
 
-        return editorUI->indexForBuildTabID(id);
-    }
+void destruct(Tab* tab) {
+    shadow(tab)->destruct();
+}
 
-    void removeMode(geode::ZStringView ID) {
-        auto handler = ModeHandler::get();
-        if (!handler) return;
+void show(Tab* tab) {
+    shadow(tab)->show();
+}
 
-        handler->removeMode(ID);
-    }
+EditButtonBar* getNode(Tab* tab) {
+    return shadow(tab)->getNode();
+}
 
-    void removeMode(Mode* mode) {
-        auto handler = ModeHandler::get();
-        if (!handler) return;
+CCNode* getIcon(Tab* tab) {
+    return shadow(tab)->getIcon();
+}
 
-        handler->removeMode(mode);
-    }
+void setPriority(Tab* tab, int priority) {
+    shadow(tab)->setPriority(priority);
+}
 
-    std::span<const std::shared_ptr<Mode>> getAllModes() {
-        auto handler = ModeHandler::get();
-        if (!handler) return {};
+int getPriority(Tab* tab) {
+    return shadow(tab)->getPriority();
+}
 
-        return handler->getAllModes();
-    }
+Result<unsigned int> getIndex(Tab* tab) {
+    return shadow(tab)->getIndex();
+}
 
-    void reloadAllModes() {
-        auto handler = ModeHandler::get();
-        if (!handler) return;
+void overrideSize(Tab* tab, bool override, int rows, int columns) {
+    shadow(tab)->overrideSize(override, rows, columns);
+}
 
-        handler->reloadAllModes();
-    }
+void overrideSize(Tab* tab, int rows, int columns) {
+    shadow(tab)->overrideSize(rows, columns);
+}
 
-    void switchMode(ZStringView ID) {
-        auto handler = ModeHandler::get();
-        if (!handler) return;
-        
-        handler->switchMode(ID);
-    }
+int getRows(Tab* tab) {
+    return shadow(tab)->getRows();
+}
 
-    void switchMode(alpha::editor_tabs::Mode* mode) {
-        auto handler = ModeHandler::get();
-        if (!handler) return;
+int getColumns(Tab* tab) {
+    return shadow(tab)->getColumns();
+}
 
-        handler->switchMode(mode);
-    }
+alpha::editor_tabs::Mode* getMode(Tab* tab) {
+    return shadow(tab)->getMode();
+}
 
-    /*void addTab(geode::ZStringView tabID, geode::ZStringView modeID, CreateTab&& createTab, CreateTabIcon&& createIcon, ToggleTab&& toggleTab, ReloadTab&& reloadTab) {
-        auto editorUI = ETEditorUI::get();
-        if (!editorUI) return;
+CCMenuItemToggler* getTabToggle(Tab* tab) {
+    return shadow(tab)->getTabToggle();
+}
 
-        editorUI->addTab(tabID, modeID, std::move(createTab), std::move(createIcon), std::move(toggleTab), std::move(reloadTab));
-    }
+void reloadItems(Tab* tab) {
+    return shadow(tab)->reloadItems();
+}
 
-    void switchMode(geode::ZStringView modeID) {
-        auto editorUI = ETEditorUI::get();
-        if (!editorUI) return;
+void setItemless(Tab* tab) {
+    return shadow(tab)->setItemless();
+}
 
-        editorUI->switchMode(modeID);
-    }
+void removeSelf(Tab* tab) {
+    return shadow(tab)->removeSelf();
+}
 
-    void switchTab(geode::ZStringView tabID) {
-        auto editorUI = ETEditorUI::get();
-        if (!editorUI) return;
+void setPageDotsClickable(Tab* tab, bool clickable) {
+    shadow(tab)->setPageDotsClickable(clickable);
+}
 
-        editorUI->switchTab(tabID);
-    }
+bool arePageDotsClickable(Tab* tab) {
+    return shadow(tab)->arePageDotsClickable();
+}
 
-    void addModeSwitchCallback(geode::Function<void(geode::ZStringView id)>&& callback, geode::Mod* mod) {
-        auto editorUI = ETEditorUI::get();
-        if (!editorUI) return;
+}
 
-        editorUI->m_fields->m_modeCallbacks[mod->getID()].push_back(std::move(callback));
-    }
+Mode* getMode(geode::ZStringView ID) {
+    auto handler = ModeHandler::get();
+    if (!handler) return nullptr;
 
-    void addTabSwitchCallback(geode::Function<void(geode::ZStringView id)>&& callback, geode::Mod* mod) {
-        auto editorUI = ETEditorUI::get();
-        if (!editorUI) return;
+    return handler->getMode(ID);
+}
 
-        editorUI->m_fields->m_tabCallbacks[mod->getID()].push_back(std::move(callback));
-    }
+Mode* getCurrentMode() {
+    auto handler = ModeHandler::get();
+    if (!handler) return nullptr;
 
-    void changeModeSprites(bool enabled) {
-        auto editorUI = ETEditorUI::get();
-        if (!editorUI) return;
-        editorUI->m_fields->m_changeModeSprites = enabled;
-    }
+    return handler->getCurrentMode();
+}
 
-    geode::Result<std::vector<cocos2d::CCNode*>> getAllTabs() {
-        auto editorUI = ETEditorUI::get();
-        if (!editorUI) return geode::Err("Not in Editor");
+ZStringView getCurrentModeID() {
+    auto handler = ModeHandler::get();
+    if (!handler) return nullptr;
 
-        return geode::Ok(editorUI->getAllTabs());
-    }
+    return handler->getCurrentModeID();
+}
 
-    geode::Result<geode::ZStringView> getCurrentMode() {
-        auto editorUI = ETEditorUI::get();
-        if (!editorUI) return geode::Err("Not in Editor");
+Mode* createMode(geode::ZStringView ID) {
+    auto handler = ModeHandler::get();
+    if (!handler) return nullptr;
 
-        return geode::Ok(editorUI->m_fields->m_currentMode);
-    }
+    return handler->createMode(ID);
+}
 
-    geode::Result<geode::ZStringView> getCurrentTab() {
-        auto editorUI = ETEditorUI::get();
-        if (!editorUI) return geode::Err("Not in Editor");
+Tab* getTab(geode::ZStringView ID) {
+    auto handler = ModeHandler::get();
+    if (!handler) return nullptr;
 
-        return geode::Ok(editorUI->m_fields->m_currentTab.id);
-    }
+    return handler->getTab(ID);
+}
 
-    geode::Result<int> getTabIndex(geode::ZStringView tabID) {
-        auto editorUI = ETEditorUI::get();
-        if (!editorUI) return geode::Err("Not in Editor");
+Tab* getTabByNode(EditButtonBar* node) {
+    auto handler = ModeHandler::get();
+    if (!handler) return nullptr;
 
-        const auto& res = editorUI->getTab(tabID);
-        if (!res) return geode::Err("Tab doesn't exist");
+    return handler->getTabByNode(node);
+}
 
-        return geode::Ok(res.unwrap().idx);
-    }
+EditButtonBar* createTabBar(cocos2d::CCArray* items, int tab, bool hasCreateItems) {
+    return EditorTab::create(items, tab, hasCreateItems);
+}
 
-    geode::Result<geode::ZStringView> getTabMode(geode::ZStringView tabID) {
-        auto editorUI = ETEditorUI::get();
-        if (!editorUI) return geode::Err("Not in Editor");
+EditButtonBar* createTabBar(std::span<Ref<CCNode>> items, int tab, bool hasCreateItems) {
+    return EditorTab::create(items, tab, hasCreateItems);
+}
 
-        const auto& res = editorUI->getTab(tabID);
-        if (!res) return geode::Err("Tab doesn't exist");
+EditButtonBar* createTabNode() {
+    return EditorTab::create();
+}
 
-        return geode::Ok(res.unwrap().mode);
-    }
+void removeMode(geode::ZStringView ID) {
+    auto handler = ModeHandler::get();
+    if (!handler) return;
 
-    EditButtonBar* createEditButtonBar(std::span<geode::Ref<cocos2d::CCNode>> nodes) {
-        auto rows = GameManager::get()->getIntGameVariable("0050");
-        auto cols = GameManager::get()->getIntGameVariable("0049");
-        
-        auto arr = CCArray::create();
-        for (const auto& node : nodes) {
-            arr->addObject(node);
-        }
+    handler->removeMode(ID);
+}
 
-        return EditButtonBar::create(arr, {}, -1, false, cols, rows);
-    }
+void removeMode(Mode* mode) {
+    auto handler = ModeHandler::get();
+    if (!handler) return;
 
-    geode::Result<Ref<cocos2d::CCNode>> nodeForTab(geode::ZStringView tabID) {
-        auto editorUI = ETEditorUI::get();
-        if (!editorUI) return geode::Err("Not in Editor");
+    handler->removeMode(mode);
+}
 
-        const auto& res = editorUI->getTab(tabID);
-        if (!res) return geode::Err("Tab doesn't exist");
+std::span<const std::shared_ptr<Mode>> getAllModes() {
+    auto handler = ModeHandler::get();
+    if (!handler) return {};
 
-        return geode::Ok(res.unwrap().tab);
-    }
+    return handler->getAllModes();
+}
 
-    geode::Result<int> indexForTab(cocos2d::CCNode* tab){
-        auto editorUI = ETEditorUI::get();
-        if (!editorUI) return geode::Err("Not in Editor");
+void reloadAllModes() {
+    auto handler = ModeHandler::get();
+    if (!handler) return;
 
-        const auto& res = editorUI->getTabIndex(tab);
-        if (!res) return geode::Err("Tab doesn't exist");
+    handler->reloadAllModes();
+}
 
-        return geode::Ok(res.unwrap());
-    }
+void switchMode(ZStringView ID) {
+    auto handler = ModeHandler::get();
+    if (!handler) return;
+    
+    handler->switchMode(ID);
+}
 
-    geode::Result<geode::ZStringView> idForTab(cocos2d::CCNode* tab) {
-        auto editorUI = ETEditorUI::get();
-        if (!editorUI) return geode::Err("Not in Editor");
+void switchMode(alpha::editor_tabs::Mode* mode) {
+    auto handler = ModeHandler::get();
+    if (!handler) return;
 
-        const auto& res = editorUI->getTabID(tab);
-        if (!res) return geode::Err("Tab doesn't exist");
+    handler->switchMode(mode);
+}
 
-        return geode::Ok(res.unwrap());
-    }
-
-    geode::Result<geode::Ref<cocos2d::CCNode>> tabForIndex(int index, geode::ZStringView modeID) {
-        auto editorUI = ETEditorUI::get();
-        if (!editorUI) return geode::Err("Not in Editor");
-
-        const auto& res = editorUI->getTabByIndex(index, modeID);
-        if (!res) return geode::Err("Tab doesn't exist");
-
-        return geode::Ok(res.unwrap());
-    }
-
-    inline geode::Result<geode::ZStringView> idForTabIndex(int index, geode::ZStringView modeID) {
-        auto editorUI = ETEditorUI::get();
-        if (!editorUI) return geode::Err("Not in Editor");
-
-        const auto& res = editorUI->getTabIDByIndex(index, modeID);
-        if (!res) return geode::Err("Tab doesn't exist");
-
-        return geode::Ok(res.unwrap());
-    }
-
-    geode::Result<geode::Ref<CCMenuItemToggler>> togglerForTab(geode::ZStringView tabID) {
-        auto editorUI = ETEditorUI::get();
-        if (!editorUI) return geode::Err("Not in Editor");
-
-        const auto& res = editorUI->getTab(tabID);
-        if (!res) return geode::Err("Tab doesn't exist");
-
-        return geode::Ok(res.unwrap().toggler);
-    }
-
-    void removeTab(geode::ZStringView tabID) {
-        auto editorUI = ETEditorUI::get();
-        if (!editorUI) return;
-
-        editorUI->removeTab(tabID);
-    }
-
-    void updateTabMenu() {
-        auto editorUI = ETEditorUI::get();
-        if (!editorUI) return;
-
-        editorUI->resizeButtons();
-    }*/
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "API.hpp"
+#include <Geode/binding/EditButtonBar.hpp>
 #include <Geode/utils/ZStringView.hpp>
 
 namespace alpha::editor_tabs {
@@ -39,8 +40,24 @@ public:
         return alpha::editor_tabs::mode::getTab(this, ID);
     }
 
+    Tab* getTabByNode(EditButtonBar* node) {
+        return alpha::editor_tabs::mode::getTabByNode(this, node);
+    }
+    
+    Tab* getTabByIndex(unsigned int index) {
+        return alpha::editor_tabs::mode::getTabByIndex(this, index);
+    }
+
     Tab* getCurrentTab() {
         return alpha::editor_tabs::mode::getCurrentTab(this);
+    }
+
+    geode::Result<unsigned int> getTabIndex(geode::ZStringView ID) {
+        return alpha::editor_tabs::mode::getTabIndex(this, ID);
+    }
+
+    geode::Result<unsigned int> getTabIndex(Tab* tab) {
+        return alpha::editor_tabs::mode::getTabIndex(this, tab);
     }
 
     const std::span<const std::shared_ptr<Tab>> getAllTabs() {

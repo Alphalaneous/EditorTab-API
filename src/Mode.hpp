@@ -23,11 +23,18 @@ public:
     void removeTab(alpha::editor_tabs::Tab* tab);
 
     alpha::editor_tabs::Tab* getTab(geode::ZStringView ID);
+    alpha::editor_tabs::Tab* getTabByIndex(unsigned int index);
+    alpha::editor_tabs::Tab* getTabByNode(EditButtonBar* node);
+
     alpha::editor_tabs::Tab* getCurrentTab();
     std::span<const std::shared_ptr<alpha::editor_tabs::Tab>> getAllTabs();
 
+    geode::Result<unsigned int> getTabIndex(geode::ZStringView ID);
+    geode::Result<unsigned int> getTabIndex(alpha::editor_tabs::Tab* tab);
+
     void switchTab(ZStringView ID);
     void switchTab(alpha::editor_tabs::Tab* tab);
+    void switchTab(unsigned int index);
 
     void hideMode();
     void showMode();

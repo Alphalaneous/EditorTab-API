@@ -20,6 +20,9 @@ public:
     void removeMode(geode::ZStringView ID);
     void removeMode(alpha::editor_tabs::Mode* mode);
 
+    alpha::editor_tabs::Tab* getTab(geode::ZStringView ID);
+    alpha::editor_tabs::Tab* getTabByNode(EditButtonBar* node);
+
     void reloadAllModes();
 
 protected:

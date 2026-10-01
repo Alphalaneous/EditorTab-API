@@ -43,10 +43,10 @@ class $modify(ETEditorUI, EditorUI) {
     void showUI(bool show);
     void updateButtons();
     void updateSpecialTabVisibility();
+    void onPause(cocos2d::CCObject* sender);
 
     CCNode* iconForIdx(int idx);
     Result<std::string_view> idForBuildTabIndex(unsigned int index);
-    Result<int> indexForBuildTabID(std::string_view id);
 
     void setupBuildMode();
     void setupEditMode();

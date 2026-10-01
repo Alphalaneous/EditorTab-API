@@ -78,13 +78,15 @@ bool ETEditorUI::init(LevelEditorLayer* editorLayer) {
 
     internalMode->show();
 
-    auto tab = internalMode->getTab(std::string(idForBuildTabIndex(m_editorLayer->m_level->m_lastBuildTab).unwrapOrDefault()));
+    auto tab = internalMode->getTabByIndex(m_editorLayer->m_level->m_lastBuildTab);
     auto internalTab = static_cast<::internal::Tab*>(tab);
 
     internalMode->switchTab(tab);
 
-    auto node = internalTab->getNode();
-    node->goToPage(m_editorLayer->m_level->m_lastBuildPage);
+    if (internalTab) {
+        auto node = internalTab->getNode();
+        node->goToPage(m_editorLayer->m_level->m_lastBuildPage);
+    }
 
     return true;
 }
@@ -201,6 +203,18 @@ void ETEditorUI::updateSpecialTabVisibility() {
     }
 }
 
+void ETEditorUI::onPause(cocos2d::CCObject* sender) {
+    EditorUI::onPause(sender);
+
+    auto mode = static_cast<::internal::Mode*>(ModeHandler::get()->getMode(alpha::editor_tabs::Build));
+    if (!mode) return;
+
+    auto currentTab = static_cast<::internal::Tab*>(mode->getCurrentTab());
+    if (!currentTab) return;
+
+    m_editorLayer->m_level->m_lastBuildTab = currentTab->getIndex().unwrapOrDefault();
+}
+
 void ETEditorUI::updateButtons() {
     EditorUI::updateButtons();
     updateSpecialTabVisibility();
@@ -214,9 +228,9 @@ void ETEditorUI::selectBuildTab(int tab) {
     EditorUI::selectBuildTab(tab);
 
     auto mode = static_cast<::internal::Mode*>(ModeHandler::get()->getCurrentMode());
-    if (mode && mode->getID() == alpha::editor_tabs::Build) {
-        mode->switchTab(std::string(idForBuildTabIndex(tab).unwrapOrDefault()));
-    }
+    if (!mode) return;
+
+    mode->switchTab(mode->getTabByIndex(tab));
 }
 
 void ETEditorUI::updateCreateMenu(bool selectTab) {
@@ -293,22 +307,6 @@ CCNode* ETEditorUI::iconForIdx(int idx) {
     };
 
     return CCSprite::createWithSpriteFrameName(std::string(TabIcons[idx]).c_str());
-}
-
-Result<int> ETEditorUI::indexForBuildTabID(std::string_view id) {
-    auto mode = ModeHandler::get()->getMode(alpha::editor_tabs::Build);
-    auto internalMode = static_cast<::internal::Mode*>(mode);
-
-    int idx = 0;
-    for (const auto& tab : internalMode->getAllTabs()) {
-        auto internalTab = static_cast<::internal::Tab*>(tab.get());
-        if (internalTab->getID() == id) {
-            return Ok(idx);
-        }
-        idx++;
-    }
-
-    return Err("Tab with ID doesn't exist");
 }
 
 Result<std::string_view> ETEditorUI::idForBuildTabIndex(unsigned int index) {

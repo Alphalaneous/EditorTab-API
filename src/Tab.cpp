@@ -93,6 +93,11 @@ int Tab::getPriority() {
     return impl()->m_priority;
 }
 
+Result<unsigned int> Tab::getIndex() {
+    auto internalMode = static_cast<::internal::Mode*>(impl()->m_mode);
+    return internalMode->getTabIndex(this);
+}
+
 alpha::editor_tabs::Mode* Tab::getMode() {
     return impl()->m_mode;
 }

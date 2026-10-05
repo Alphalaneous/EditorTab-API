@@ -12,8 +12,8 @@ namespace internal {
 
 class Tab : public alpha::editor_tabs::Tab {
 public:
-    void construct(ZStringView ID, EditButtonBar* node, cocos2d::CCNode* icon, int priority = 0);
-    void destruct();
+    Tab(ZStringView ID, EditButtonBar* node, cocos2d::CCNode* icon, int priority = 0);
+    ~Tab();
 
     geode::ZStringView getID();
 
@@ -38,7 +38,11 @@ public:
 
     void reloadItems();
 
-    void setItemless();
+    void setItemless(bool itemless);
+    bool isItemless();
+
+    void setAutoScale(bool enabled);
+    bool hasAutoScale();
 
     void removeSelf();
 

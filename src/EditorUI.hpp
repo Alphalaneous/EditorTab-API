@@ -10,13 +10,21 @@ class $modify(ETEditorUI, EditorUI) {
 
     static void onModify(auto& self) {
         (void) self.setHookPriority("EditorUI::toggleMode", Priority::Replace);
-        (void) self.setHookPriority("EditorUI::selectBuildTab", Priority::Replace);
+        (void) self.setHookPriority("EditorUI::updateCreateMenu", Priority::Replace);
+        (void) self.setHookPriorityPost("EditorUI::init", Priority::LatePost);
     }
 
     struct Fields {
         std::shared_ptr<ModeHandler> m_modeHandler;
         bool m_initialized;
         std::vector<CCMenuItemToggler*> m_modeToggles;
+
+        alpha::editor_tabs::Mode* m_buildMode;
+        alpha::editor_tabs::Mode* m_editMode;
+        alpha::editor_tabs::Mode* m_deleteMode;
+        alpha::editor_tabs::Mode* m_viewMode;
+
+        bool m_uiVisible = true;
 
         ~Fields() {
             s_instance = nullptr;
@@ -37,8 +45,6 @@ class $modify(ETEditorUI, EditorUI) {
 
     void setupCreateMenu();
     void updateCreateMenu(bool selectTab);
-    void createMoveMenu();
-    void setupDeleteMenu();
     void selectBuildTab(int tab);
     void showUI(bool show);
     void updateButtons();

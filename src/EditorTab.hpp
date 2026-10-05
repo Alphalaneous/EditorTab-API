@@ -26,18 +26,26 @@ public:
     int getRows();
     int getColumns();
 
+    void updateTabUIEvent();
+
     void setContentSize(const CCSize& contentSize) override;
-    void setItemless();
+    void setPosition(const CCPoint& position) override;
 
     void setTab(Tab* tab);
     Tab* getTab();
 
-    bool hasNoItems();
+    void setItemless(bool itemless);
+    bool isItemless();
+
+    void setAutoScale(bool enabled);
+    bool hasAutoScale();
 
     void addChild(CCNode* child, int zOrder, int tag) override;
 
     void setPageDotsClickable(bool clickable);
     bool arePageDotsClickable();
+
+    static CCSize getMaxSize();
 
 protected:
     bool init(CCArray* items, int tab, bool hasCreateItems);
@@ -52,27 +60,27 @@ protected:
     void goToPage_(int page);
     void onLeft_(CCObject* sender);
     void onRight_(CCObject* sender);
-    CCSize getMinSize();
 
     CCMenuItemSpriteExtra* createDot(int page);
 
     Ref<BoomScrollLayer> m_scrollLayerRef;
     Ref<CCArray> m_buttonArrayRef;
     Ref<CCArray> m_pagesArrayRef;
-    CCMenu* m_itemContainer;
-    CCMenu* m_dotContainer;
-    CCMenu* m_navigationMenu;
+    Ref<CCMenu> m_itemContainer;
+    Ref<CCMenu> m_dotContainer;
+    Ref<CCMenu> m_navigationMenu;
     CCMenuItemSpriteExtra* m_prevButton;
     CCMenuItemSpriteExtra* m_nextButton;
-    std::vector<CCMenuItemSpriteExtra*> m_dots;
+    std::vector<Ref<CCMenuItemSpriteExtra>> m_dots;
     Ref<CCNode> m_container;
 
     Tab* m_tab;
 
     bool m_initialized = false;
 
-    bool m_noItems = false;
+    bool m_itemless = false;
     bool m_overrideSize = false;
+    bool m_hasAutoScale = true;
 
     int m_rows = 0;
     int m_columns = 0;

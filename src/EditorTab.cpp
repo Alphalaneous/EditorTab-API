@@ -72,38 +72,20 @@ EditorTab* EditorTab::create() {
 }
 
 bool EditorTab::init() {
-    auto winSize = CCDirector::get()->getWinSize();
+    m_itemless = true;
 
-    auto arr = CCArray::create();
-    arr->addObject(CCNode::create()); //fixes a bug in vanilla where 0 elements will loop forever
-    
-    m_scrollLayerRef = BoomScrollLayer::create(arr, 0, true);
-    m_scrollLayer = m_scrollLayerRef;
-
-    m_pagesArrayRef = CCArray::create();
-    m_pagesArray = m_pagesArrayRef;
-
-    setAnchorPoint({0.5f, 0.f});
-    setContentSize(getMinSize());
-    setPosition({winSize.width / 2.f, 0.f});
-
-    m_container = CCNode::create();
-    m_container->setAnchorPoint({0.5f, 0.5f});
-    m_container->setID("container"_spr);
-
-    addChild(m_container);
-
-    m_noItems = true;
-
-    updateUI();
-
-    m_initialized = true;
-
+    init(nullptr, 0, false);
     return true;
 }
 
 bool EditorTab::init(CCArray* items, int tab, bool hasCreateItems) {
     auto winSize = CCDirector::get()->getWinSize();
+
+    auto noItems = m_itemless;
+    m_itemless = false;
+
+    m_buttonArrayRef = items ? items->shallowCopy() : CCArray::create();
+    m_buttonArray = m_buttonArrayRef;
 
     auto arr = CCArray::create();
     arr->addObject(CCNode::create()); //fixes a bug in vanilla where 0 elements will loop forever
@@ -118,7 +100,6 @@ bool EditorTab::init(CCArray* items, int tab, bool hasCreateItems) {
     m_tabIndex = tab;
 
     setAnchorPoint({0.5f, 0.f});
-    setContentSize(getMinSize());
     setPosition({winSize.width / 2.f, 0.f});
 
     m_navigationMenu = CCMenu::create();
@@ -126,7 +107,9 @@ bool EditorTab::init(CCArray* items, int tab, bool hasCreateItems) {
     m_navigationMenu->setAnchorPoint({0.5f, 1.f});
     m_navigationMenu->setID("navigation-menu"_spr);
 
-    addChild(m_navigationMenu);
+    if (!noItems) {
+        addChild(m_navigationMenu);
+    }
 
     auto prevArrow = CCSprite::createWithSpriteFrameName("GJ_arrow_02_001.png");
     prevArrow->setScale(0.6f);
@@ -151,7 +134,9 @@ bool EditorTab::init(CCArray* items, int tab, bool hasCreateItems) {
         ->setGap(15.f)
     );
 
-    addChild(m_dotContainer);
+    if (!noItems) {
+        addChild(m_dotContainer);
+    }
 
     m_itemContainer = CCMenu::create();
     m_itemContainer->ignoreAnchorPointForPosition(false);
@@ -165,43 +150,70 @@ bool EditorTab::init(CCArray* items, int tab, bool hasCreateItems) {
         ->setCrossAxisAlignment(AxisAlignment::End)
     );
 
+    if (!noItems) {
+        addChild(m_itemContainer);
+    }
+
     m_container = CCNode::create();
     m_container->setAnchorPoint({0.5f, 0.f});
     m_container->setID("container"_spr);
 
-    auto rows = GameManager::get()->getIntGameVariable(GameVar::EditorButtonRows);
-    auto cols = GameManager::get()->getIntGameVariable(GameVar::EditorButtonsPerRow);
+    if (noItems) {
+        addChild(m_container);
+    }
 
-    addChild(m_itemContainer);
-    loadFromItems_(items, cols, rows, false);
-    updateUI();
-
+    m_itemless = noItems;
     m_initialized = true;
 
     return true;
 }
 
-void EditorTab::setContentSize(const CCSize& contentSize) {
-    CCNode::setContentSize(contentSize);
-    if (!m_initialized) return;
-    updateUI();
-
+void EditorTab::updateTabUIEvent() {
     auto winSize = CCDirector::get()->getWinSize();
-    auto minSize = getMinSize();
+    auto maxSize = getMaxSize();
 
-    float scaleX = getContentWidth() / minSize.width;
-    float scaleY = getContentHeight() / minSize.height;
+    float scaleX = getContentWidth() / maxSize.width;
+    float scaleY = getContentHeight() / maxSize.height;
 
     float scale = std::min(scaleX, scaleY);
 
-    alpha::editor_tabs::tab::ResizeTabEvent(m_tab).send(contentSize, scale);
+    alpha::editor_tabs::tab::UpdateTabUIEvent(m_tab).send(this);
 }
 
-void EditorTab::setItemless() {
-    removeAllChildren();
+void EditorTab::setContentSize(const CCSize& contentSize) {
+    CCNode::setContentSize(contentSize);
 
-    addChild(m_container);
-    m_noItems = true;
+    if (!m_initialized) return;
+
+    updateUI();
+    alpha::editor_tabs::tab::UpdateTabUIEvent(m_tab).send(this);
+}
+
+void EditorTab::setPosition(const CCPoint& position) {
+    CCNode::setPosition(position);
+
+    alpha::editor_tabs::tab::UpdateTabUIEvent(m_tab).send(this);
+}
+
+void EditorTab::setItemless(bool itemless) {
+    if (m_itemless == itemless) return;
+
+    m_itemless = false;
+
+    if (itemless) {
+        m_navigationMenu->removeFromParent();
+        m_dotContainer->removeFromParent();
+        m_itemContainer->removeFromParent();
+        addChild(m_container);
+    }
+    else {
+        m_container->removeFromParent();
+        addChild(m_navigationMenu);
+        addChild(m_dotContainer);
+        addChild(m_itemContainer);
+    }
+
+    m_itemless = itemless;
 
     updateUI();
 }
@@ -237,30 +249,39 @@ int EditorTab::getColumns() {
     return m_columns;
 }
 
-CCSize EditorTab::getMinSize() {
+CCSize EditorTab::getMaxSize() {
+    auto editor = ETEditorUI::get();
+
+    if (!editor) return {};
+
     auto winSize = CCDirector::get()->getWinSize();
 
-    auto editor = ETEditorUI::get();
     auto spacerLeft = editor->getChildByID("spacer-line-left");
     auto spacerRight = editor->getChildByID("spacer-line-right");
     
-    return CCSize{spacerRight->getPositionX() - spacerLeft->getPositionX() - 5.f * spacerLeft->getScale() - 5.f * spacerRight->getScale(), 90.f};
+    auto rightSpace = winSize.width - spacerRight->getPositionX() + 3.f;
+    auto leftSpace = spacerLeft->getPositionX() + 3.f;
+
+    return CCSize{winSize.width - rightSpace - leftSpace, 90.f};
 }
 
 void EditorTab::updateUI() {
     auto winSize = CCDirector::get()->getWinSize();
-    auto minSize = getMinSize();
+    auto maxSize = getMaxSize();
 
-    float scaleX = getContentWidth() / minSize.width;
-    float scaleY = getContentHeight() / minSize.height;
+    if (m_hasAutoScale) {
+        float scaleX = getContentWidth() / maxSize.width;
+        float scaleY = getContentHeight() / maxSize.height;
 
-    float scale = std::min(scaleX, scaleY);
+        float scale = std::min(scaleX, scaleY);
+        m_container->setScale(scale);
+    }
+    else {
+        m_container->setScale(1.f);
+    }
 
-    m_container->setScale(scale);
     m_container->setPosition(getContentSize() / 2.f);
     
-    if (m_noItems) return;
-
     m_dotContainer->setContentSize({getContentWidth(), 6.f});
     m_dotContainer->setPosition({getContentWidth() / 2.f, 0.f});
 
@@ -273,8 +294,6 @@ void EditorTab::updateUI() {
 }
 
 void EditorTab::updateNavMenu() {
-    if (m_noItems) return;
-
     m_navigationMenu->setContentSize({getContentWidth(), m_itemContainer->getScaledContentHeight()});
     m_navigationMenu->setPosition({getContentWidth() / 2.f, m_itemContainer->getPositionY()});
 
@@ -283,16 +302,12 @@ void EditorTab::updateNavMenu() {
 }
 
 void EditorTab::updateDots() {
-    if (m_noItems) return;
-
-    for (auto dot : m_dots) {
+    for (const auto& dot : m_dots) {
         dot->setColor(m_page == dot->getTag() ? ccColor3B{255, 255, 255} : ccColor3B{125, 125, 125});
     }
 }
 
 void EditorTab::updatePages() {    
-    if (m_noItems) return;
-
     m_dots.clear();
     m_dotContainer->removeAllChildren();
 
@@ -328,28 +343,40 @@ CCMenuItemSpriteExtra* EditorTab::createDot(int page) {
 }
 
 void EditorTab::loadFromItems_(CCArray* items, int columns, int rows, bool preserve) {
-    if (m_noItems) return;
+    m_buttonArrayRef = items ? items->shallowCopy() : CCArray::create();
+    m_buttonArray = m_buttonArrayRef;
 
     if (!m_overrideSize) {
         m_rows = rows;
         m_columns = columns;
     }
 
-    m_buttonArrayRef = items->shallowCopy();
-    m_buttonArray = m_buttonArrayRef;
-
-    m_pageCount = std::ceil(m_buttonArray->count() / (m_rows * m_columns)) + 1;
+    if (m_itemless) {
+        m_pageCount = 1;
+    }
+    else {
+        m_pageCount = std::ceil(m_buttonArray->count() / (m_rows * m_columns)) + 1;
+    }
 
     if (!preserve) {
         m_page = 0;
     }
 
+    if (m_itemless) {
+        if (!m_tab) return;
+        alpha::editor_tabs::tab::TabLoadedEvent(m_tab).send(this);
+        return;
+    }
+
     updatePages();
     goToPage_(m_page);
+
+    if (!m_tab) return;
+    alpha::editor_tabs::tab::TabLoadedEvent(m_tab).send(this);
 }
 
 void EditorTab::goToPage_(int page) {
-    if (m_noItems) return;
+    if (m_itemless) return;
 
     m_page = page;
 
@@ -402,17 +429,15 @@ void EditorTab::goToPage_(int page) {
     updateNavMenu();
 
     m_scrollLayer->m_page = m_page;
+
+    tab::SwitchPageEvent(m_tab).send(this, page);
 }
 
 void EditorTab::onLeft_(CCObject* sender) {
-    if (m_noItems) return;
-
     goToPage_(m_page - 1);
 }
 
 void EditorTab::onRight_(CCObject* sender) {
-    if (m_noItems) return;
-
     goToPage_(m_page + 1);
 }
 
@@ -424,12 +449,21 @@ alpha::editor_tabs::Tab* EditorTab::getTab() {
     return m_tab;
 }
 
-bool EditorTab::hasNoItems() {
-    return m_noItems;
+bool EditorTab::isItemless() {
+    return m_itemless;
+}
+
+void EditorTab::setAutoScale(bool enabled) {
+    m_hasAutoScale = enabled;
+    updateUI();
+}
+
+bool EditorTab::hasAutoScale() {
+    return m_hasAutoScale;
 }
 
 void EditorTab::addChild(CCNode* child, int zOrder, int tag) {
-    if (m_noItems) {
+    if (m_itemless) {
         m_container->addChild(child, zOrder, tag);
         return;
     }

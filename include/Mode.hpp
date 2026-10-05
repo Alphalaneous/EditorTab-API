@@ -1,6 +1,6 @@
 #pragma once
 
-#include "API.hpp"
+#include "Optional.hpp"
 #include <Geode/binding/EditButtonBar.hpp>
 #include <Geode/utils/ZStringView.hpp>
 
@@ -8,14 +8,6 @@ namespace alpha::editor_tabs {
 
 class Mode {
 public:
-    Mode(geode::ZStringView ID) {
-        alpha::editor_tabs::mode::construct(this, ID);
-    }
-
-    ~Mode() {
-        alpha::editor_tabs::mode::destruct(this);
-    }
-
     geode::ZStringView getID() {
         return alpha::editor_tabs::mode::getID(this);
     }
@@ -24,7 +16,7 @@ public:
         alpha::editor_tabs::mode::show(this);
     }
 
-    Tab* createTab(geode::ZStringView ID, EditButtonBar* node, cocos2d::CCNode* icon, int priority) {
+    Tab* createTab(geode::ZStringView ID, EditButtonBar* node, cocos2d::CCNode* icon, int priority = 0) {
         return alpha::editor_tabs::mode::createTab(this, ID, node, icon, priority);
     }
 

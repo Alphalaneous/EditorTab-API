@@ -1,7 +1,6 @@
 #pragma once
 
-#include "API.hpp"
-#include "Geode/cocos/base_nodes/CCNode.h"
+#include "Optional.hpp"
 #include <Geode/Result.hpp>
 #include <Geode/binding/CCMenuItemToggler.hpp>
 #include <Geode/binding/EditButtonBar.hpp>
@@ -11,14 +10,6 @@ namespace alpha::editor_tabs {
 
 class Tab {
 public:
-    Tab(geode::ZStringView ID, EditButtonBar* node, cocos2d::CCNode* icon, int priority) {
-        alpha::editor_tabs::tab::construct(this, ID, node, icon, priority);
-    }
-
-    ~Tab() {
-        alpha::editor_tabs::tab::destruct(this);
-    }
-
     geode::ZStringView getID() {
         return alpha::editor_tabs::tab::getID(this);
     }
@@ -83,8 +74,20 @@ public:
         alpha::editor_tabs::tab::reloadItems(this);
     }
 
-    void setItemless() {
-        alpha::editor_tabs::tab::setItemless(this);
+    void setItemless(bool itemless) {
+        alpha::editor_tabs::tab::setItemless(this, itemless);
+    }
+
+    bool isItemless() {
+        return alpha::editor_tabs::tab::isItemless(this);
+    }
+
+    void setAutoScale(bool enabled) {
+        alpha::editor_tabs::tab::setAutoScale(this, enabled);
+    }
+
+    bool hasAutoScale() {
+        return alpha::editor_tabs::tab::hasAutoScale(this);
     }
 
     void removeSelf() {

@@ -21,12 +21,12 @@ Mode::Impl* Mode::impl() {
     return static_cast<Mode::Impl*>(m_impl);
 }
 
-void Mode::construct(ZStringView ID) {
+Mode::Mode(ZStringView ID) {
     m_impl = new Mode::Impl();
     impl()->m_id = ID;
 }
 
-void Mode::destruct() {
+Mode::~Mode() {
     delete impl();
 }
 
@@ -39,31 +39,33 @@ void Mode::show() {
 }
 
 alpha::editor_tabs::Tab* Mode::createTab(geode::ZStringView ID, EditButtonBar* node, cocos2d::CCNode* icon, int priority) {
-    auto tab = impl()->m_tabs.emplace_back(std::make_shared<alpha::editor_tabs::Tab>(ID, node, icon, priority));
+    auto tab = impl()->m_tabs.emplace_back(std::make_shared<::internal::Tab>(ID, node, icon, priority));
 
     auto internalTab = static_cast<::internal::Tab*>(tab.get());
     internalTab->setMode(this);
 
     auto editor = ETEditorUI::get();
 
+    node->setZOrder(10);
+    node->setVisible(false);
+    node->setID(fmt::format("{}-tab-bar", ID));
+
+    auto toggle = internalTab->getTabToggle();
+    toggle->setID(fmt::format("{}-tab", ID));
+
     if (editor->initialized()) {
-
-        node->setZOrder(10);
-        node->setVisible(false);
-        node->setID(fmt::format("{}-tab-bar", ID));
-
         if (impl()->m_tabs.size() == 1) {
             impl()->m_currentTab = ID;
         }
 
         editor->addChild(node);
-        
-        auto toggle = internalTab->getTabToggle();
-        toggle->setID(fmt::format("{}-tab", ID));
-    }
 
-    if (impl()->m_id == alpha::editor_tabs::Build) {
-        editor->m_createButtonBars->addObject(node);
+        if (impl()->m_id == alpha::editor_tabs::Build) {
+            editor->m_createButtonBars->addObject(node);
+        }
+
+        internalTab->reloadItems();
+        tab::TabInitializedEvent(internalTab).send();
     }
 
     auto editorTab = typeinfo_cast<alpha::editor_tabs::EditorTab*>(node);
@@ -288,13 +290,18 @@ void Mode::setupTabs() {
 
     for (const auto& tab : impl()->m_tabs) {
         auto internalTab = static_cast<::internal::Tab*>(tab.get());
-        auto node = tab->getNode();
-        node->setZOrder(10);
+        auto node = internalTab->getNode();
+        node->setContentSize(EditorTab::getMaxSize());
 
         editor->addChild(node);
-    }
 
-    editor->m_tabsMenu->updateLayout();
+        if (impl()->m_id == alpha::editor_tabs::Build) {
+            editor->m_createButtonBars->addObject(node);
+        }
+
+        internalTab->reloadItems();
+        tab::TabInitializedEvent(internalTab).send();
+    }
 }
 
 void Mode::removeAllTabs() {

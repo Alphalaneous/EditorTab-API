@@ -21,7 +21,7 @@ alpha::editor_tabs::Mode* ModeHandler::getMode(geode::ZStringView ID) {
 }
 
 alpha::editor_tabs::Mode* ModeHandler::createMode(ZStringView ID) {
-    return m_modes.emplace_back(std::make_shared<alpha::editor_tabs::Mode>(ID)).get();
+    return m_modes.emplace_back(std::make_shared<::internal::Mode>(ID)).get();
 }
 
 void ModeHandler::switchMode(geode::ZStringView ID) {
@@ -47,12 +47,17 @@ void ModeHandler::switchMode(alpha::editor_tabs::Mode* mode) {
         m_currentMode = internalMode->getID();
         internalMode->showMode();
 
+        if (!internalMode->getCurrentTab() && internalMode->getAllTabs().size() > 0) {
+            auto internalTab = static_cast<::internal::Tab*>(internalMode->getAllTabs()[0].get());
+            internalMode->switchTab(internalTab);
+        }
+
         if (mode != oldMode) {
             if (oldMode) {
                 mode::SwitchModeEvent(oldMode).send(false);
             }
 
-            auto currentTab = mode->getCurrentTab();
+            auto currentTab = internalMode->getCurrentTab();
             if (currentTab) {
                 tab::SwitchTabEvent(currentTab).send(true);
             }
@@ -109,6 +114,18 @@ alpha::editor_tabs::Tab* ModeHandler::getCurrentTab() {
 
 std::span<const std::shared_ptr<alpha::editor_tabs::Mode>> ModeHandler::getAllModes() {
     return m_modes;
+}
+
+std::vector<std::shared_ptr<alpha::editor_tabs::Tab>> ModeHandler::getAllTabs() {
+    std::vector<std::shared_ptr<alpha::editor_tabs::Tab>> tabs;
+
+    for (const auto& mode : m_modes) {
+        auto internalMode = static_cast<::internal::Mode*>(mode.get());
+        auto modeTabs = internalMode->getAllTabs();
+        tabs.insert(tabs.begin(), modeTabs.begin(), modeTabs.end());
+    }
+
+    return tabs;
 }
 
 void ModeHandler::setupModes() {

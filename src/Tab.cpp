@@ -11,7 +11,7 @@ namespace internal {
 
 struct Tab::Impl {
     std::string m_id;
-    Ref<EditButtonBar> m_node;
+    Ref<EditButtonBar> m_node = nullptr;
     Ref<CCNode> m_icon;
     alpha::editor_tabs::Mode* m_mode;
     Ref<alpha::editor_tabs::TabToggler> m_toggler;
@@ -23,7 +23,7 @@ Tab::Impl* Tab::impl() {
     return static_cast<Tab::Impl*>(m_impl);
 }
 
-void Tab::construct(ZStringView ID, EditButtonBar* node, cocos2d::CCNode* icon, int priority) {
+Tab::Tab(ZStringView ID, EditButtonBar* node, cocos2d::CCNode* icon, int priority) {
     m_impl = new Tab::Impl();
     impl()->m_id = ID;
     impl()->m_node = node;
@@ -36,7 +36,7 @@ void Tab::construct(ZStringView ID, EditButtonBar* node, cocos2d::CCNode* icon, 
     impl()->m_priority = priority;
 }
 
-void Tab::destruct() {
+Tab::~Tab() {
     delete impl();
 }
 
@@ -117,11 +117,32 @@ void Tab::reloadItems() {
     getNode()->reloadItems(cols, rows);
 }
 
-void Tab::setItemless() {
+void Tab::setItemless(bool itemless) {
     auto editorTab = typeinfo_cast<alpha::editor_tabs::EditorTab*>(getNode());
     if (!editorTab) return;
 
-    editorTab->setItemless();
+    editorTab->setItemless(itemless);
+}
+
+bool Tab::isItemless() {
+    auto editorTab = typeinfo_cast<alpha::editor_tabs::EditorTab*>(getNode());
+    if (!editorTab) return false;
+
+    return editorTab->isItemless();
+}
+
+void Tab::setAutoScale(bool enabled) {
+    auto editorTab = typeinfo_cast<alpha::editor_tabs::EditorTab*>(getNode());
+    if (!editorTab) return;
+
+    editorTab->setAutoScale(enabled);
+}
+
+bool Tab::hasAutoScale() {
+    auto editorTab = typeinfo_cast<alpha::editor_tabs::EditorTab*>(getNode());
+    if (!editorTab) return false;
+
+    return editorTab->hasAutoScale();
 }
 
 void Tab::removeSelf() {

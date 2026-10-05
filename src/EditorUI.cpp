@@ -13,6 +13,11 @@ bool ETEditorUI::init(LevelEditorLayer* editorLayer) {
     auto fields = m_fields.self();
     fields->m_modeHandler = std::make_shared<ModeHandler>();
 
+    fields->m_buildMode = ModeHandler::get()->createMode(alpha::editor_tabs::Build);
+    fields->m_editMode = ModeHandler::get()->createMode(alpha::editor_tabs::Edit);
+    fields->m_deleteMode = ModeHandler::get()->createMode(alpha::editor_tabs::Delete);
+    fields->m_viewMode = ModeHandler::get()->createMode(alpha::editor_tabs::View);
+
     if (!EditorUI::init(editorLayer)) return false;
 
     auto spacerLeft = getChildByID("spacer-line-left");
@@ -24,6 +29,7 @@ bool ETEditorUI::init(LevelEditorLayer* editorLayer) {
     auto layout = static_cast<AxisLayout*>(categoriesMenu->getLayout());
     layout->setAxis(Axis::Row);
     layout->setGrowCrossAxis(true);
+    layout->setCrossAxisOverflow(false);
     layout->setAxisReverse(false);
 
     categoriesMenu->removeAllChildren();
@@ -63,10 +69,14 @@ bool ETEditorUI::init(LevelEditorLayer* editorLayer) {
     addChild(m_tabsMenu);
     m_uiItems->addObject(m_tabsMenu);
 
-    setupBuildMode();
     setupEditMode();
     setupDeleteMode();
     setupViewMode();
+
+    fields->m_modeHandler->setupModes();
+    fields->m_initialized = true;
+
+    AllTabsInitializedEvent().send();
 
     for (auto bar : CCArrayExt<EditButtonBar, false>(m_createButtonBars)) {
         auto lastBuildPage = m_editorLayer->m_level->getLastBuildPageForTab(bar->m_tabIndex);
@@ -122,10 +132,7 @@ void ETEditorUI::setupCreateMenu() {
     m_tabsMenu->removeAllChildren();
     m_tabsArray->removeAllObjects();
 
-    auto fields = m_fields.self();
-
-    fields->m_modeHandler->setupModes();
-    fields->m_initialized = true;
+    setupBuildMode();
 }
 
 void ETEditorUI::updateModeToggles(int mode) {
@@ -174,6 +181,13 @@ void ETEditorUI::toggleMode(cocos2d::CCObject* sender) {
 void ETEditorUI::showUI(bool show) {
     EditorUI::showUI(show);
     
+    if (!GameManager::get()->getGameVariable(GameVar::PlaytestNoUI)) {
+        show = true;
+    }
+
+    auto fields = m_fields.self();
+    fields->m_uiVisible = show;
+
     if (show) {
         updateSpecialTabVisibility();
     }
@@ -192,14 +206,15 @@ void ETEditorUI::showUI(bool show) {
 void ETEditorUI::updateSpecialTabVisibility() {
     auto mode = static_cast<::internal::Mode*>(ModeHandler::get()->getCurrentMode());
     if (!mode) return;
+    auto fields = m_fields.self();
 
     if (mode->getID() == alpha::editor_tabs::Delete) {
         auto tab = static_cast<::internal::Tab*>(mode->getCurrentTab());
-        m_deleteMenu->setVisible(tab->getID() == "delete");
+        m_deleteMenu->setVisible(tab->getID() == "delete" && fields->m_uiVisible);
     }
     if (mode->getID() == alpha::editor_tabs::Edit) {
         auto tab = static_cast<::internal::Tab*>(mode->getCurrentTab());
-        m_editButtonBar->setVisible(tab->getID() == "edit");
+        m_editButtonBar->setVisible(tab->getID() == "edit" && fields->m_uiVisible);
     }
 }
 
@@ -225,8 +240,9 @@ bool ETEditorUI::initialized() {
 }
 
 void ETEditorUI::selectBuildTab(int tab) {
-    EditorUI::selectBuildTab(tab);
+    EditorUI::selectBuildTab(tab);    
 
+    // TODO figure out why sometimes other modes will switch to phantom tabs when using keybinds
     auto mode = static_cast<::internal::Mode*>(ModeHandler::get()->getCurrentMode());
     if (!mode) return;
 
@@ -235,42 +251,30 @@ void ETEditorUI::selectBuildTab(int tab) {
 
 void ETEditorUI::updateCreateMenu(bool selectTab) {
     if (m_selectedMode != 2) return;
-
-    bool selectedItemFound = false;
     
     for (auto item : CCArrayExt<CreateMenuItem, false>(m_createButtonArray)) {
         enableButton(item);
 
-        if (!selectedItemFound && item->m_objectID == m_selectedObjectIndex) {
+        if (item->m_objectID == m_selectedObjectIndex) {
             disableButton(item);
             if (!selectTab) continue;
             
             selectBuildTab(item->m_tabIndex);
             m_createButtonBar->goToPage(item->m_pageIndex);
-            selectedItemFound = true;
         }
     }
 
     for (auto item : CCArrayExt<CreateMenuItem, false>(m_customObjectButtonArray)) {
         enableButton(item);
 
-        if (!selectedItemFound && item->m_objectID == m_selectedObjectIndex) {
+        if (item->m_objectID == m_selectedObjectIndex) {
             disableButton(item);
             if (!selectTab) continue;
             
             selectBuildTab(item->m_tabIndex);
             m_createButtonBar->goToPage(item->m_pageIndex);
-            selectedItemFound = true;
         }
     }
-}
-
-void ETEditorUI::createMoveMenu() {
-    EditorUI::createMoveMenu();
-}
-
-void ETEditorUI::setupDeleteMenu() {
-    EditorUI::setupDeleteMenu();
 }
 
 CCNode* ETEditorUI::iconForIdx(int idx) {
@@ -325,10 +329,7 @@ Result<std::string_view> ETEditorUI::idForBuildTabIndex(unsigned int index) {
 }
 
 void ETEditorUI::setupBuildMode() {
-    auto mode = ModeHandler::get()->createMode(alpha::editor_tabs::Build);
-    auto internalMode = static_cast<::internal::Mode*>(mode);
-
-    auto newBars = CCArray::create();
+    auto internalMode = static_cast<::internal::Mode*>(m_fields->m_buildMode);
 
     int prio = -1000 * m_createButtonBars->count();
 
@@ -346,16 +347,17 @@ void ETEditorUI::setupBuildMode() {
 
         auto newBar = alpha::editor_tabs::EditorTab::create(bar->m_buttonArray, bar->m_tabIndex, bar->m_hasCreateItems);
         internalMode->createTab(tabID, newBar, iconForIdx(bar->m_tabIndex), prio);
-        
-        newBars->addObject(newBar);
+
+        if (bar->m_tabIndex == 13) {
+            m_customTabBar = newBar;
+        }
 
         prio += 1000;
     }
 }
 
 void ETEditorUI::setupEditMode() {
-    auto mode = ModeHandler::get()->createMode(alpha::editor_tabs::Edit);
-    auto internalMode = static_cast<::internal::Mode*>(mode);
+    auto internalMode = static_cast<::internal::Mode*>(m_fields->m_editMode);
 
     Ref<EditButtonBar> bar = m_editButtonBar;
     bar->removeFromParent();
@@ -369,8 +371,7 @@ void ETEditorUI::setupEditMode() {
 }
 
 void ETEditorUI::setupDeleteMode() {
-    auto mode = ModeHandler::get()->createMode(alpha::editor_tabs::Delete);
-    auto internalMode = static_cast<::internal::Mode*>(mode);
+    auto internalMode = static_cast<::internal::Mode*>(m_fields->m_deleteMode);
 
     auto deleteTab = alpha::editor_tabs::EditorTab::create();
 
@@ -386,16 +387,23 @@ void ETEditorUI::setupDeleteMode() {
         m_deleteMenu->setVisible(show);
     });
 
-    addEventListener(tab::ResizeTabEvent(tab), [this, deleteTab] (const CCSize& size, float scale) {
-        m_deleteMenu->setScale(scale);
-        auto centerWorld = deleteTab->convertToWorldSpace(size / 2.f);
+    addEventListener(tab::UpdateTabUIEvent(tab), [this, deleteTab] (EditButtonBar* node) {
+        auto winSize = CCDirector::get()->getWinSize();
+        auto maxSize = EditorTab::getMaxSize();
+
+        float scaleX = node->getContentWidth() / maxSize.width;
+        float scaleY = node->getContentHeight() / maxSize.height;
+
+        float scale = std::min(scaleX, scaleY);
+
+        m_deleteMenu->setScale(scale * deleteTab->getScale());
+        auto centerWorld = deleteTab->convertToWorldSpace(node->getContentSize() / 2.f);
         m_deleteMenu->setPosition(centerWorld);
     });
 }
 
 void ETEditorUI::setupViewMode() {
-    auto mode = ModeHandler::get()->createMode(alpha::editor_tabs::View);
-    auto internalMode = static_cast<::internal::Mode*>(mode);
+    auto internalMode = static_cast<::internal::Mode*>(m_fields->m_viewMode);
 
     auto viewTab = alpha::editor_tabs::EditorTab::create();
 

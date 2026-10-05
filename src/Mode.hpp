@@ -11,8 +11,8 @@ namespace internal {
 
 class Mode : public alpha::editor_tabs::Mode {
 public:
-    void construct(ZStringView ID);
-    void destruct();
+    Mode(ZStringView ID);
+    ~Mode();
 
     geode::ZStringView getID();
     void show();

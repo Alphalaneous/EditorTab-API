@@ -1,9 +1,9 @@
+#include <memory>
 #define GEODE_DEFINE_EVENT_EXPORTS
 #include <Geode/Geode.hpp>
-#include "../include/API.hpp"
+#include "../include/Optional.hpp"
 #include "../include/Mode.hpp"
 #include "../include/Tab.hpp"
-#include "EditorUI.hpp"
 #include "EditorTab.hpp"
 #include "ModeHandler.hpp"
 #include "Mode.hpp"
@@ -16,19 +16,11 @@ namespace alpha::editor_tabs {
 namespace mode {
 
 ::internal::Mode* shadow(Mode* mode) {
-    return std::bit_cast<::internal::Mode*>(mode);
+    return reinterpret_cast<::internal::Mode*>(mode);
 }
 
 geode::ZStringView getID(Mode* mode) {
     return shadow(mode)->getID();
-}
-
-void construct(Mode* mode, ZStringView ID) {
-    shadow(mode)->construct(ID);
-}
-
-void destruct(Mode* mode) {
-    shadow(mode)->destruct();
 }
 
 void show(Mode* mode) {
@@ -96,19 +88,11 @@ void removeSelf(Mode* mode) {
 namespace tab {
 
 ::internal::Tab* shadow(Tab* tab) {
-    return std::bit_cast<::internal::Tab*>(tab);
+    return reinterpret_cast<::internal::Tab*>(tab);
 }
 
 geode::ZStringView getID(Tab* tab) {
     return shadow(tab)->getID();
-}
-
-void construct(Tab* tab, ZStringView ID, EditButtonBar* node, cocos2d::CCNode* icon, int priority) {
-    shadow(tab)->construct(ID, node, icon, priority);
-}
-
-void destruct(Tab* tab) {
-    shadow(tab)->destruct();
 }
 
 void show(Tab* tab) {
@@ -160,15 +144,27 @@ CCMenuItemToggler* getTabToggle(Tab* tab) {
 }
 
 void reloadItems(Tab* tab) {
-    return shadow(tab)->reloadItems();
+    shadow(tab)->reloadItems();
 }
 
-void setItemless(Tab* tab) {
-    return shadow(tab)->setItemless();
+void setItemless(Tab* tab, bool itemless) {
+    shadow(tab)->setItemless(itemless);
+}
+
+bool isItemless(Tab* tab) {
+    return shadow(tab)->isItemless();
+}
+
+void setAutoScale(Tab* tab, bool enabled) {
+    shadow(tab)->setAutoScale(enabled);
+}
+
+bool hasAutoScale(Tab* tab) {
+    return shadow(tab)->hasAutoScale();
 }
 
 void removeSelf(Tab* tab) {
-    return shadow(tab)->removeSelf();
+    shadow(tab)->removeSelf();
 }
 
 void setPageDotsClickable(Tab* tab, bool clickable) {
@@ -270,6 +266,13 @@ std::span<const std::shared_ptr<Mode>> getAllModes() {
     return handler->getAllModes();
 }
 
+std::vector<std::shared_ptr<Tab>> getAllTabs() {
+    auto handler = ModeHandler::get();
+    if (!handler) return {};
+
+    return handler->getAllTabs();
+}
+
 void reloadAllModes() {
     auto handler = ModeHandler::get();
     if (!handler) return;
@@ -289,6 +292,10 @@ void switchMode(alpha::editor_tabs::Mode* mode) {
     if (!handler) return;
 
     handler->switchMode(mode);
+}
+
+cocos2d::CCSize getMaxTabSize() {
+    return EditorTab::getMaxSize();
 }
 
 }

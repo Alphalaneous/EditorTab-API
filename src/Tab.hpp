@@ -46,9 +46,6 @@ public:
 
     void removeSelf();
 
-    void setPageDotsClickable(bool clickable);
-    bool arePageDotsClickable();
-
 protected:
     class Impl;
     Impl* impl();

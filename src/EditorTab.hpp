@@ -30,6 +30,7 @@ public:
 
     void setContentSize(const CCSize& contentSize) override;
     void setPosition(const CCPoint& position) override;
+    void setVisible(bool visible) override;
 
     void setTab(Tab* tab);
     Tab* getTab();
@@ -42,10 +43,8 @@ public:
 
     void addChild(CCNode* child, int zOrder, int tag) override;
 
-    void setPageDotsClickable(bool clickable);
-    bool arePageDotsClickable();
-
     static CCSize getMaxSize();
+    void loadFromItems_(CCArray* items, int columns, int rows, bool preserve);
 
 protected:
     bool init(CCArray* items, int tab, bool hasCreateItems);
@@ -56,7 +55,6 @@ protected:
     void updateUI();
     void updatePages();
 
-    void loadFromItems_(CCArray* items, int columns, int rows, bool preserve);
     void goToPage_(int page);
     void onLeft_(CCObject* sender);
     void onRight_(CCObject* sender);
@@ -87,8 +85,6 @@ protected:
 
     int m_page = 0;
     int m_pageCount = 0;
-
-    bool m_pageDotsClickable;
 
     friend class ::ETEditButtonBar;
 };

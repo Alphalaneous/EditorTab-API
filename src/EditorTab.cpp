@@ -1,6 +1,7 @@
 #include "EditorTab.hpp"
 #include "EditorUI.hpp"
 #include "../include/Tab.hpp"
+#include "DummyBoom.hpp"
 
 namespace alpha::editor_tabs {
 
@@ -8,7 +9,7 @@ namespace alpha::editor_tabs {
 EditorTab::EditorTab() : EditButtonBar(ZeroConstructor) {
     m_uReference = 1;
 
-    auto director = CCDirector::sharedDirector();
+    auto director = CCDirector::get();
     m_pActionManager = director->getActionManager();
     m_pActionManager->retain();
     m_pScheduler = director->getScheduler();
@@ -90,7 +91,7 @@ bool EditorTab::init(CCArray* items, int tab, bool hasCreateItems) {
     auto arr = CCArray::create();
     arr->addObject(CCNode::create()); //fixes a bug in vanilla where 0 elements will loop forever
     
-    m_scrollLayerRef = BoomScrollLayer::create(arr, 0, true);
+    m_scrollLayerRef = DummyBoom::create();
     m_scrollLayer = m_scrollLayerRef;
 
     m_pagesArrayRef = CCArray::create();
@@ -105,7 +106,7 @@ bool EditorTab::init(CCArray* items, int tab, bool hasCreateItems) {
     m_navigationMenu = CCMenu::create();
     m_navigationMenu->ignoreAnchorPointForPosition(false);
     m_navigationMenu->setAnchorPoint({0.5f, 1.f});
-    m_navigationMenu->setID("navigation-menu"_spr);
+    m_navigationMenu->setID("arrows-menu");
 
     if (!noItems) {
         addChild(m_navigationMenu);
@@ -114,7 +115,7 @@ bool EditorTab::init(CCArray* items, int tab, bool hasCreateItems) {
     auto prevArrow = CCSprite::createWithSpriteFrameName("GJ_arrow_02_001.png");
     prevArrow->setScale(0.6f);
     m_prevButton = CCMenuItemSpriteExtra::create(prevArrow, this, menu_selector(EditButtonBar::onLeft));
-    m_prevButton->setID("prev-button"_spr);
+    m_prevButton->setID("left-button");
 
     m_navigationMenu->addChild(m_prevButton);
 
@@ -122,17 +123,14 @@ bool EditorTab::init(CCArray* items, int tab, bool hasCreateItems) {
     nextArrow->setScale(0.6f);
     nextArrow->setFlipX(true);
     m_nextButton = CCMenuItemSpriteExtra::create(nextArrow, this, menu_selector(EditButtonBar::onRight));
-    m_nextButton->setID("next-button"_spr);
+    m_nextButton->setID("right-button");
 
     m_navigationMenu->addChild(m_nextButton);
 
     m_dotContainer = CCMenu::create();
     m_dotContainer->ignoreAnchorPointForPosition(false);
     m_dotContainer->setAnchorPoint({0.5f, 0.f});
-    m_dotContainer->setID("dot-container"_spr);
-    m_dotContainer->setLayout(SimpleRowLayout::create()
-        ->setGap(15.f)
-    );
+    m_dotContainer->setID("dots-menu");
 
     if (!noItems) {
         addChild(m_dotContainer);
@@ -141,7 +139,7 @@ bool EditorTab::init(CCArray* items, int tab, bool hasCreateItems) {
     m_itemContainer = CCMenu::create();
     m_itemContainer->ignoreAnchorPointForPosition(false);
     m_itemContainer->setAnchorPoint({0.5f, 1.f});
-    m_itemContainer->setID("item-container"_spr);
+    m_itemContainer->setID("button-menu");
     m_itemContainer->setLayout(RowLayout::create()
         ->setGrowCrossAxis(true)
         ->setCrossAxisOverflow(false)
@@ -182,17 +180,25 @@ void EditorTab::updateTabUIEvent() {
 
 void EditorTab::setContentSize(const CCSize& contentSize) {
     CCNode::setContentSize(contentSize);
-
     if (!m_initialized) return;
 
     updateUI();
     alpha::editor_tabs::tab::UpdateTabUIEvent(m_tab).send(this);
+    alpha::editor_tabs::tab::UpdateTabSizeEvent(m_tab).send(this, contentSize);
 }
 
 void EditorTab::setPosition(const CCPoint& position) {
     CCNode::setPosition(position);
+    if (!m_initialized) return;
 
     alpha::editor_tabs::tab::UpdateTabUIEvent(m_tab).send(this);
+}
+
+void EditorTab::setVisible(bool visible) {
+    CCNode::setVisible(visible);
+    if (!m_initialized) return;
+    
+    alpha::editor_tabs::tab::UpdateTabVisibilityEvent(m_tab).send(this, visible);
 }
 
 void EditorTab::setItemless(bool itemless) {
@@ -259,8 +265,8 @@ CCSize EditorTab::getMaxSize() {
     auto spacerLeft = editor->getChildByID("spacer-line-left");
     auto spacerRight = editor->getChildByID("spacer-line-right");
     
-    auto rightSpace = winSize.width - spacerRight->getPositionX() + 3.f;
-    auto leftSpace = spacerLeft->getPositionX() + 3.f;
+    auto rightSpace = winSize.width - spacerRight->getPositionX() + 8.f;
+    auto leftSpace = spacerLeft->getPositionX() + 8.f;
 
     return CCSize{winSize.width - rightSpace - leftSpace, 90.f};
 }
@@ -313,7 +319,7 @@ void EditorTab::updatePages() {
 
     for (int i = 0; i < m_pageCount; i++) {
         auto dot = createDot(i);
-        dot->setEnabled(m_pageDotsClickable);
+        dot->setEnabled(true);
         m_dots.push_back(dot);
         m_dotContainer->addChild(dot);
     }
@@ -331,13 +337,16 @@ void EditorTab::updatePages() {
 
 CCMenuItemSpriteExtra* EditorTab::createDot(int page) {
     auto ret = CCMenuItemExt::createSpriteExtraWithFilename("smallDot.png", 0.5f, [this, page] (CCMenuItemSpriteExtra* sender) {
+        if (m_page != page && m_hasCreateItems) {
+            EditorSFXManager::sharedState()->playAction(278);
+        }
         goToPage(page);
     });
     ret->setTag(page);
     ret->setZOrder(page);
     ret->setCascadeColorEnabled(true);
     ret->setCascadeOpacityEnabled(true);
-    ret->setID(fmt::format("page-{}-dot"_spr, page + 1));
+    ret->setID(fmt::format("page-{}-dot", page));
 
     return ret;
 }
@@ -355,11 +364,28 @@ void EditorTab::loadFromItems_(CCArray* items, int columns, int rows, bool prese
         m_pageCount = 1;
     }
     else {
-        m_pageCount = std::ceil(m_buttonArray->count() / (m_rows * m_columns)) + 1;
+        auto perPage = m_rows * m_columns;
+        m_pageCount = (m_buttonArray->count() + perPage - 1) / perPage;
     }
 
     if (!preserve) {
         m_page = 0;
+    }
+
+    if (m_hasCreateItems) {
+        int pageIdx = 0;
+        int idx = 0;
+
+        for (auto obj : items->asExt<CreateMenuItem>()) {
+            obj->m_pageIndex = pageIdx;
+            obj->m_tabIndex = m_tabIndex;
+
+            obj->setID(fmt::format("object-{}-button", obj->m_objectID));
+
+            if (idx % m_pageCount == 0) {
+                pageIdx++;
+            }
+        }
     }
 
     if (m_itemless) {
@@ -367,6 +393,15 @@ void EditorTab::loadFromItems_(CCArray* items, int columns, int rows, bool prese
         alpha::editor_tabs::tab::TabLoadedEvent(m_tab).send(this);
         return;
     }
+
+    m_dotContainer->setContentSize({getContentWidth(), 6.f});
+    m_dotContainer->setLayout(SimpleRowLayout::create()
+        ->setGap(12.8f)
+        ->setMainAxisScaling(AxisScaling::ScaleDownGaps)
+        ->setCrossAxisScaling(AxisScaling::Fit)
+    );
+
+    m_dotContainer->updateLayout();
 
     updatePages();
     goToPage_(m_page);
@@ -376,7 +411,7 @@ void EditorTab::loadFromItems_(CCArray* items, int columns, int rows, bool prese
 }
 
 void EditorTab::goToPage_(int page) {
-    if (m_itemless) return;
+    if (m_itemless || m_pageCount == 0) return;
 
     m_page = page;
 
@@ -399,8 +434,13 @@ void EditorTab::goToPage_(int page) {
     float width = m_columns * (40.f + gap) - gap;
     float height = m_rows * (40.f + gap) - gap;
 
+    float widthOffset = 0.f;
+    if (m_pageCount > 1) {
+        widthOffset = m_prevButton->getScaledContentWidth() + m_nextButton->getScaledContentWidth() + 10.f;
+    }
+
     auto size = CCSize{
-        getContentWidth() - m_prevButton->getScaledContentWidth() - m_nextButton->getScaledContentWidth() - 10.f, 
+        getContentWidth() - widthOffset, 
         getContentHeight() - m_dotContainer->getScaledContentHeight() - 10.f
     };
 
@@ -434,10 +474,16 @@ void EditorTab::goToPage_(int page) {
 }
 
 void EditorTab::onLeft_(CCObject* sender) {
+    if (m_hasCreateItems) {
+        EditorSFXManager::sharedState()->playAction(278);
+    }
     goToPage_(m_page - 1);
 }
 
 void EditorTab::onRight_(CCObject* sender) {
+    if (m_hasCreateItems) {
+        EditorSFXManager::sharedState()->playAction(278);
+    }
     goToPage_(m_page + 1);
 }
 
@@ -468,15 +514,6 @@ void EditorTab::addChild(CCNode* child, int zOrder, int tag) {
         return;
     }
     CCNode::addChild(child, zOrder, tag);
-}
-
-void EditorTab::setPageDotsClickable(bool clickable) {
-    m_pageDotsClickable = clickable;
-    updateDots();
-}
-
-bool EditorTab::arePageDotsClickable() {
-    return m_pageDotsClickable;
 }
 
 }

@@ -54,8 +54,14 @@ bool TabToggler::init(::internal::Tab* tab, CCNode* icon) {
 }
 
 void TabToggler::onPress(CCObject* sender) {
+    auto oldTab = EditorUI::get()->m_selectedTab;
+
     auto internalMode = static_cast<::internal::Mode*>(m_tab->getMode());
     internalMode->switchTab(m_tab);
+
+    if (oldTab != internalMode->getTabIndex(m_tab).unwrapOrDefault()) {
+        EditorSFXManager::sharedState()->playAction(164);
+    }
 }
 
 void TabToggler::toggleTab(bool on) {

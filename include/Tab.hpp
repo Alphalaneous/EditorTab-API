@@ -50,14 +50,6 @@ public:
         return alpha::editor_tabs::tab::getPriority(this);
     }
 
-    void setPageDotsClickable(bool clickable) {
-        alpha::editor_tabs::tab::setPageDotsClickable(this, clickable);
-    }
-
-    bool arePageDotsClickable() {
-        return alpha::editor_tabs::tab::arePageDotsClickable(this);
-    }
-
     Mode* getMode() {
         return alpha::editor_tabs::tab::getMode(this);
     }

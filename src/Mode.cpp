@@ -38,7 +38,7 @@ void Mode::show() {
     ModeHandler::get()->switchMode(this);
 }
 
-alpha::editor_tabs::Tab* Mode::createTab(geode::ZStringView ID, EditButtonBar* node, cocos2d::CCNode* icon, int priority) {
+alpha::editor_tabs::Tab* Mode::createTab(geode::ZStringView ID, EditButtonBar* node, cocos2d::CCNode* icon, int priority) {    
     auto tab = impl()->m_tabs.emplace_back(std::make_shared<::internal::Tab>(ID, node, icon, priority));
 
     auto internalTab = static_cast<::internal::Tab*>(tab.get());
@@ -59,10 +59,6 @@ alpha::editor_tabs::Tab* Mode::createTab(geode::ZStringView ID, EditButtonBar* n
         }
 
         editor->addChild(node);
-
-        if (impl()->m_id == alpha::editor_tabs::Build) {
-            editor->m_createButtonBars->addObject(node);
-        }
 
         internalTab->reloadItems();
         tab::TabInitializedEvent(internalTab).send();
@@ -294,10 +290,6 @@ void Mode::setupTabs() {
         node->setContentSize(EditorTab::getMaxSize());
 
         editor->addChild(node);
-
-        if (impl()->m_id == alpha::editor_tabs::Build) {
-            editor->m_createButtonBars->addObject(node);
-        }
 
         internalTab->reloadItems();
         tab::TabInitializedEvent(internalTab).send();

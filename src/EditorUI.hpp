@@ -17,7 +17,6 @@ class $modify(ETEditorUI, EditorUI) {
     struct Fields {
         std::shared_ptr<ModeHandler> m_modeHandler;
         bool m_initialized;
-        std::vector<CCMenuItemToggler*> m_modeToggles;
 
         alpha::editor_tabs::Mode* m_buildMode;
         alpha::editor_tabs::Mode* m_editMode;
@@ -38,12 +37,12 @@ class $modify(ETEditorUI, EditorUI) {
     bool init(LevelEditorLayer* editorLayer);
     bool initialized();
 
-    CCMenuItemToggler* createModeToggle(ZStringView ID, int tag, ZStringView sprite);
-
     void toggleMode(cocos2d::CCObject* sender);
     void updateModeToggles(int mode);
 
+    CreateMenuItem* getCreateBtn(int id, int bg);
     void setupCreateMenu();
+    void createMoveMenu();
     void updateCreateMenu(bool selectTab);
     void selectBuildTab(int tab);
     void showUI(bool show);

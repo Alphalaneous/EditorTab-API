@@ -167,14 +167,6 @@ void removeSelf(Tab* tab) {
     shadow(tab)->removeSelf();
 }
 
-void setPageDotsClickable(Tab* tab, bool clickable) {
-    shadow(tab)->setPageDotsClickable(clickable);
-}
-
-bool arePageDotsClickable(Tab* tab) {
-    return shadow(tab)->arePageDotsClickable();
-}
-
 }
 
 Mode* getMode(geode::ZStringView ID) {

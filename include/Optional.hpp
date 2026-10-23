@@ -22,77 +22,37 @@ struct Tab;
 
 namespace mode {
 
-inline geode::ZStringView getID(Mode* mode)
-GEODE_EVENT_EXPORT_NORES(&getID, (mode));
+GEODE_EVENT_EXPORT(geode::ZStringView, getID, (Mode* mode), (mode));
 
-inline void show(Mode* mode)
-GEODE_EVENT_EXPORT_NORES(&show, (mode));
+GEODE_EVENT_EXPORT(void, show, (Mode* mode), (mode));
 
-inline void switchTab(Mode* mode, geode::ZStringView ID)
-GEODE_EVENT_EXPORT_ID_NORES(
-    static_cast<void(*)(Mode*, geode::ZStringView)>(&switchTab),
-    (mode, ID),
-    MY_MOD_ID "/switchTab1"
-);
+GEODE_EVENT_EXPORT(void, switchTab, (Mode* mode, geode::ZStringView ID), (mode, ID));
 
-inline void switchTab(Mode* mode, Tab* tab)
-GEODE_EVENT_EXPORT_ID_NORES(
-    static_cast<void(*)(Mode*, Tab*)>(&switchTab),
-    (mode, tab),
-    MY_MOD_ID "/switchTab2"
-);
+GEODE_EVENT_EXPORT(void, switchTab, (Mode* mode, Tab* tab), (mode, tab));
 
-inline Tab* getCurrentTab(Mode* mode)
-GEODE_EVENT_EXPORT_NORES(&getCurrentTab, (mode));
+GEODE_EVENT_EXPORT(Tab*, getCurrentTab, (Mode* mode), (mode));
 
-inline Tab* getTab(Mode* mode, geode::ZStringView ID)
-GEODE_EVENT_EXPORT_NORES(&getTab, (mode, ID));
+GEODE_EVENT_EXPORT(Tab*, getTab, (Mode* mode, geode::ZStringView ID), (mode, ID));
 
-inline Tab* getTabByNode(Mode* mode, EditButtonBar* node)
-GEODE_EVENT_EXPORT_NORES(&getTabByNode, (mode, node));
+GEODE_EVENT_EXPORT(Tab*, getTabByNode, (Mode* mode, EditButtonBar* node), (mode, node));
 
-inline Tab* getTabByIndex(Mode* mode, unsigned int index)
-GEODE_EVENT_EXPORT_NORES(&getTabByIndex, (mode, index));
+GEODE_EVENT_EXPORT(Tab*, getTabByIndex, (Mode* mode, unsigned int index), (mode, index));
 
-inline geode::Result<unsigned int> getTabIndex(Mode* mode, geode::ZStringView ID)
-GEODE_EVENT_EXPORT_ID(
-    static_cast<geode::Result<unsigned int>(*)(Mode*, geode::ZStringView)>(&getTabIndex),
-    (mode, ID),
-    MY_MOD_ID "/getTabIndex1"
-);
+GEODE_EVENT_EXPORT(geode::Result<unsigned int>, getTabIndex, (Mode* mode, geode::ZStringView ID), (mode, ID));
 
-inline geode::Result<unsigned int> getTabIndex(Mode* mode, Tab* tab)
-GEODE_EVENT_EXPORT_ID(
-    static_cast<geode::Result<unsigned int>(*)(Mode*, Tab*)>(&getTabIndex),
-    (mode, tab),
-    MY_MOD_ID "/getTabIndex2"
-);
+GEODE_EVENT_EXPORT(geode::Result<unsigned int>, getTabIndex, (Mode* mode, Tab* tab), (mode, tab));
 
-inline std::span<const std::shared_ptr<Tab>> getAllTabs(Mode* mode)
-GEODE_EVENT_EXPORT_NORES(&getAllTabs, (mode));
+GEODE_EVENT_EXPORT(std::span<const std::shared_ptr<Tab>>, getAllTabs, (Mode* mode), (mode));
 
-inline Tab* createTab(Mode* mode, geode::ZStringView ID, EditButtonBar* node, cocos2d::CCNode* icon, int priority = 0)
-GEODE_EVENT_EXPORT_NORES(&createTab, (mode, ID, node, icon, priority));
+GEODE_EVENT_EXPORT(Tab*, createTab, (Mode* mode, geode::ZStringView ID, EditButtonBar* node, cocos2d::CCNode* icon, int priority = 0), (mode, ID, node, icon, priority));
 
-inline void removeTab(Mode* mode, geode::ZStringView ID)
-GEODE_EVENT_EXPORT_ID_NORES(
-    static_cast<void(*)(Mode*, geode::ZStringView)>(&removeTab),
-    (mode, ID),
-    MY_MOD_ID "/removeTab1"
-);
+GEODE_EVENT_EXPORT(void, removeTab, (Mode* mode, geode::ZStringView ID), (mode, ID));
 
-inline void removeTab(Mode* mode, Tab* tab)
-GEODE_EVENT_EXPORT_ID_NORES(
-    static_cast<void(*)(Mode*, Tab*)>(&removeTab),
-    (mode, tab),
-    MY_MOD_ID "/removeTab2"
-);
+GEODE_EVENT_EXPORT(void, removeTab, (Mode* mode, Tab* tab), (mode, tab));
 
-inline void reloadAllTabs(Mode* mode)
-GEODE_EVENT_EXPORT_NORES(&reloadAllTabs, (mode));
+GEODE_EVENT_EXPORT(void, reloadAllTabs, (Mode* mode), (mode));
 
-inline void removeSelf(Mode* mode)
-GEODE_EVENT_EXPORT_NORES(&removeSelf, (mode));
+GEODE_EVENT_EXPORT(void, removeSelf, (Mode* mode), (mode));
 
 class SwitchModeEvent : public geode::GlobalEvent<SwitchModeEvent, bool(bool show), Mode*> {
     using GlobalEvent::GlobalEvent;
@@ -102,78 +62,51 @@ class SwitchModeEvent : public geode::GlobalEvent<SwitchModeEvent, bool(bool sho
 
 namespace tab {
 
-inline geode::ZStringView getID(Tab* tab)
-GEODE_EVENT_EXPORT_NORES(&getID, (tab));
+GEODE_EVENT_EXPORT(geode::ZStringView, getID, (Tab* tab), (tab));
 
-inline void show(Tab* tab)
-GEODE_EVENT_EXPORT_NORES(&show, (tab));
+GEODE_EVENT_EXPORT(void, show, (Tab* tab), (tab));
 
-inline EditButtonBar* getNode(Tab* tab)
-GEODE_EVENT_EXPORT_NORES(&getNode, (tab));
+GEODE_EVENT_EXPORT(EditButtonBar*, getNode, (Tab* tab), (tab));
 
-inline cocos2d::CCNode* getIcon(Tab* tab)
-GEODE_EVENT_EXPORT_NORES(&getIcon, (tab));
+GEODE_EVENT_EXPORT(cocos2d::CCNode*, getIcon, (Tab* tab), (tab));
 
-inline void setPriority(Tab* tab, int priority)
-GEODE_EVENT_EXPORT_NORES(&setPriority, (tab, priority));
+GEODE_EVENT_EXPORT(void, setPriority, (Tab* tab, int priority), (tab, priority));
 
-inline int getPriority(Tab* tab)
-GEODE_EVENT_EXPORT_NORES(&getPriority, (tab));
+GEODE_EVENT_EXPORT(int, getPriority, (Tab* tab), (tab));
 
-inline geode::Result<unsigned int> getIndex(Tab* tab)
-GEODE_EVENT_EXPORT(&getIndex, (tab));
+GEODE_EVENT_EXPORT(geode::Result<unsigned int>, getIndex, (Tab* tab), (tab));
 
-inline void overrideSize(Tab* tab, int rows, int columns)
-GEODE_EVENT_EXPORT_ID_NORES(
-    static_cast<void(*)(Tab*, int, int)>(&overrideSize),
-    (tab, rows, columns),
-    MY_MOD_ID "/overrideSize1"
-);
+GEODE_EVENT_EXPORT(void, overrideSize, (Tab* tab, int rows, int columns), (tab, rows, columns));
 
-inline void overrideSize(Tab* tab, bool override, int rows, int columns)
-GEODE_EVENT_EXPORT_ID_NORES(
-    static_cast<void(*)(Tab*, bool, int, int)>(&overrideSize),
-    (tab, override, rows, columns),
-    MY_MOD_ID "/overrideSize2"
-);
+GEODE_EVENT_EXPORT(void, overrideSize, (Tab* tab, bool override, int rows, int columns), (tab, override, rows, columns));
 
-inline int getRows(Tab* tab)
-GEODE_EVENT_EXPORT_NORES(&getRows, (tab));
+GEODE_EVENT_EXPORT(int, getRows, (Tab* tab), (tab));
 
-inline int getColumns(Tab* tab)
-GEODE_EVENT_EXPORT_NORES(&getColumns, (tab));
+GEODE_EVENT_EXPORT(int, getColumns, (Tab* tab), (tab));
 
-inline Mode* getMode(Tab* tab)
-GEODE_EVENT_EXPORT_NORES(&getMode, (tab));
+GEODE_EVENT_EXPORT(Mode*, getMode, (Tab* tab), (tab));
 
-inline CCMenuItemToggler* getTabToggle(Tab* tab)
-GEODE_EVENT_EXPORT_NORES(&getTabToggle, (tab));
+GEODE_EVENT_EXPORT(CCMenuItemToggler*, getTabToggle, (Tab* tab), (tab));
 
-inline void reloadItems(Tab* tab)
-GEODE_EVENT_EXPORT_NORES(&reloadItems, (tab));
+GEODE_EVENT_EXPORT(void, reloadItems, (Tab* tab), (tab));
 
-inline void setItemless(Tab* tab, bool itemless)
-GEODE_EVENT_EXPORT_NORES(&setItemless, (tab, itemless));
+GEODE_EVENT_EXPORT(void, setItemless, (Tab* tab, bool itemless), (tab, itemless));
 
-inline bool isItemless(Tab* tab)
-GEODE_EVENT_EXPORT_NORES(&isItemless, (tab));
+GEODE_EVENT_EXPORT(bool, isItemless, (Tab* tab), (tab));
 
-inline void setAutoScale(Tab* tab, bool enabled)
-GEODE_EVENT_EXPORT_NORES(&setAutoScale, (tab, enabled));
+GEODE_EVENT_EXPORT(void, setAutoScale, (Tab* tab, bool enabled), (tab, enabled));
 
-inline bool hasAutoScale(Tab* tab)
-GEODE_EVENT_EXPORT_NORES(&hasAutoScale, (tab));
+GEODE_EVENT_EXPORT(bool, hasAutoScale, (Tab* tab), (tab));
 
-inline void removeSelf(Tab* tab)
-GEODE_EVENT_EXPORT_NORES(&removeSelf, (tab));
-
-inline void setPageDotsClickable(Tab* tab, bool clickable)
-GEODE_EVENT_EXPORT_NORES(&setPageDotsClickable, (tab, clickable));
-
-inline bool arePageDotsClickable(Tab* tab)
-GEODE_EVENT_EXPORT_NORES(&arePageDotsClickable, (tab));
+GEODE_EVENT_EXPORT(void, removeSelf, (Tab* tab), (tab));
 
 class UpdateTabUIEvent : public geode::GlobalEvent<UpdateTabUIEvent, bool(EditButtonBar* node), Tab*> {
+    using GlobalEvent::GlobalEvent;
+};
+class UpdateTabSizeEvent : public geode::GlobalEvent<UpdateTabSizeEvent, bool(EditButtonBar* node, const cocos2d::CCSize& size), Tab*> {
+    using GlobalEvent::GlobalEvent;
+};
+class UpdateTabVisibilityEvent : public geode::GlobalEvent<UpdateTabVisibilityEvent, bool(EditButtonBar* node, bool visible), Tab*> {
     using GlobalEvent::GlobalEvent;
 };
 
@@ -195,86 +128,43 @@ class TabInitializedEvent : public geode::GlobalEvent<TabInitializedEvent, bool(
 
 }
 
-inline Mode* getMode(geode::ZStringView ID)
-GEODE_EVENT_EXPORT_NORES(&getMode, (ID));
+GEODE_EVENT_EXPORT(Mode*, getMode, (geode::ZStringView ID), (ID));
 
-inline Mode* getCurrentMode()
-GEODE_EVENT_EXPORT_NORES(&getCurrentMode, ());
+GEODE_EVENT_EXPORT(Mode*, getCurrentMode, (void), ());
 
-inline geode::ZStringView getCurrentModeID()
-GEODE_EVENT_EXPORT_NORES(&getCurrentModeID, ());
+GEODE_EVENT_EXPORT(geode::ZStringView, getCurrentModeID, (void), ());
 
-inline Tab* getCurrentTab()
-GEODE_EVENT_EXPORT_NORES(&getCurrentTab, ());
+GEODE_EVENT_EXPORT(Tab*, getCurrentTab, (void), ());
 
-inline geode::ZStringView getCurrentTabID()
-GEODE_EVENT_EXPORT_NORES(&getCurrentTabID, ());
+GEODE_EVENT_EXPORT(geode::ZStringView, getCurrentTabID, (void), ());
 
-inline std::span<const std::shared_ptr<Mode>> getAllModes()
-GEODE_EVENT_EXPORT_NORES(&getAllModes, ());
+GEODE_EVENT_EXPORT(std::span<const std::shared_ptr<Mode>>, getAllModes, (void), ());
 
-inline std::vector<std::shared_ptr<Tab>> getAllTabs()
-GEODE_EVENT_EXPORT_NORES(&getAllTabs, ());
+GEODE_EVENT_EXPORT(std::vector<std::shared_ptr<Tab>>, getAllTabs, (void), ());
 
-inline Mode* createMode(geode::ZStringView ID)
-GEODE_EVENT_EXPORT_NORES(&createMode, (ID));
+GEODE_EVENT_EXPORT(Mode*, createMode, (geode::ZStringView ID), (ID));
 
-inline Tab* getTab(geode::ZStringView ID)
-GEODE_EVENT_EXPORT_NORES(&getTab, (ID));
+GEODE_EVENT_EXPORT(Tab*, getTab, (geode::ZStringView ID), (ID));
 
-inline Tab* getTabByNode(EditButtonBar* node)
-GEODE_EVENT_EXPORT_NORES(&getTabByNode, (node));
+GEODE_EVENT_EXPORT(Tab*, getTabByNode, (EditButtonBar* node), (node));
 
-inline EditButtonBar* createTabBar(cocos2d::CCArray* items, int tab = 0, bool hasCreateItems = false)
-GEODE_EVENT_EXPORT_ID_NORES(
-    static_cast<EditButtonBar*(*)(cocos2d::CCArray*, int, bool)>(&createTabBar),
-    (items, tab, hasCreateItems),
-    MY_MOD_ID "/createTabBar1"
-);
+GEODE_EVENT_EXPORT(EditButtonBar*, createTabBar, (cocos2d::CCArray* items, int tab = 0, bool hasCreateItems = false), (items, tab, hasCreateItems));
 
-inline EditButtonBar* createTabBar(std::span<geode::Ref<cocos2d::CCNode>> items, int tab = 0, bool hasCreateItems = false)
-GEODE_EVENT_EXPORT_ID_NORES(
-    static_cast<EditButtonBar*(*)(std::span<geode::Ref<cocos2d::CCNode>>, int, bool)>(&createTabBar),
-    (items, tab, hasCreateItems),
-    MY_MOD_ID "/createTabBar2"
-);
+GEODE_EVENT_EXPORT(EditButtonBar*, createTabBar, (std::span<geode::Ref<cocos2d::CCNode>> items, int tab = 0, bool hasCreateItems = false), (items, tab, hasCreateItems));
 
-inline EditButtonBar* createTabNode()
-GEODE_EVENT_EXPORT_NORES(&createTabNode, ());
+GEODE_EVENT_EXPORT(EditButtonBar*, createTabNode, (void), ());
 
-inline void removeMode(geode::ZStringView ID)
-GEODE_EVENT_EXPORT_ID_NORES(
-    static_cast<void(*)(geode::ZStringView)>(&removeMode),
-    (ID),
-    MY_MOD_ID "/removeMode1"
-);
+GEODE_EVENT_EXPORT(void, removeMode, (geode::ZStringView ID), (ID));
 
-inline void removeMode(Mode* mode)
-GEODE_EVENT_EXPORT_ID_NORES(
-    static_cast<void(*)(Mode*)>(&removeMode),
-    (mode),
-    MY_MOD_ID "/removeMode2"
-);
+GEODE_EVENT_EXPORT(void, removeMode, (Mode* mode), (mode));
 
-inline void reloadAllModes()
-GEODE_EVENT_EXPORT_NORES(&reloadAllModes, ());
+GEODE_EVENT_EXPORT(void, reloadAllModes, (void), ());
 
-inline void switchMode(Mode* mode)
-GEODE_EVENT_EXPORT_ID_NORES(
-    static_cast<void(*)(Mode*)>(&switchMode),
-    (mode),
-    MY_MOD_ID "/switchMode1"
-);
+GEODE_EVENT_EXPORT(void, switchMode, (Mode* mode), (mode));
 
-inline void switchMode(geode::ZStringView ID)
-GEODE_EVENT_EXPORT_ID_NORES(
-    static_cast<void(*)(geode::ZStringView)>(&switchMode),
-    (ID),
-    MY_MOD_ID "/switchMode2"
-);
+GEODE_EVENT_EXPORT(void, switchMode, (geode::ZStringView ID), (ID));
 
-inline cocos2d::CCSize getMaxTabSize()
-GEODE_EVENT_EXPORT_NORES(&getMaxTabSize, ());
+GEODE_EVENT_EXPORT(cocos2d::CCSize, getMaxTabSize, (void), ());
 
 class AllTabsInitializedEvent : public geode::Event<AllTabsInitializedEvent, bool()> {
     using Event::Event;

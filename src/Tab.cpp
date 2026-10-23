@@ -111,6 +111,8 @@ TabToggler* Tab::getTabToggle() {
 }
 
 void Tab::reloadItems() {
+    if (isItemless()) return;
+
     auto rows = GameManager::get()->getIntGameVariable(GameVar::EditorButtonRows);
     auto cols = GameManager::get()->getIntGameVariable(GameVar::EditorButtonsPerRow);
 
@@ -148,20 +150,6 @@ bool Tab::hasAutoScale() {
 void Tab::removeSelf() {
     auto internalMode = static_cast<::internal::Mode*>(impl()->m_mode);
     internalMode->removeTab(this);
-}
-
-void Tab::setPageDotsClickable(bool clickable) {
-    auto editorTab = typeinfo_cast<EditorTab*>(getNode());
-    if (!editorTab) return;
-
-    editorTab->setPageDotsClickable(clickable);
-}
-
-bool Tab::arePageDotsClickable() {
-    auto editorTab = typeinfo_cast<EditorTab*>(getNode());
-    if (!editorTab) return false;
-
-    return editorTab->arePageDotsClickable();
 }
 
 }

@@ -10,6 +10,8 @@ void MyEditorPauseLayer::onResume(CCObject* sender) {
     EditorPauseLayer::onResume(sender);
 
     if (reload) {
+        // TODO Tabs crash when refreshed due to broken members
+
         ModeHandler::get()->reloadAllModes();
     }
 }

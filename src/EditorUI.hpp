@@ -15,30 +15,34 @@ class $modify(ETEditorUI, EditorUI) {
     }
 
     struct Fields {
-        std::shared_ptr<ModeHandler> m_modeHandler;
-        bool m_initialized;
+        std::shared_ptr<ModeHandler> m_modeHandler = nullptr;
 
-        alpha::editor_tabs::Mode* m_buildMode;
-        alpha::editor_tabs::Mode* m_editMode;
-        alpha::editor_tabs::Mode* m_deleteMode;
-        alpha::editor_tabs::Mode* m_viewMode;
+        alpha::editor_tabs::Mode* m_buildMode = nullptr;
+        alpha::editor_tabs::Mode* m_editMode = nullptr;
+        alpha::editor_tabs::Mode* m_deleteMode = nullptr;
+        alpha::editor_tabs::Mode* m_viewMode = nullptr;
+
+        Ref<CCArray> m_editButtons{};
+        Ref<CCDictionary> m_editButtonDict{};
+
+        geode::ScrollLayer* m_editScrollLayer = nullptr;
 
         bool m_uiVisible = true;
-
-        ~Fields() {
-            s_instance = nullptr;
-        }
     };
 
-    static ETEditorUI* s_instance;
-
-    static ETEditorUI* get();
-
     bool init(LevelEditorLayer* editorLayer);
-    bool initialized();
+
+    void populateEditButtons();
+    void addItemToEditButtons(CCNode* item);
+
+    CCArray* getEditButtons();
 
     void toggleMode(cocos2d::CCObject* sender);
     void updateModeToggles(int mode);
+    void readjustDpadMenu(EditButtonBar* node, float availableWidth);
+    void setDpadStep(int p0);
+
+    void fixButtonWidths();
 
     CreateMenuItem* getCreateBtn(int id, int bg);
     void setupCreateMenu();
@@ -50,6 +54,8 @@ class $modify(ETEditorUI, EditorUI) {
     void updateSpecialTabVisibility();
     void onPause(cocos2d::CCObject* sender);
 
+    void updateDpadMenuButtons();
+
     CCNode* iconForIdx(int idx);
     Result<std::string_view> idForBuildTabIndex(unsigned int index);
 
@@ -57,6 +63,7 @@ class $modify(ETEditorUI, EditorUI) {
     void setupEditMode();
     void setupDeleteMode();
     void setupViewMode();
+    bool scrollWheel(float y, float x);
 
     static constexpr std::array<std::string_view, 14> TabIDs {
         "block",

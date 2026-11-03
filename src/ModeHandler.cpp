@@ -1,10 +1,12 @@
 #include "ModeHandler.hpp"
 #include "EditorUI.hpp"
-#include "Mode.hpp"
-#include "Tab.hpp"
+#include "EarlyEditorUI.hpp"
+#include "../include/Tab.hpp"
+#include "../include/Mode.hpp"
+#include "../include/Optional.hpp"
 
 ModeHandler* ModeHandler::get() {
-    auto editor = ETEditorUI::get();
+    auto editor = modify_cast<ETEditorUI*>(EarlyEditorUI::get());
     if (!editor) return nullptr;
 
     return editor->m_fields->m_modeHandler.get();
@@ -12,16 +14,15 @@ ModeHandler* ModeHandler::get() {
 
 alpha::editor_tabs::Mode* ModeHandler::getMode(geode::ZStringView ID) {
     auto it = std::find_if(m_modes.begin(), m_modes.end(), 
-    [ID](const std::shared_ptr<alpha::editor_tabs::Mode>& t) {
-        auto internalMode = static_cast<::internal::Mode*>(t.get());
-        return t && internalMode->getID() == ID;
+    [ID] (const std::shared_ptr<alpha::editor_tabs::Mode>& mode) {
+        return mode && mode->getID() == ID;
     });
 
     return (it != get()->m_modes.end()) ? it->get() : nullptr;
 }
 
 alpha::editor_tabs::Mode* ModeHandler::createMode(ZStringView ID) {
-    return m_modes.emplace_back(std::make_shared<::internal::Mode>(ID)).get();
+    return m_modes.emplace_back(std::make_shared<alpha::editor_tabs::Mode>(ID)).get();
 }
 
 void ModeHandler::switchMode(geode::ZStringView ID) {
@@ -30,53 +31,50 @@ void ModeHandler::switchMode(geode::ZStringView ID) {
 
 void ModeHandler::switchMode(alpha::editor_tabs::Mode* mode) {
     for (const auto& mode : m_modes) {
-        auto internalMode = static_cast<::internal::Mode*>(mode.get());
-        internalMode->hideMode();
+        mode.get()->hideMode();
     }
 
-    auto oldMode = static_cast<::internal::Mode*>(getCurrentMode());
+    auto oldMode = getCurrentMode();
     if (oldMode && oldMode != mode) {
         auto currentTab = oldMode->getCurrentTab();
         if (currentTab) {
-            tab::SwitchTabEvent(currentTab).send(false);
+            alpha::editor_tabs::Tab::SwitchTabEvent(currentTab).send(false);
         }
     }
 
     if (mode) {
-        auto internalMode = static_cast<::internal::Mode*>(mode);
-        m_currentMode = internalMode->getID();
-        internalMode->showMode();
+        m_currentMode = mode->getID();
+        mode->show();
 
-        if (!internalMode->getCurrentTab() && internalMode->getAllTabs().size() > 0) {
-            auto internalTab = static_cast<::internal::Tab*>(internalMode->getAllTabs()[0].get());
-            internalMode->switchTab(internalTab);
+        if (!mode->getCurrentTab() && mode->getAllTabs().size() > 0) {
+            mode->switchTab(mode->getAllTabs()[0].get());
         }
 
         if (mode != oldMode) {
             if (oldMode) {
-                mode::SwitchModeEvent(oldMode).send(false);
+                alpha::editor_tabs::Mode::SwitchModeEvent(oldMode).send(false);
             }
 
-            auto currentTab = internalMode->getCurrentTab();
+            auto currentTab = mode->getCurrentTab();
             if (currentTab) {
-                tab::SwitchTabEvent(currentTab).send(true);
+                alpha::editor_tabs::Tab::SwitchTabEvent(currentTab).send(true);
             }
 
-            mode::SwitchModeEvent(mode).send(true);
+            alpha::editor_tabs::Mode::SwitchModeEvent(mode).send(true);
         }
 
-        auto editor = ETEditorUI::get();
+        auto editor =  modify_cast<ETEditorUI*>(EarlyEditorUI::get());
 
-        if (internalMode->getID() == alpha::editor_tabs::Build) {
+        if (mode->getID() == alpha::editor_tabs::Build) {
             editor->m_selectedMode = 2;
         }
-        else if (internalMode->getID() == alpha::editor_tabs::Edit) {
+        else if (mode->getID() == alpha::editor_tabs::Edit) {
             editor->m_selectedMode = 3;
         }
-        else if (internalMode->getID() == alpha::editor_tabs::Delete) {
+        else if (mode->getID() == alpha::editor_tabs::Delete) {
             editor->m_selectedMode = 1;
         }
-        else if (internalMode->getID() == alpha::editor_tabs::View) {
+        else if (mode->getID() == alpha::editor_tabs::View) {
             editor->m_selectedMode = 4;
         }
         else {
@@ -99,17 +97,17 @@ alpha::editor_tabs::Mode* ModeHandler::getCurrentMode() {
 }
 
 geode::ZStringView ModeHandler::getCurrentTabID() {
-    auto internalTab = static_cast<::internal::Tab*>(getCurrentTab());
-    if (!internalTab) return "";
+    auto tab = getCurrentTab();
+    if (!tab) return "";
 
-    return internalTab->getID();
+    return tab->getID();
 }
 
 alpha::editor_tabs::Tab* ModeHandler::getCurrentTab() {
-    auto internalMode = static_cast<::internal::Mode*>(getCurrentMode());
-    if (!internalMode) return nullptr;
+    auto mode = getCurrentMode();
+    if (!mode) return nullptr;
 
-    return internalMode->getCurrentTab();
+    return mode->getCurrentTab();
 }
 
 std::span<const std::shared_ptr<alpha::editor_tabs::Mode>> ModeHandler::getAllModes() {
@@ -120,8 +118,7 @@ std::vector<std::shared_ptr<alpha::editor_tabs::Tab>> ModeHandler::getAllTabs() 
     std::vector<std::shared_ptr<alpha::editor_tabs::Tab>> tabs;
 
     for (const auto& mode : m_modes) {
-        auto internalMode = static_cast<::internal::Mode*>(mode.get());
-        auto modeTabs = internalMode->getAllTabs();
+        auto modeTabs = mode->getAllTabs();
         tabs.insert(tabs.begin(), modeTabs.begin(), modeTabs.end());
     }
 
@@ -130,8 +127,7 @@ std::vector<std::shared_ptr<alpha::editor_tabs::Tab>> ModeHandler::getAllTabs() 
 
 void ModeHandler::setupModes() {
     for (const auto& mode : m_modes) {
-        auto internalMode = static_cast<::internal::Mode*>(mode.get());
-        internalMode->setupTabs();
+        mode.get()->setupTabs();
     }
 }
 
@@ -140,24 +136,21 @@ void ModeHandler::removeMode(geode::ZStringView ID) {
 }
 
 void ModeHandler::removeMode(alpha::editor_tabs::Mode* mode) {
-    auto internalMode = static_cast<::internal::Mode*>(mode);
-    internalMode->removeAllTabs();
+    mode->removeAllTabs();
 
     int prevIdx = 0;
-
-    bool isCurrentMode = m_currentMode == internalMode->getID();
+    bool isCurrentMode = m_currentMode == mode->getID();
 
     if (isCurrentMode) {
         for (int i = 0; i < m_modes.size(); i++) {
-            auto internalModeInner = static_cast<::internal::Mode*>(m_modes[i].get());
-            if (internalModeInner->getID() == internalMode->getID()) {
+            if (m_modes[i].get()->getID() == mode->getID()) {
                 prevIdx = i;
                 break;
             }
         }
     }
 
-    std::erase_if(m_modes, [mode](const std::shared_ptr<alpha::editor_tabs::Mode>& m) {
+    std::erase_if(m_modes, [mode] (const std::shared_ptr<alpha::editor_tabs::Mode>& m) {
         return m.get() == mode;
     });
 
@@ -168,23 +161,27 @@ void ModeHandler::removeMode(alpha::editor_tabs::Mode* mode) {
         }
 
         auto idx = std::clamp(prevIdx, 0, static_cast<int>(m_modes.size()) - 1);
-
-        auto internalMode = static_cast<::internal::Mode*>(m_modes[idx].get());
-        switchMode(internalMode);
+        switchMode(m_modes[idx].get());
     }
 }
 
 void ModeHandler::reloadAllModes() {
     for (const auto& mode : m_modes) {
-        auto internalMode = static_cast<::internal::Mode*>(mode.get());
-        internalMode->reloadAllTabs();
+        mode.get()->reloadAllTabs();
     }
+    switchMode(m_currentMode);
+}
+
+void ModeHandler::reloadAllModeSizes(int rows, int columns) {
+    for (const auto& mode : m_modes) {
+        mode.get()->reloadAllTabSizes(rows, columns);
+    }
+    switchMode(m_currentMode);
 }
 
 alpha::editor_tabs::Tab* ModeHandler::getTab(geode::ZStringView ID) {
     for (const auto& mode : m_modes) {
-        auto internalMode = static_cast<::internal::Mode*>(mode.get());
-        auto tab = internalMode->getTab(ID);
+        auto tab = mode->getTab(ID);
         if (tab) return tab;
     }
 
@@ -193,8 +190,7 @@ alpha::editor_tabs::Tab* ModeHandler::getTab(geode::ZStringView ID) {
 
 alpha::editor_tabs::Tab* ModeHandler::getTabByNode(EditButtonBar* node) {
     for (const auto& mode : m_modes) {
-        auto internalMode = static_cast<::internal::Mode*>(mode.get());
-        auto tab = internalMode->getTabByNode(node);
+        auto tab = mode->getTabByNode(node);
         if (tab) return tab;
     }
     

@@ -4,23 +4,21 @@
 
 using namespace geode::prelude;
 
-namespace internal {
-    class Tab;
-}
-
 namespace alpha::editor_tabs {
+
+class Tab;
 
 class TabToggler : public CCMenuItemToggler {
 public:
-    static TabToggler* create(::internal::Tab* tab, CCNode* icon);
+    static TabToggler* create(alpha::editor_tabs::Tab* tab, CCNode* icon);
 
     void toggleTab(bool on);
     void onPress(CCObject* sender);
 protected:
-    bool init(::internal::Tab* tab, CCNode* icon);
+    bool init(alpha::editor_tabs::Tab* tab, CCNode* icon);
 
     CCNode* m_icon;
-    ::internal::Tab* m_tab;
+    alpha::editor_tabs::Tab* m_tab;
 };
 
 }

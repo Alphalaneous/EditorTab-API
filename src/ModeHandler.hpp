@@ -1,6 +1,11 @@
 #pragma once
 
-#include "../include/Mode.hpp"
+#include <Geode/Geode.hpp>
+
+namespace alpha::editor_tabs {
+    class Tab;
+    class Mode;
+}
 
 class ModeHandler {
 public:
@@ -28,6 +33,18 @@ public:
     alpha::editor_tabs::Tab* getTabByNode(EditButtonBar* node);
 
     void reloadAllModes();
+    void reloadAllModeSizes(int rows, int columns);
+
+    #define OnHandler(method, ...) \
+        return ([&]() -> decltype(auto) { \
+            auto handler = ModeHandler::get(); \
+            if (!handler) { \
+                using Ret = decltype(handler->method(__VA_ARGS__)); \
+                if constexpr (std::is_void_v<Ret>) return; \
+                else return Ret{}; \
+            } \
+            return handler->method(__VA_ARGS__); \
+        }())
 
 protected:
     std::vector<std::shared_ptr<alpha::editor_tabs::Mode>> m_modes;

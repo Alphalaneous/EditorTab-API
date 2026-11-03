@@ -1,8 +1,10 @@
 #include "EditorUI.hpp"
+#include "EarlyEditorUI.hpp"
 #include "EditorTab.hpp"
 #include "ModeHandler.hpp"
-#include "Mode.hpp"
-#include "Tab.hpp"
+#include "../include/Mode.hpp"
+#include "../include/Tab.hpp"
+#include "../include/Optional.hpp"
 #include "TabMenu.hpp"
 
 struct CreateTabItem {
@@ -471,11 +473,7 @@ constexpr std::array CreateTabs = {
     CreateTab{13,                     "custom",      "custom", {}},
 };
 
-ETEditorUI* ETEditorUI::s_instance = nullptr;
-
 bool ETEditorUI::init(LevelEditorLayer* editorLayer) {
-    s_instance = this;
-
     auto fields = m_fields.self();
     fields->m_modeHandler = std::make_shared<ModeHandler>();
 
@@ -484,6 +482,8 @@ bool ETEditorUI::init(LevelEditorLayer* editorLayer) {
     fields->m_deleteMode = ModeHandler::get()->createMode(alpha::editor_tabs::Delete);
     fields->m_viewMode = ModeHandler::get()->createMode(alpha::editor_tabs::View);
 
+    populateEditButtons();
+
     if (!EditorUI::init(editorLayer)) return false;
 
     auto spacerLeft = getChildByID("spacer-line-left");
@@ -491,7 +491,7 @@ bool ETEditorUI::init(LevelEditorLayer* editorLayer) {
 
     auto winSize = CCDirector::get()->getWinSize();
 
-    auto newTabMenu = TabMenu::create();
+    auto newTabMenu = alpha::editor_tabs::TabMenu::create();
     newTabMenu->setPosition({winSize.width / 2.f, m_tabsMenu->getPositionY()});
     newTabMenu->setContentSize(m_tabsMenu->getContentSize());
     newTabMenu->setAnchorPoint(m_tabsMenu->getAnchorPoint());
@@ -509,40 +509,77 @@ bool ETEditorUI::init(LevelEditorLayer* editorLayer) {
     setupViewMode();
 
     fields->m_modeHandler->setupModes();
-    fields->m_initialized = true;
+    EarlyEditorUI::get()->setInitialized();
 
-    AllTabsInitializedEvent().send();
+    alpha::editor_tabs::AllTabsInitializedEvent().send();
 
     for (auto bar : CCArrayExt<EditButtonBar, false>(m_createButtonBars)) {
-        //todo find binding
-        //auto lastBuildPage = m_editorLayer->m_level->getLastBuildPageForTab(bar->m_tabIndex);
-        //bar->goToPage(lastBuildPage);
+        auto lastBuildPage = m_editorLayer->m_level->getLastBuildPageForTab(bar->m_tabIndex);
+        bar->goToPage(lastBuildPage);
     }
 
     auto buildMode = ModeHandler::get()->getMode(alpha::editor_tabs::Build);
-    auto internalMode = static_cast<::internal::Mode*>(buildMode);
+    buildMode->show();
 
-    internalMode->show();
+    auto tab = buildMode->getTabByIndex(m_editorLayer->m_level->m_lastBuildTab);
+    buildMode->switchTab(tab);
 
-    auto tab = internalMode->getTabByIndex(m_editorLayer->m_level->m_lastBuildTab);
-    auto internalTab = static_cast<::internal::Tab*>(tab);
-
-    internalMode->switchTab(tab);
-
-    if (internalTab) {
-        auto node = internalTab->getNode();
-        node->goToPage(m_editorLayer->m_level->m_lastBuildPage);
+    if (tab) {
+        tab->getNode()->goToPage(m_editorLayer->m_level->m_lastBuildPage);
     }
+
+    auto editTab = fields->m_editMode->getTab("edit");
+
+    auto btn = getSpriteButton("hideBtn_001.png", menu_selector(EditorUI::onShowUIBtn), nullptr, 1.f, 1.f, {0.f, 0.f}, 52.f);
+    btn->setID("TEST_BUTTON");
+
+    editTab->addItem(btn);
 
     return true;
 }
 
-ETEditorUI* ETEditorUI::get() {
-    return s_instance;
+void ETEditorUI::populateEditButtons() {
+    auto fields = m_fields.self();
+    fields->m_editButtons = CCArray::create();
+    fields->m_editButtonDict = CCDictionary::create();
+
+    auto addButton = [this, fields] (ZStringView frame, ZStringView ID, SEL_MenuHandler selector, int tag, bool addToDict = false) {
+        auto button = getSpriteButton(frame.c_str(), selector, nullptr, 0.9f, 1, CCPoint(CCPointZero), 40.f);
+        button->setTag(tag);
+        button->setID(ID);
+
+        fields->m_editButtons->addObject(button);
+        if (addToDict) {
+            fields->m_editButtonDict->setObject(button, CCString::createWithFormat("%i", button->getTag())->getCString());
+        }
+
+        return button;
+    };
+
+    addButton("edit_flipXBtn_001.png", "flip-x-button", menu_selector(EditorUI::transformObjectCall), 37);
+    addButton("edit_flipYBtn_001.png", "flip-y-button", menu_selector(EditorUI::transformObjectCall), 38);
+    addButton("edit_cwBtn_001.png", "rotate-cw-button", menu_selector(EditorUI::transformObjectCall), 39);
+    addButton("edit_ccwBtn_001.png", "rotate-ccw-button", menu_selector(EditorUI::transformObjectCall), 40);
+
+    addButton("edit_rotate45rBtn_001.png", "rotate-cw-45-button", menu_selector(EditorUI::transformObjectCall), 41, true);
+    addButton("edit_rotate45lBtn_001.png", "rotate-ccw-45-button", menu_selector(EditorUI::transformObjectCall), 42, true);
+    addButton("edit_freeRotateBtn_001.png", "rotate-free-button", menu_selector(EditorUI::activateRotationControl), 43, true);
+    addButton("edit_rotateSnapBtn_001.png", "rotate-snap-button", menu_selector(EditorUI::transformObjectCall), 44, true);
+    addButton("edit_scaleBtn_001.png", "scale-button", menu_selector(EditorUI::activateScaleControl), 45, true);
+    addButton("edit_scaleXYBtn_001.png", "scale-xy-button", menu_selector(EditorUI::activateScaleControl), 46, true);
+    addButton("edit_warpBtn_001.png", "warp-button", menu_selector(EditorUI::activateTransformControl), 47, true);
+}
+
+CCArray* ETEditorUI::getEditButtons() {
+    return m_fields->m_editButtons;
+}
+
+void ETEditorUI::addItemToEditButtons(CCNode* item) {
+    m_fields->m_editButtons->addObject(item);
 }
 
 void ETEditorUI::setupCreateMenu() {
-    auto internalMode = static_cast<::internal::Mode*>(m_fields->m_buildMode);
+    auto fields = m_fields.self();
 
     m_selectedObjectIndex = 0;
     m_selectedTab = -1;
@@ -561,7 +598,7 @@ void ETEditorUI::setupCreateMenu() {
     m_tabsArray = CCArray::create();
     m_tabsArray->retain();
 
-    m_tabsMenu = TabMenu::create();
+    m_tabsMenu = alpha::editor_tabs::TabMenu::create();
     m_tabsMenu->setPosition({winSize.width / 2.f, m_toolbarHeight - 6.f});
 
     addChild(m_tabsMenu, 100);
@@ -583,13 +620,12 @@ void ETEditorUI::setupCreateMenu() {
         
         auto bar = alpha::editor_tabs::EditorTab::create(buttons, createTab.index, true);
         m_createButtonBars->addObject(bar);
-        internalMode->createTab(createTab.id, bar, iconForIdx(bar->m_tabIndex), startPrio + 1000 * createTab.index);
+        fields->m_buildMode->createTab(createTab.id, bar, iconForIdx(bar->m_tabIndex), startPrio + 1000 * createTab.index);
     }
 }
 
 void ETEditorUI::createMoveMenu() {
-    auto internalMode = static_cast<::internal::Mode*>(m_fields->m_editMode);
-    internalMode->removeTab("edit");
+    m_fields->m_editMode->removeTab("edit");
 
     EditorUI::createMoveMenu();
 
@@ -601,8 +637,6 @@ void ETEditorUI::updateModeToggles(int mode) {
     static_cast<ButtonSprite*>(m_editModeBtn->getNormalImage())->updateBGImage("GJ_button_04.png");
     static_cast<ButtonSprite*>(m_deleteModeBtn->getNormalImage())->updateBGImage("GJ_button_04.png");
     static_cast<ButtonSprite*>(m_viewModeBtn->getNormalImage())->updateBGImage("GJ_button_04.png");
-
-    log::info("mode: {}", mode);
 
     switch (mode) {
         case 1: {
@@ -673,7 +707,7 @@ void ETEditorUI::showUI(bool show) {
         updateSpecialTabVisibility();
     }
 
-    auto mode = static_cast<::internal::Mode*>(ModeHandler::get()->getCurrentMode());
+    auto mode = ModeHandler::get()->getCurrentMode();
     if (!mode) return;
 
     if (show) {
@@ -685,11 +719,11 @@ void ETEditorUI::showUI(bool show) {
 }
 
 void ETEditorUI::updateSpecialTabVisibility() {
-    auto mode = static_cast<::internal::Mode*>(ModeHandler::get()->getCurrentMode());
+    auto mode = ModeHandler::get()->getCurrentMode();
     if (!mode) return;
 
     auto fields = m_fields.self();
-    auto tab = static_cast<::internal::Tab*>(mode->getCurrentTab());
+    auto tab = mode->getCurrentTab();
     if (!tab) return;
 
     if (mode->getID() == alpha::editor_tabs::Delete) {
@@ -711,10 +745,10 @@ void ETEditorUI::updateSpecialTabVisibility() {
 void ETEditorUI::onPause(cocos2d::CCObject* sender) {
     EditorUI::onPause(sender);
 
-    auto mode = static_cast<::internal::Mode*>(ModeHandler::get()->getMode(alpha::editor_tabs::Build));
+    auto mode = ModeHandler::get()->getMode(alpha::editor_tabs::Build);
     if (!mode) return;
 
-    auto currentTab = static_cast<::internal::Tab*>(mode->getCurrentTab());
+    auto currentTab = mode->getCurrentTab();
     if (!currentTab) return;
 
     m_editorLayer->m_level->m_lastBuildTab = currentTab->getIndex().unwrapOrDefault();
@@ -725,18 +759,14 @@ void ETEditorUI::updateButtons() {
     updateSpecialTabVisibility();
 }
 
-bool ETEditorUI::initialized() {
-    return m_fields->m_initialized;
-}
-
 void ETEditorUI::selectBuildTab(int tab) {
     EditorUI::selectBuildTab(tab);
 
     // TODO figure out why sometimes other modes will switch to phantom tabs when using keybinds
-    auto mode = static_cast<::internal::Mode*>(ModeHandler::get()->getCurrentMode());
+    auto mode = ModeHandler::get()->getCurrentMode();
     if (!mode) return;
 
-    log::info("tab: {}", tab);
+    log::debug("Switching to tab index: {}", tab);
     mode->switchTab(mode->getTabByIndex(tab));
 }
 
@@ -795,11 +825,10 @@ CCNode* ETEditorUI::iconForIdx(int idx) {
 Result<std::string_view> ETEditorUI::idForBuildTabIndex(unsigned int index) {
     if (index >= TabIDs.size()) {
         auto mode = ModeHandler::get()->getMode(alpha::editor_tabs::Build);
-        auto internalMode = static_cast<::internal::Mode*>(mode);
 
-        if (index < internalMode->getAllTabs().size()) {
-            auto internalTab = static_cast<::internal::Tab*>(internalMode->getAllTabs()[index].get());
-            return Ok(internalTab->getID());
+        if (index < mode->getAllTabs().size()) {
+            auto tab = mode->getAllTabs()[index].get();
+            return Ok(tab->getID());
         }
 
         return Err("Index too high");
@@ -808,7 +837,7 @@ Result<std::string_view> ETEditorUI::idForBuildTabIndex(unsigned int index) {
 }
 
 void ETEditorUI::setupBuildMode() {
-    auto internalMode = static_cast<::internal::Mode*>(m_fields->m_buildMode);
+    auto fields = m_fields.self();
 
     int prio = -1000 * m_createButtonBars->count();
 
@@ -825,7 +854,7 @@ void ETEditorUI::setupBuildMode() {
         }
 
         auto newBar = alpha::editor_tabs::EditorTab::create(bar->m_buttonArray, bar->m_tabIndex, bar->m_hasCreateItems);
-        internalMode->createTab(tabID, newBar, iconForIdx(bar->m_tabIndex), prio);
+        fields->m_buildMode->createTab(tabID, newBar, iconForIdx(bar->m_tabIndex), prio);
 
         if (bar->m_tabIndex == 13) {
             m_customTabBar = newBar;
@@ -835,31 +864,246 @@ void ETEditorUI::setupBuildMode() {
     }
 }
 
-void ETEditorUI::setupEditMode() {
-    auto internalMode = static_cast<::internal::Mode*>(m_fields->m_editMode);
-    internalMode->removeTab("edit");
+// this is ugly cuz rob did it ugly and I am replicating his ugliness
+void ETEditorUI::readjustDpadMenu(EditButtonBar* node, float availableWidth) {
+    constexpr float toolbarHeight = 90.f;
+    constexpr float labelScale = 0.45f;
+    constexpr float buttonPadding = 8.f;
+    constexpr int stepButtonHCount = 3;
+    constexpr int editButtonHCount = 4;
+
+    m_dpadMoveNode->setPosition(node->getPosition());
+    m_dpadMoveNode->setScale(node->getScale());
+    m_dpadMoveNode->setContentSize(node->getContentSize());
+
+    float scaleY = std::min(node->getContentHeight() / toolbarHeight, 1.f);
+    float scaledWidth = availableWidth / scaleY;
+    float baseScale = std::min(scaledWidth / 299.f, 1.f);
+
+    float baseWidth = scaledWidth / baseScale - 299.f;
+    float halfWidth = std::min(baseWidth / 7.f + 23.f, 32.f);
+    float baseSpacing = baseWidth / 29.f;
+    float padding = std::min(baseSpacing, 1.f) + (baseSpacing < 1.f ? 3.f : 3.f);
+
+    float scale = baseScale * scaleY;
+    float remainingWidth = availableWidth / scale - 299.f;
+    float grow = std::min(1.f, remainingWidth / 29.f);
+    float rest = (remainingWidth - grow * 29.f - (halfWidth - 23.f) * 7.f) * scale / 4.f;
+
+    float separator = (grow + 1.f) * 8.f * scale + rest;
+    float start = (grow + 1.f) * 4.f * scale + rest;
+
+    float nextWidth = (halfWidth * 3.f + (grow + 3.f) * 2.f) * scale;
+    float offset = 99.f * scale;
+
+    float btnWidth = std::max((halfWidth - padding) * 2.f - buttonPadding, 32.f);
+    float widthGap = (btnWidth + buttonPadding) * 0.575f + 4.f;
+
+    float dpadX = 0.f;
+    float stepsX = 0.f;
+    float buttonsX = 0.f;
+
+    float leftStart = 0.f;
+    float rightStart = 0.f;
+
+    float editCenter = 0.f;
+
+    auto swapDpad = GameManager::get()->getGameVariable("0247");
+    if (swapDpad) {
+        dpadX = node->getContentWidth() - start - offset / 2.f;
+        stepsX = node->getContentWidth() - start - offset - separator;
+        buttonsX = stepsX - nextWidth - separator;
+
+        leftStart = stepsX + separator / 2.f;
+        rightStart = buttonsX + separator / 2.f;
+
+        editCenter = rightStart / 2.f;
+    }
+    else {
+        dpadX = start + offset / 2.f;
+        stepsX = start + offset + separator;
+        buttonsX = stepsX + nextWidth + separator;
+
+        leftStart = stepsX - separator / 2.f;
+        rightStart = buttonsX - separator / 2.f;
+
+        editCenter = (rightStart + node->getContentWidth()) / 2.f;
+    }
+
+    float stepsCenter = (leftStart + rightStart) / 2.f;
+
+    auto separatorLeft = m_dpadMoveNode->getChildByID("spacer-line-center-left");
+    auto separatorRight = m_dpadMoveNode->getChildByID("spacer-line-center-right");
+
+    float midY = (m_dpadMoveNode->getContentHeight() + scale) / 2.f;
+
+    separatorLeft->setPosition({leftStart, midY});
+    separatorLeft->setScale(scale);
+
+    separatorRight->setPosition({rightStart, midY});
+    separatorRight->setScale(scale);
+
+    auto dpadMenu = m_dpadMoveNode->getChildByID("dpad-menu");
+    auto leftBtn = dpadMenu->getChildByTag(5);
+    auto rightBtn = dpadMenu->getChildByTag(6);
+
+    float centerBtns = (leftBtn->getPositionX() + rightBtn->getPositionX()) / 2.f;
+
+    dpadMenu->setAnchorPoint({centerBtns / dpadMenu->getContentWidth(), 0.5f});
+    dpadMenu->ignoreAnchorPointForPosition(false);
+    dpadMenu->setScale(scale);
+    dpadMenu->setContentHeight(toolbarHeight);
+    dpadMenu->setPosition({dpadX, midY});
+
+    m_dpadLabel->setPosition({dpadX, midY + 2.f * scale});
+    m_dpadLabel->setScale(labelScale * scale);
+    m_dpadLabel->limitLabelWidth(26.f * scale, labelScale * scale, 0.1f * scale);
+
+    auto stepsMenu = m_dpadMoveNode->getChildByID("dpad-steps-menu");
+
+    stepsMenu->setScale(scale);
+    stepsMenu->setPosition({stepsCenter, midY});
+
+    auto fields = m_fields.self();
+    fields->m_editScrollLayer->setScale(scale);
+    fields->m_editScrollLayer->setPosition({editCenter, midY});
+
+    auto editButtons = fields->m_editScrollLayer->m_contentLayer->getChildByID("edit-buttons");
     
+    auto fullHeight = toolbarHeight / baseScale;
+    auto diff = fullHeight - toolbarHeight;
+
+    editButtons->setContentHeight(fullHeight);
+
+    auto layout = static_cast<RowLayout*>(editButtons->getLayout());
+    if (layout) {
+        layout->setPadding({6.f, 6.5f + diff / 2.f, 6.f, 6.5f + diff / 2.f});
+    }
+
+    auto resizeButtons = [btnWidth, widthGap] (CCNode* menu, int count, float padding = 0.f) {
+        menu->setContentWidth(widthGap * count - 4.f + padding);
+
+        for (auto child : menu->getChildrenExt()) {
+            child->setScale(0.575f);
+
+            auto item = typeinfo_cast<CCMenuItemSpriteExtra*>(child);
+            if (item) item->m_baseScale = item->getScale();
+            
+            auto btnSprite = child->getChildByType<ButtonSprite>();
+            if (!btnSprite) continue;
+
+            btnSprite->m_width = btnWidth;
+            btnSprite->m_minWidth = btnWidth;
+            btnSprite->updateSpriteBGSize();
+        }
+
+        menu->updateLayout();
+    };
+
+    resizeButtons(stepsMenu, stepButtonHCount);
+    resizeButtons(editButtons, editButtonHCount, 12.f);
+
+    fields->m_editScrollLayer->setContentSize({editButtons->getContentWidth(), fullHeight});
+    fields->m_editScrollLayer->m_contentLayer->setContentSize(editButtons->getContentSize());
+
+    if (editButtons->getContentHeight() < fields->m_editScrollLayer->getContentHeight()) {
+        fields->m_editScrollLayer->scrollToTop();
+    }
+}
+
+void ETEditorUI::setDpadStep(int p0) {
+    EditorUI::setDpadStep(p0);
+
+    if (!m_dpadLabel || !m_dpadMoveNode) return;
+
+    auto dpadMenu = m_dpadMoveNode->getChildByID("dpad-menu");
+    if (!dpadMenu) return;
+
+    float scale = dpadMenu->getScale();
+    m_dpadLabel->limitLabelWidth(26.f * scale, 0.45f * scale, 0.1f * scale);
+}
+
+void ETEditorUI::updateDpadMenuButtons() {
+    auto fields = m_fields.self();
+    if (!fields->m_editScrollLayer) return;
+
+    auto editButtons = fields->m_editScrollLayer->m_contentLayer->getChildByID("edit-buttons");
+    editButtons->removeAllChildren();
+
+    for (auto item : fields->m_editButtons->asExt<CCNode>()) {
+        item->removeFromParent();
+        editButtons->addChild(item);
+    }
+}
+
+void ETEditorUI::fixButtonWidths() {
+    for (auto item : m_fields->m_editButtons->asExt<CCNode>()) {
+        auto btnSprite = item->getChildByType<ButtonSprite>();
+        if (!btnSprite) continue;
+
+        btnSprite->m_width = 32.f;
+        btnSprite->m_minWidth = 32.f;
+        btnSprite->updateSpriteBGSize();
+    }
+}
+
+void ETEditorUI::setupEditMode() {
+    auto fields = m_fields.self();
+
+    fields->m_editMode->removeTab("edit");
+
+    fields->m_editScrollLayer = nullptr;
+    alpha::editor_tabs::Tab* tab = nullptr;
+
     if (m_dpadMoveNode) {
+        Ref editButtons = m_dpadMoveNode->getChildByID("edit-buttons");
+
+        editButtons->removeFromParent();
+        editButtons->removeAllChildren();
+
+        editButtons->setAnchorPoint({0.f, 0.f});
+        editButtons->setPosition({0.f, 0.f});
+
+        auto layout = typeinfo_cast<RowLayout*>(editButtons->getLayout());
+        if (layout) {
+            layout->setCrossAxisOverflow(true);
+            layout->setPadding({6.f, 6.5f, 6.f, 6.5f});
+        }
+
+        fields->m_editScrollLayer = geode::ScrollLayer::create({editButtons->getContentSize()});
+        fields->m_editScrollLayer->setID("edit-button-scroll-layer"_spr);
+        fields->m_editScrollLayer->setStealingTouches(true);
+        fields->m_editScrollLayer->ignoreAnchorPointForPosition(false);
+        fields->m_editScrollLayer->m_contentLayer->addChild(editButtons);
+
+        m_dpadMoveNode->addChild(fields->m_editScrollLayer);
+
+        updateDpadMenuButtons();
+
+        auto winSize = CCDirector::get()->getWinSize();
+
+        m_dpadMoveNode->setContentSize({winSize.width, 90.f});
+        m_dpadMoveNode->setScale(1.f);
+
         auto editTab = alpha::editor_tabs::EditorTab::create();
-
-        auto tab = internalMode->createTab("edit", editTab, CCSprite::createWithSpriteFrameName("GJ_hammerIcon_001.png"), -1000);
-
-        m_dpadMoveNode->addEventListener(tab::UpdateTabVisibilityEvent(tab), [this] (EditButtonBar* node, bool visible) {
+        tab = fields->m_editMode->createTab("edit", editTab, CCSprite::createWithSpriteFrameName("GJ_hammerIcon_001.png"), -1000);
+    
+        m_dpadMoveNode->addEventListener(alpha::editor_tabs::Tab::UpdateTabVisibilityEvent(tab), [this] (EditButtonBar* node, bool visible) {
             m_dpadMoveNode->setVisible(node->isVisible());
         });
 
-        m_dpadMoveNode->addEventListener(tab::UpdateTabUIEvent(tab), [this, editTab] (EditButtonBar* node) {
-            auto winSize = CCDirector::get()->getWinSize();
-            auto maxSize = EditorTab::getMaxSize();
-
-            float scaleX = node->getContentWidth() / maxSize.width;
-            float scaleY = node->getContentHeight() / maxSize.height;
-
-            float scale = std::min(scaleX, scaleY);
-
-            m_dpadMoveNode->setScale(scale * editTab->getScale());
-            m_dpadMoveNode->setPosition(node->getPosition());
+        m_dpadMoveNode->addEventListener(alpha::editor_tabs::Tab::UpdateTabUIEvent(tab), [this] (EditButtonBar* node) {
+            readjustDpadMenu(node, node->getContentWidth());
         });
+
+        m_dpadMoveNode->addEventListener(alpha::editor_tabs::Tab::TabLoadedEvent(tab), [this] (EditButtonBar* node) {
+            updateDpadMenuButtons();
+            readjustDpadMenu(node, node->getContentWidth());
+        });
+
+        editTab->setContentWidth(alpha::editor_tabs::EditorTab::getFullMaxSize().width);
+        readjustDpadMenu(editTab, editTab->getContentWidth());
+        fields->m_editScrollLayer->scrollToTop();
     }
     else if (m_editButtonBar) {
         Ref<EditButtonBar> bar = m_editButtonBar;
@@ -869,25 +1113,50 @@ void ETEditorUI::setupEditMode() {
             item->removeFromParent();
         }
 
+        std::unordered_set<int> toRemove = {37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47};
+
+        for (int i = bar->m_buttonArray->count() - 1; i >= 0; i--) {
+            auto item = bar->m_buttonArray->asExt<CCNode>()[i];
+            if (toRemove.contains(item->getTag())) {
+                bar->m_buttonArray->removeObjectAtIndex(i);
+            }
+        }
+
         m_editButtonBar = alpha::editor_tabs::EditorTab::create(bar->m_buttonArray, bar->m_tabIndex, bar->m_hasCreateItems);
-        internalMode->createTab("edit", m_editButtonBar, CCSprite::createWithSpriteFrameName("GJ_hammerIcon_001.png"), -1000);
+        tab = fields->m_editMode->createTab("edit", m_editButtonBar, CCSprite::createWithSpriteFrameName("GJ_hammerIcon_001.png"), -1000);
+
+        m_editButtonBar->addEventListener(alpha::editor_tabs::Tab::TabLoadedEvent(tab), [this] (EditButtonBar* node) {
+            fixButtonWidths();
+        });
+
+        fixButtonWidths();
+    }
+
+    m_editButtonDict->removeAllObjects();
+    m_editButtonDict->release();
+
+    m_editButtonDict = CCDictionary::create();
+    m_editButtonDict->retain();
+
+    for (const auto& [k, v] : fields->m_editButtonDict->asExt()) {
+        m_editButtonDict->setObject(v, std::string(k));
     }
 }
 
 void ETEditorUI::setupDeleteMode() {
-    auto internalMode = static_cast<::internal::Mode*>(m_fields->m_deleteMode);
+    auto fields = m_fields.self();
 
     auto deleteTab = alpha::editor_tabs::EditorTab::create();
 
-    auto tab = internalMode->createTab("delete", deleteTab, CCSprite::create("delete-tab.png"_spr), -1000);
+    auto tab = fields->m_deleteMode->createTab("delete", deleteTab, CCSprite::create("delete-tab.png"_spr), -1000);
 
-    m_deleteMenu->addEventListener(tab::UpdateTabVisibilityEvent(tab), [this] (EditButtonBar* node, bool visible) {
+    m_deleteMenu->addEventListener(alpha::editor_tabs::Tab::UpdateTabVisibilityEvent(tab), [this] (EditButtonBar* node, bool visible) {
         m_deleteMenu->setVisible(node->isVisible());
     });
 
-    m_deleteMenu->addEventListener(tab::UpdateTabUIEvent(tab), [this, deleteTab] (EditButtonBar* node) {
+    m_deleteMenu->addEventListener(alpha::editor_tabs::Tab::UpdateTabUIEvent(tab), [this, deleteTab] (EditButtonBar* node) {
         auto winSize = CCDirector::get()->getWinSize();
-        auto maxSize = EditorTab::getMaxSize();
+        auto maxSize = alpha::editor_tabs::EditorTab::getMaxSize();
 
         float scaleX = node->getContentWidth() / maxSize.width;
         float scaleY = node->getContentHeight() / maxSize.height;
@@ -901,7 +1170,7 @@ void ETEditorUI::setupDeleteMode() {
 }
 
 void ETEditorUI::setupViewMode() {
-    auto internalMode = static_cast<::internal::Mode*>(m_fields->m_viewMode);
+    auto fields = m_fields.self();
 
     Ref<EditButtonBar> bar = static_cast<EditButtonBar*>(m_viewMenu);
     bar->removeFromParent();
@@ -911,6 +1180,47 @@ void ETEditorUI::setupViewMode() {
     }
 
     m_viewMenu = alpha::editor_tabs::EditorTab::create(bar->m_buttonArray, bar->m_tabIndex, bar->m_hasCreateItems);
-    auto tab = internalMode->createTab("view", static_cast<EditButtonBar*>(m_viewMenu), CCSprite::create("view-tab.png"_spr), -1000);
+    auto tab = fields->m_viewMode->createTab("view", static_cast<EditButtonBar*>(m_viewMenu), CCSprite::create("view-tab.png"_spr), -1000);
     tab->overrideSize(2, 11);
+    tab->disableSizeOverrideIfExceeded(true);
+    tab->setTabAlignment(alpha::editor_tabs::TabAlignment::Center);
+
+
+    //tab->addItem(getSpriteButton("hideBtn_001.png", nullptr, nullptr, 1.f));
 }
+
+bool ETEditorUI::scrollWheel(float y, float x) {
+    auto fields = m_fields.self();
+    if (!fields->m_editScrollLayer) {
+        return EditorUI::scrollWheel(y, x);
+    }
+    
+    auto nodeSpace = fields->m_editScrollLayer->convertToNodeSpace(getMousePos());
+    auto rect = cocos2d::CCRect(0, 0, fields->m_editScrollLayer->getContentWidth(), fields->m_editScrollLayer->getContentHeight());
+
+    auto contains = rect.containsPoint(nodeSpace);
+    if (contains) {
+        fields->m_editScrollLayer->scrollWheel(y, x);
+        return true;
+    }
+
+    return EditorUI::scrollWheel(y, x);
+}
+
+#include <Geode/modify/CCScrollLayerExt.hpp>
+
+class $modify(CCScrollLayerExt) {
+
+    bool touchInsideClip(cocos2d::CCPoint const& p0) {
+        if (auto scroll = typeinfo_cast<geode::ScrollLayer*>(this)) {
+            auto nodeSpace = scroll->convertToNodeSpace(p0);
+            auto rect = cocos2d::CCRect(0, 0, scroll->getContentWidth(), scroll->getContentHeight());
+
+            auto contains = rect.containsPoint(nodeSpace);
+
+            return contains;
+        }
+
+        return CCScrollLayerExt::touchInsideClip(p0);
+    }
+};

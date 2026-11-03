@@ -1,10 +1,10 @@
 #include "TabToggler.hpp"
-#include "Tab.hpp"
-#include "Mode.hpp"
+#include "../include/Mode.hpp"
+#include "../include/Tab.hpp"
 
 namespace alpha::editor_tabs {
 
-TabToggler* TabToggler::create(::internal::Tab* tab, CCNode* icon) {
+TabToggler* TabToggler::create(alpha::editor_tabs::Tab* tab, CCNode* icon) {
     auto ret = new TabToggler();
     if (ret->init(tab, icon)) {
         ret->autorelease();
@@ -14,7 +14,7 @@ TabToggler* TabToggler::create(::internal::Tab* tab, CCNode* icon) {
     return nullptr;
 }
 
-bool TabToggler::init(::internal::Tab* tab, CCNode* icon) {
+bool TabToggler::init(alpha::editor_tabs::Tab* tab, CCNode* icon) {
     auto tabOff = CCSprite::createWithSpriteFrameName("GJ_tabOff_001.png");
     auto tabOn = CCSprite::createWithSpriteFrameName("GJ_tabOn_001.png");
 
@@ -56,10 +56,9 @@ bool TabToggler::init(::internal::Tab* tab, CCNode* icon) {
 void TabToggler::onPress(CCObject* sender) {
     auto oldTab = EditorUI::get()->m_selectedTab;
 
-    auto internalMode = static_cast<::internal::Mode*>(m_tab->getMode());
-    internalMode->switchTab(m_tab);
+    m_tab->getMode()->switchTab(m_tab);
 
-    if (oldTab != internalMode->getTabIndex(m_tab).unwrapOrDefault()) {
+    if (oldTab != m_tab->getMode()->getTabIndex(m_tab).unwrapOrDefault()) {
         EditorSFXManager::sharedState()->playAction(164);
     }
 }

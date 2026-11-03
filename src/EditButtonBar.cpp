@@ -1,5 +1,5 @@
 #include "EditButtonBar.hpp"
-#include "EditorTab.hpp"
+#include "../include/EditorTab.hpp"
 
 void ETEditButtonBar::loadFromItems(CCArray* items, int columns, int rows, bool preserve) {
     auto editorTab = typeinfo_cast<alpha::editor_tabs::EditorTab*>(this);

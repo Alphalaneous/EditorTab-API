@@ -1,15 +1,13 @@
-#pragma once
+/*#pragma once
 
 #include <Geode/Geode.hpp>
-#include "../include/TabAlignment.hpp"
+#include "../include/Tab.hpp"
 
 using namespace geode::prelude;
 
 class ETEditButtonBar;
 
 namespace alpha::editor_tabs {
-
-class Tab;
 
 class EditorTab : public EditButtonBar {
 public:
@@ -169,8 +167,8 @@ public:
     cocos2d::CCNode* findItemByTag(int tag);
     CreateMenuItem* findItemByObjectID(int objectID);
 
-    void setTabAlignment(alpha::editor_tabs::TabAlignment alignment);
-    alpha::editor_tabs::TabAlignment getTabAlignment();
+    void setTabAlignment(alpha::editor_tabs::Tab::TabAlignment alignment);
+    alpha::editor_tabs::Tab::TabAlignment getTabAlignment();
 
     void setHorizontalButtonAlignment(geode::AxisAlignment alignment);
     geode::AxisAlignment getHorizontalButtonAlignment();
@@ -225,7 +223,7 @@ protected:
 
     AxisLayout* m_itemLayout = nullptr;
 
-    alpha::editor_tabs::TabAlignment m_tabAlignment = alpha::editor_tabs::TabAlignment::Top;
+    alpha::editor_tabs::Tab::TabAlignment m_tabAlignment = alpha::editor_tabs::Tab::TabAlignment::Top;
 
     geode::AxisAlignment m_horizontalButtonAlignment = geode::AxisAlignment::Start;
     geode::AxisAlignment m_verticalButtonAlignment = geode::AxisAlignment::End;
@@ -239,4 +237,4 @@ protected:
     friend class ::ETEditButtonBar;
 };
 
-}
+}*/

@@ -1,6 +1,6 @@
 #include "EditorUI.hpp"
-#include "EarlyEditorUI.hpp"
-#include "EditorTab.hpp"
+#include "../include/EditorTab.hpp"
+#include "Geode/loader/Log.hpp"
 #include "ModeHandler.hpp"
 #include "../include/Mode.hpp"
 #include "../include/Tab.hpp"
@@ -474,6 +474,8 @@ constexpr std::array CreateTabs = {
 };
 
 bool ETEditorUI::init(LevelEditorLayer* editorLayer) {
+    s_instance = this;
+
     auto fields = m_fields.self();
     fields->m_modeHandler = std::make_shared<ModeHandler>();
 
@@ -509,7 +511,7 @@ bool ETEditorUI::init(LevelEditorLayer* editorLayer) {
     setupViewMode();
 
     fields->m_modeHandler->setupModes();
-    EarlyEditorUI::get()->setInitialized();
+    fields->m_initialized = true;
 
     alpha::editor_tabs::AllTabsInitializedEvent().send();
 
@@ -536,6 +538,16 @@ bool ETEditorUI::init(LevelEditorLayer* editorLayer) {
     editTab->addItem(btn);
 
     return true;
+}
+
+ETEditorUI* ETEditorUI::s_instance = nullptr;
+
+ETEditorUI* ETEditorUI::get() {
+    return s_instance;
+}
+
+bool ETEditorUI::initialized() {
+    return m_fields->m_initialized;
 }
 
 void ETEditorUI::populateEditButtons() {
@@ -700,9 +712,6 @@ void ETEditorUI::showUI(bool show) {
         show = true;
     }
 
-    auto fields = m_fields.self();
-    fields->m_uiVisible = show;
-
     if (show) {
         updateSpecialTabVisibility();
     }
@@ -722,23 +731,22 @@ void ETEditorUI::updateSpecialTabVisibility() {
     auto mode = ModeHandler::get()->getCurrentMode();
     if (!mode) return;
 
-    auto fields = m_fields.self();
     auto tab = mode->getCurrentTab();
     if (!tab) return;
 
     if (mode->getID() == alpha::editor_tabs::Delete) {
-        m_deleteMenu->setVisible(tab->getID() == "delete" && fields->m_uiVisible);
+        m_deleteMenu->setVisible(tab->getID() == "delete" && !m_uiHidden);
     }
     if (mode->getID() == alpha::editor_tabs::Edit) {
         if (m_editButtonBar) {
-            m_editButtonBar->setVisible(tab->getID() == "edit" && fields->m_uiVisible);
+            m_editButtonBar->setVisible(tab->getID() == "edit" && !m_uiHidden);
         }
         else if (m_dpadMoveNode) {
-            m_dpadMoveNode->setVisible(tab->getID() == "edit" && fields->m_uiVisible);
+            m_dpadMoveNode->setVisible(tab->getID() == "edit" && !m_uiHidden);
         }
     }
     if (mode->getID() == alpha::editor_tabs::View) {
-        m_viewMenu->setVisible(tab->getID() == "view" && fields->m_uiVisible);
+        m_viewMenu->setVisible(tab->getID() == "view" && !m_uiHidden);
     }
 }
 
@@ -785,6 +793,7 @@ void ETEditorUI::updateCreateMenu(bool selectTab) {
             if (!selectTab) continue;
             
             selectBuildTab(item->m_tabIndex);
+
             m_createButtonBar->goToPage(item->m_pageIndex);
         }
     }
@@ -1183,10 +1192,7 @@ void ETEditorUI::setupViewMode() {
     auto tab = fields->m_viewMode->createTab("view", static_cast<EditButtonBar*>(m_viewMenu), CCSprite::create("view-tab.png"_spr), -1000);
     tab->overrideSize(2, 11);
     tab->disableSizeOverrideIfExceeded(true);
-    tab->setTabAlignment(alpha::editor_tabs::TabAlignment::Center);
-
-
-    //tab->addItem(getSpriteButton("hideBtn_001.png", nullptr, nullptr, 1.f));
+    tab->setTabAlignment(alpha::editor_tabs::Tab::TabAlignment::Center);
 }
 
 bool ETEditorUI::scrollWheel(float y, float x) {

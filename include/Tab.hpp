@@ -7,7 +7,6 @@
 #include <Geode/utils/ZStringView.hpp>
 #include <Geode/loader/Dispatch.hpp>
 #include "ZImpl.hpp"
-#include "TabAlignment.hpp"
 
 #define MY_MOD_ID "alphalaneous.editortab_api"
 
@@ -17,6 +16,11 @@ class Mode;
 
 class Tab {
 public:
+    enum class TabAlignment {
+        Top,
+        Center
+    };
+
     class UpdateTabUIEvent : public geode::GlobalEvent<UpdateTabUIEvent, bool(EditButtonBar* node), Tab*> {
         using GlobalEvent::GlobalEvent;
     };
@@ -143,9 +147,9 @@ public:
 
     GEODE_EVENT_EXPORT_MEMBER(Tab, CreateMenuItem*, findItemByObjectID, (int objectID), (this, objectID));
 
-    GEODE_EVENT_EXPORT_MEMBER(Tab, void, setTabAlignment, (alpha::editor_tabs::TabAlignment alignment), (this, alignment));
+    GEODE_EVENT_EXPORT_MEMBER(Tab, void, setTabAlignment, (alpha::editor_tabs::Tab::TabAlignment alignment), (this, alignment));
 
-    GEODE_EVENT_EXPORT_MEMBER(Tab, alpha::editor_tabs::TabAlignment, getTabAlignment, (), (this));
+    GEODE_EVENT_EXPORT_MEMBER(Tab, alpha::editor_tabs::Tab::TabAlignment, getTabAlignment, (), (this));
 
     GEODE_EVENT_EXPORT_MEMBER(Tab, void, disableSizeOverrideIfExceeded, (bool disable), (this, disable));
 

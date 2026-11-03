@@ -27,10 +27,18 @@ class $modify(ETEditorUI, EditorUI) {
 
         geode::ScrollLayer* m_editScrollLayer = nullptr;
 
-        bool m_uiVisible = true;
+        bool m_initialized = false;
+
+        ~Fields() {
+            s_instance = nullptr;
+        }
     };
 
+    static ETEditorUI* s_instance;
+    static ETEditorUI* get();
+
     bool init(LevelEditorLayer* editorLayer);
+    bool initialized();
 
     void populateEditButtons();
     void addItemToEditButtons(CCNode* item);

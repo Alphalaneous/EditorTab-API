@@ -1,12 +1,11 @@
 #include "ModeHandler.hpp"
 #include "EditorUI.hpp"
-#include "EarlyEditorUI.hpp"
 #include "../include/Tab.hpp"
 #include "../include/Mode.hpp"
 #include "../include/Optional.hpp"
 
 ModeHandler* ModeHandler::get() {
-    auto editor = modify_cast<ETEditorUI*>(EarlyEditorUI::get());
+    auto editor = ETEditorUI::get();
     if (!editor) return nullptr;
 
     return editor->m_fields->m_modeHandler.get();
@@ -44,7 +43,7 @@ void ModeHandler::switchMode(alpha::editor_tabs::Mode* mode) {
 
     if (mode) {
         m_currentMode = mode->getID();
-        mode->show();
+        mode->showMode();
 
         if (!mode->getCurrentTab() && mode->getAllTabs().size() > 0) {
             mode->switchTab(mode->getAllTabs()[0].get());
@@ -63,7 +62,7 @@ void ModeHandler::switchMode(alpha::editor_tabs::Mode* mode) {
             alpha::editor_tabs::Mode::SwitchModeEvent(mode).send(true);
         }
 
-        auto editor =  modify_cast<ETEditorUI*>(EarlyEditorUI::get());
+        auto editor = ETEditorUI::get();
 
         if (mode->getID() == alpha::editor_tabs::Build) {
             editor->m_selectedMode = 2;

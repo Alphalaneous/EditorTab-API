@@ -1,4 +1,9 @@
-#include "TabMenu.hpp"
+#define GEODE_DEFINE_EVENT_EXPORTS
+#include "../../include/ui/TabMenu.hpp"
+
+#include <Geode/Geode.hpp>
+
+using namespace geode::prelude;
 
 namespace alpha::editor_tabs {
 
@@ -25,6 +30,21 @@ public:
         return {};
     }
 };
+
+struct TabMenu::Impl : public ZImpl<TabMenu::Impl> {
+    CCMenu* m_menu = nullptr;
+    CCMenu* m_navigationMenu = nullptr;
+
+    CCMenuItemSpriteExtra* m_prevButton = nullptr;
+    CCMenuItemSpriteExtra* m_nextButton = nullptr;
+
+    std::vector<std::vector<CCNode*>> m_pages{};
+    int m_page = 0;
+};
+
+void TabMenu::construct() {
+    m_impl = std::make_unique<Impl>();
+}
 
 TabMenu* TabMenu::create() {
     auto ret = new TabMenu();
@@ -61,70 +81,83 @@ bool TabMenu::init() {
 
     auto prevArrow = CCSprite::createWithSpriteFrameName("GJ_arrow_02_001.png");
     prevArrow->setScale(0.4f);
-    m_prevButton = CCMenuItemSpriteExtra::create(prevArrow, this, menu_selector(TabMenu::onLeft));
-    m_prevButton->setID("prev-button"_spr);
+    m_impl->get()->m_prevButton = CCMenuItemSpriteExtra::create(prevArrow, this, menu_selector(TabMenu::onLeft));
+    m_impl->get()->m_prevButton->setID("prev-button"_spr);
 
-    navMenu->addChild(m_prevButton);
+    navMenu->addChild(m_impl->get()->m_prevButton);
 
     auto nextArrow = CCSprite::createWithSpriteFrameName("GJ_arrow_02_001.png");
     nextArrow->setScale(0.4f);
     nextArrow->setFlipX(true);
-    m_nextButton = CCMenuItemSpriteExtra::create(nextArrow, this, menu_selector(TabMenu::onRight));
-    m_nextButton->setID("next-button"_spr);
+    m_impl->get()->m_nextButton = CCMenuItemSpriteExtra::create(nextArrow, this, menu_selector(TabMenu::onRight));
+    m_impl->get()->m_nextButton->setID("next-button"_spr);
 
-    navMenu->addChild(m_nextButton);
+    navMenu->addChild(m_impl->get()->m_nextButton);
 
     setLayout(MenuUpdate::create());
 
     addChild(menu);
     addChild(navMenu);
 
-    m_menu = menu;
-    m_navigationMenu = navMenu;
+    m_impl->get()->m_menu = menu;
+    m_impl->get()->m_navigationMenu = navMenu;
 
     return true;
 }
 
 void TabMenu::onLeft(CCObject* sender) {
-    m_page--;
-    goToPage();
+    m_impl->get()->m_page--;
+    updatePage();
 }
 
 void TabMenu::onRight(CCObject* sender) {
-    m_page++;
-    goToPage();
+    m_impl->get()->m_page++;
+    updatePage();
 }
 
-void TabMenu::goToPage() {
-    if (m_page < 0) {
-        m_page = m_pages.size() - 1;
+void TabMenu::goToPage(unsigned int page) {
+    m_impl->get()->m_page = page;
+    updatePage();
+}
+
+void TabMenu::updatePage() {
+    if (m_impl->get()->m_page < 0) {
+        m_impl->get()->m_page = m_impl->get()->m_pages.size() - 1;
     }
-    if (m_page >= m_pages.size()) {
-        m_page = 0;
+    if (m_impl->get()->m_page >= m_impl->get()->m_pages.size()) {
+        m_impl->get()->m_page = 0;
     }
     
     int idx = 0;
-    for (const auto& page : m_pages) {
+    for (const auto& page : m_impl->get()->m_pages) {
         for (auto node : page) {
-            node->setVisible(idx == m_page);
+            node->setVisible(idx == m_impl->get()->m_page);
         }
 
         idx++;
     }
 
-    m_menu->updateLayout();
+    m_impl->get()->m_menu->updateLayout();
+}
+
+unsigned int TabMenu::getPage() {
+    return m_impl->get()->m_page;
+}
+
+unsigned int TabMenu::getPageCount() {
+    return m_impl->get()->m_pages.size();
 }
 
 CCMenu* TabMenu::getMainMenu() {
-    return m_menu;
+    return m_impl->get()->m_menu;
 }
 
 void TabMenu::addChild(CCNode* child, int zOrder, int tag) {
-    if (!m_menu) {
+    if (!m_impl->get()->m_menu) {
         CCMenu::addChild(child, zOrder, tag);
         return;
     }
-    m_menu->addChild(child, zOrder, tag);
+    m_impl->get()->m_menu->addChild(child, zOrder, tag);
 }
 
 void TabMenu::setContentSize(const CCSize& contentSize) {
@@ -135,19 +168,19 @@ void TabMenu::setContentSize(const CCSize& contentSize) {
 void TabMenu::updateUI() {
     auto size = getContentSize();
 
-    if (m_menu && m_navigationMenu) {
-        m_pages.clear();
+    if (m_impl->get()->m_menu && m_impl->get()->m_navigationMenu) {
+        m_impl->get()->m_pages.clear();
 
-        m_menu->setPosition(size / 2.f);
+        m_impl->get()->m_menu->setPosition(size / 2.f);
 
         float availSpace = size.width;
-        float navSpace = 20.f + m_prevButton->getScaledContentWidth() + m_nextButton->getScaledContentWidth();
+        float navSpace = 20.f + m_impl->get()->m_prevButton->getScaledContentWidth() + m_impl->get()->m_nextButton->getScaledContentWidth();
 
-        auto layout = static_cast<SimpleAxisLayout*>(m_menu->getLayout());
+        auto layout = static_cast<SimpleAxisLayout*>(m_impl->get()->m_menu->getLayout());
         layout->ignoreInvisibleChildren(false);
-        m_menu->updateLayout();
+        m_impl->get()->m_menu->updateLayout();
 
-        float menuWidth = m_menu->getContentWidth();
+        float menuWidth = m_impl->get()->m_menu->getContentWidth();
 
         layout->ignoreInvisibleChildren(true);
 
@@ -158,27 +191,27 @@ void TabMenu::updateUI() {
         float width = 0.f;
         int pageIdx = 0;
 
-        m_pages.push_back(std::vector<CCNode*>());
+        m_impl->get()->m_pages.push_back(std::vector<CCNode*>());
 
-        for (auto child : m_menu->getChildrenExt()) {
+        for (auto child : m_impl->get()->m_menu->getChildrenExt()) {
             auto childWidth = child->getScaledContentWidth() + 2.f;
             width += childWidth;
 
             if ((width - 2.f) > availSpace) {
                 width = childWidth;
-                m_pages.push_back(std::vector<CCNode*>());
+                m_impl->get()->m_pages.push_back(std::vector<CCNode*>());
                 pageIdx++;
             }
 
-            m_pages[pageIdx].push_back(child);
+            m_impl->get()->m_pages[pageIdx].push_back(child);
         }
 
-        m_navigationMenu->setVisible(m_pages.size() > 1);
-        m_navigationMenu->setContentSize(size);
-        m_navigationMenu->setPosition(size / 2.f);
-        m_navigationMenu->updateLayout();
+        m_impl->get()->m_navigationMenu->setVisible(m_impl->get()->m_pages.size() > 1);
+        m_impl->get()->m_navigationMenu->setContentSize(size);
+        m_impl->get()->m_navigationMenu->setPosition(size / 2.f);
+        m_impl->get()->m_navigationMenu->updateLayout();
 
-        goToPage();
+        updatePage();
     }
 }
 

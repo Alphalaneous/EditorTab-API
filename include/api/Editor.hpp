@@ -17,8 +17,9 @@ static const std::string Edit = "robtop.geometry-dash/edit";
 static const std::string Delete = "robtop.geometry-dash/delete";
 static const std::string View = "robtop.geometry-dash/view";
 
-struct Mode;
-struct Tab;
+class Mode;
+class Tab;
+class EditorTab;
 
 GEODE_EVENT_EXPORT(Mode*, getMode, (geode::ZStringView ID), (ID));
 
@@ -38,15 +39,7 @@ GEODE_EVENT_EXPORT(Mode*, createMode, (geode::ZStringView ID), (ID));
 
 GEODE_EVENT_EXPORT(Tab*, getTab, (geode::ZStringView ID), (ID));
 
-GEODE_EVENT_EXPORT(Tab*, getTabByNode, (EditButtonBar* node), (node));
-
-GEODE_EVENT_EXPORT(EditButtonBar*, createTabBar, (cocos2d::CCArray* items, int tab = 0, bool hasCreateItems = false), (items, tab, hasCreateItems));
-
-GEODE_EVENT_EXPORT(EditButtonBar*, createTabBar, (std::span<geode::Ref<cocos2d::CCNode>> items, int tab = 0, bool hasCreateItems = false), (items, tab, hasCreateItems));
-
-GEODE_EVENT_EXPORT(EditButtonBar*, createTabBar, (std::span<cocos2d::CCNode*> items, int tab = 0, bool hasCreateItems = false), (items, tab, hasCreateItems));
-
-GEODE_EVENT_EXPORT(EditButtonBar*, createTabNode, (void), ());
+GEODE_EVENT_EXPORT(Tab*, getTabByNode, (alpha::editor_tabs::EditorTab* node), (node));
 
 GEODE_EVENT_EXPORT(void, removeMode, (geode::ZStringView ID), (ID));
 
@@ -57,8 +50,6 @@ GEODE_EVENT_EXPORT(void, reloadAllModes, (void), ());
 GEODE_EVENT_EXPORT(void, switchMode, (Mode* mode), (mode));
 
 GEODE_EVENT_EXPORT(void, switchMode, (geode::ZStringView ID), (ID));
-
-GEODE_EVENT_EXPORT(cocos2d::CCSize, getMaxTabSize, (void), ());
 
 class AllTabsInitializedEvent : public geode::Event<AllTabsInitializedEvent, bool()> {
     using Event::Event;

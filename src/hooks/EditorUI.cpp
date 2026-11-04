@@ -1,11 +1,9 @@
 #include "EditorUI.hpp"
-#include "../include/EditorTab.hpp"
-#include "Geode/loader/Log.hpp"
-#include "ModeHandler.hpp"
-#include "../include/Mode.hpp"
-#include "../include/Tab.hpp"
-#include "../include/Optional.hpp"
-#include "TabMenu.hpp"
+#include "../../include/ui/EditorTab.hpp"
+#include "../../include/ui/TabMenu.hpp"
+#include "../../include/api/Mode.hpp"
+#include "../../include/api/Tab.hpp"
+#include "../../include/api/Editor.hpp"
 
 struct CreateTabItem {
     int id;
@@ -477,12 +475,11 @@ bool ETEditorUI::init(LevelEditorLayer* editorLayer) {
     s_instance = this;
 
     auto fields = m_fields.self();
-    fields->m_modeHandler = std::make_shared<ModeHandler>();
 
-    fields->m_buildMode = ModeHandler::get()->createMode(alpha::editor_tabs::Build);
-    fields->m_editMode = ModeHandler::get()->createMode(alpha::editor_tabs::Edit);
-    fields->m_deleteMode = ModeHandler::get()->createMode(alpha::editor_tabs::Delete);
-    fields->m_viewMode = ModeHandler::get()->createMode(alpha::editor_tabs::View);
+    fields->m_buildMode = createMode(alpha::editor_tabs::Build);
+    fields->m_editMode = createMode(alpha::editor_tabs::Edit);
+    fields->m_deleteMode = createMode(alpha::editor_tabs::Delete);
+    fields->m_viewMode = createMode(alpha::editor_tabs::View);
 
     populateEditButtons();
 
@@ -510,7 +507,7 @@ bool ETEditorUI::init(LevelEditorLayer* editorLayer) {
     setupDeleteMode();
     setupViewMode();
 
-    fields->m_modeHandler->setupModes();
+    setupModes();
     fields->m_initialized = true;
 
     alpha::editor_tabs::AllTabsInitializedEvent().send();
@@ -520,7 +517,7 @@ bool ETEditorUI::init(LevelEditorLayer* editorLayer) {
         bar->goToPage(lastBuildPage);
     }
 
-    auto buildMode = ModeHandler::get()->getMode(alpha::editor_tabs::Build);
+    auto buildMode = getMode(alpha::editor_tabs::Build);
     buildMode->show();
 
     auto tab = buildMode->getTabByIndex(m_editorLayer->m_level->m_lastBuildTab);
@@ -535,7 +532,7 @@ bool ETEditorUI::init(LevelEditorLayer* editorLayer) {
     auto btn = getSpriteButton("hideBtn_001.png", menu_selector(EditorUI::onShowUIBtn), nullptr, 1.f, 1.f, {0.f, 0.f}, 52.f);
     btn->setID("TEST_BUTTON");
 
-    editTab->addItem(btn);
+    editTab->getNode()->addItem(btn);
 
     return true;
 }
@@ -699,7 +696,7 @@ void ETEditorUI::toggleMode(cocos2d::CCObject* sender) {
         }
 
         resetUI();
-        ModeHandler::get()->switchMode(modeID);
+        switchMode(modeID);
     }
 
     updateSpecialTabVisibility();
@@ -716,7 +713,7 @@ void ETEditorUI::showUI(bool show) {
         updateSpecialTabVisibility();
     }
 
-    auto mode = ModeHandler::get()->getCurrentMode();
+    auto mode = getCurrentMode();
     if (!mode) return;
 
     if (show) {
@@ -728,7 +725,7 @@ void ETEditorUI::showUI(bool show) {
 }
 
 void ETEditorUI::updateSpecialTabVisibility() {
-    auto mode = ModeHandler::get()->getCurrentMode();
+    auto mode = getCurrentMode();
     if (!mode) return;
 
     auto tab = mode->getCurrentTab();
@@ -753,7 +750,7 @@ void ETEditorUI::updateSpecialTabVisibility() {
 void ETEditorUI::onPause(cocos2d::CCObject* sender) {
     EditorUI::onPause(sender);
 
-    auto mode = ModeHandler::get()->getMode(alpha::editor_tabs::Build);
+    auto mode = getMode(alpha::editor_tabs::Build);
     if (!mode) return;
 
     auto currentTab = mode->getCurrentTab();
@@ -771,7 +768,7 @@ void ETEditorUI::selectBuildTab(int tab) {
     EditorUI::selectBuildTab(tab);
 
     // TODO figure out why sometimes other modes will switch to phantom tabs when using keybinds
-    auto mode = ModeHandler::get()->getCurrentMode();
+    auto mode = getCurrentMode();
     if (!mode) return;
 
     log::debug("Switching to tab index: {}", tab);
@@ -833,7 +830,7 @@ CCNode* ETEditorUI::iconForIdx(int idx) {
 
 Result<std::string_view> ETEditorUI::idForBuildTabIndex(unsigned int index) {
     if (index >= TabIDs.size()) {
-        auto mode = ModeHandler::get()->getMode(alpha::editor_tabs::Build);
+        auto mode = getMode(alpha::editor_tabs::Build);
 
         if (index < mode->getAllTabs().size()) {
             auto tab = mode->getAllTabs()[index].get();
@@ -1131,8 +1128,9 @@ void ETEditorUI::setupEditMode() {
             }
         }
 
-        m_editButtonBar = alpha::editor_tabs::EditorTab::create(bar->m_buttonArray, bar->m_tabIndex, bar->m_hasCreateItems);
-        tab = fields->m_editMode->createTab("edit", m_editButtonBar, CCSprite::createWithSpriteFrameName("GJ_hammerIcon_001.png"), -1000);
+        auto editTab = alpha::editor_tabs::EditorTab::create(bar->m_buttonArray, bar->m_tabIndex, bar->m_hasCreateItems);
+        tab = fields->m_editMode->createTab("edit", editTab, CCSprite::createWithSpriteFrameName("GJ_hammerIcon_001.png"), -1000);
+        m_editButtonBar = editTab;
 
         m_editButtonBar->addEventListener(alpha::editor_tabs::Tab::TabLoadedEvent(tab), [this] (EditButtonBar* node) {
             fixButtonWidths();
@@ -1188,11 +1186,13 @@ void ETEditorUI::setupViewMode() {
         item->removeFromParent();
     }
 
-    m_viewMenu = alpha::editor_tabs::EditorTab::create(bar->m_buttonArray, bar->m_tabIndex, bar->m_hasCreateItems);
-    auto tab = fields->m_viewMode->createTab("view", static_cast<EditButtonBar*>(m_viewMenu), CCSprite::create("view-tab.png"_spr), -1000);
-    tab->overrideSize(2, 11);
-    tab->disableSizeOverrideIfExceeded(true);
-    tab->setTabAlignment(alpha::editor_tabs::Tab::TabAlignment::Center);
+    auto viewTab = alpha::editor_tabs::EditorTab::create(bar->m_buttonArray, bar->m_tabIndex, bar->m_hasCreateItems);
+    auto tab = fields->m_viewMode->createTab("view", viewTab, CCSprite::create("view-tab.png"_spr), -1000);
+    viewTab->overrideSize(2, 11);
+    viewTab->disableSizeOverrideIfExceeded(true);
+    viewTab->setTabAlignment(alpha::editor_tabs::Tab::TabAlignment::Center);
+
+    m_viewMenu = viewTab;
 }
 
 bool ETEditorUI::scrollWheel(float y, float x) {
@@ -1211,6 +1211,200 @@ bool ETEditorUI::scrollWheel(float y, float x) {
     }
 
     return EditorUI::scrollWheel(y, x);
+}
+
+alpha::editor_tabs::Mode* ETEditorUI::getMode(geode::ZStringView ID) {
+    auto fields = m_fields.self();
+
+    auto it = std::find_if(fields->m_modes.begin(), fields->m_modes.end(), 
+    [ID] (const std::shared_ptr<alpha::editor_tabs::Mode>& mode) {
+        return mode && mode->getID() == ID;
+    });
+
+    return (it != fields->m_modes.end()) ? it->get() : nullptr;
+}
+
+alpha::editor_tabs::Mode* ETEditorUI::createMode(ZStringView ID) {
+    return m_fields->m_modes.emplace_back(std::make_shared<alpha::editor_tabs::Mode>(ID)).get();
+}
+
+void ETEditorUI::switchMode(geode::ZStringView ID) {
+    switchMode(getMode(ID));
+}
+
+void ETEditorUI::switchMode(alpha::editor_tabs::Mode* mode) {
+    auto fields = m_fields.self();
+
+    for (const auto& mode : fields->m_modes) {
+        mode.get()->hideMode();
+    }
+
+    auto oldMode = getCurrentMode();
+    if (oldMode && oldMode != mode) {
+        auto currentTab = oldMode->getCurrentTab();
+        if (currentTab) {
+            alpha::editor_tabs::Tab::SwitchTabEvent(currentTab).send(false);
+        }
+    }
+
+    if (mode) {
+        fields->m_currentMode = mode->getID();
+        mode->showMode();
+
+        if (!mode->getCurrentTab() && mode->getAllTabs().size() > 0) {
+            mode->switchTab(mode->getAllTabs()[0].get());
+        }
+
+        if (mode != oldMode) {
+            if (oldMode) {
+                alpha::editor_tabs::Mode::SwitchModeEvent(oldMode).send(false);
+            }
+
+            auto currentTab = mode->getCurrentTab();
+            if (currentTab) {
+                alpha::editor_tabs::Tab::SwitchTabEvent(currentTab).send(true);
+            }
+
+            alpha::editor_tabs::Mode::SwitchModeEvent(mode).send(true);
+        }
+
+        auto editor = ETEditorUI::get();
+
+        if (mode->getID() == alpha::editor_tabs::Build) {
+            editor->m_selectedMode = 2;
+        }
+        else if (mode->getID() == alpha::editor_tabs::Edit) {
+            editor->m_selectedMode = 3;
+        }
+        else if (mode->getID() == alpha::editor_tabs::Delete) {
+            editor->m_selectedMode = 1;
+        }
+        else if (mode->getID() == alpha::editor_tabs::View) {
+            editor->m_selectedMode = 4;
+        }
+        else {
+            editor->m_selectedMode = -1;
+        }
+
+        editor->updateModeToggles(editor->m_selectedMode);
+    }
+    else {
+        fields->m_currentMode = "";
+    }
+}
+
+geode::ZStringView ETEditorUI::getCurrentModeID() {
+    return m_fields->m_currentMode;
+}
+
+alpha::editor_tabs::Mode* ETEditorUI::getCurrentMode() {
+    return getMode(m_fields->m_currentMode);
+}
+
+geode::ZStringView ETEditorUI::getCurrentTabID() {
+    auto tab = getCurrentTab();
+    if (!tab) return "";
+
+    return tab->getID();
+}
+
+alpha::editor_tabs::Tab* ETEditorUI::getCurrentTab() {
+    auto mode = getCurrentMode();
+    if (!mode) return nullptr;
+
+    return mode->getCurrentTab();
+}
+
+std::span<const std::shared_ptr<alpha::editor_tabs::Mode>> ETEditorUI::getAllModes() {
+    return m_fields->m_modes;
+}
+
+std::vector<std::shared_ptr<alpha::editor_tabs::Tab>> ETEditorUI::getAllTabs() {
+    std::vector<std::shared_ptr<alpha::editor_tabs::Tab>> tabs;
+
+    for (const auto& mode : m_fields->m_modes) {
+        auto modeTabs = mode->getAllTabs();
+        tabs.insert(tabs.begin(), modeTabs.begin(), modeTabs.end());
+    }
+
+    return tabs;
+}
+
+void ETEditorUI::setupModes() {
+    for (const auto& mode : m_fields->m_modes) {
+        mode.get()->setupTabs();
+    }
+}
+
+void ETEditorUI::removeMode(geode::ZStringView ID) {
+    removeMode(getMode(ID));
+}
+
+void ETEditorUI::removeMode(alpha::editor_tabs::Mode* mode) {
+    auto fields = m_fields.self();
+    mode->removeAllTabs();
+
+    int prevIdx = 0;
+    bool isCurrentMode = fields->m_currentMode == mode->getID();
+
+    if (isCurrentMode) {
+        for (int i = 0; i < fields->m_modes.size(); i++) {
+            if (fields->m_modes[i].get()->getID() == mode->getID()) {
+                prevIdx = i;
+                break;
+            }
+        }
+    }
+
+    std::erase_if(fields->m_modes, [mode] (const std::shared_ptr<alpha::editor_tabs::Mode>& m) {
+        return m.get() == mode;
+    });
+
+    if (isCurrentMode) {
+        if (fields->m_modes.empty()) {
+            switchMode("");
+            return;
+        }
+
+        auto idx = std::clamp(prevIdx, 0, static_cast<int>(fields->m_modes.size()) - 1);
+        switchMode(fields->m_modes[idx].get());
+    }
+}
+
+void ETEditorUI::reloadAllModes() {
+    auto fields = m_fields.self();
+
+    for (const auto& mode : fields->m_modes) {
+        mode.get()->reloadAllTabs();
+    }
+    switchMode(fields->m_currentMode);
+}
+
+void ETEditorUI::reloadAllModeSizes(int rows, int columns) {
+    auto fields = m_fields.self();
+
+    for (const auto& mode : fields->m_modes) {
+        mode.get()->reloadAllTabSizes(rows, columns);
+    }
+    switchMode(fields->m_currentMode);
+}
+
+alpha::editor_tabs::Tab* ETEditorUI::getTab(geode::ZStringView ID) {
+    for (const auto& mode : m_fields->m_modes) {
+        auto tab = mode->getTab(ID);
+        if (tab) return tab;
+    }
+
+    return nullptr;
+}
+
+alpha::editor_tabs::Tab* ETEditorUI::getTabByNode(alpha::editor_tabs::EditorTab* node) {
+    for (const auto& mode : m_fields->m_modes) {
+        auto tab = mode->getTabByNode(node);
+        if (tab) return tab;
+    }
+    
+    return nullptr;
 }
 
 #include <Geode/modify/CCScrollLayerExt.hpp>

@@ -3,7 +3,7 @@
 template <class T>
 class ZImpl {
 public:
-    T* operator*() {
+    T* get() {
         return static_cast<T*>(this);
     }
 };

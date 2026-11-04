@@ -2,7 +2,8 @@
 
 #include <Geode/Geode.hpp>
 #include <Geode/modify/EditorUI.hpp>
-#include "ModeHandler.hpp"
+#include "../../include/api/Tab.hpp"
+#include "../../include/api/Mode.hpp"
 
 using namespace geode::prelude;
 
@@ -15,8 +16,6 @@ class $modify(ETEditorUI, EditorUI) {
     }
 
     struct Fields {
-        std::shared_ptr<ModeHandler> m_modeHandler = nullptr;
-
         alpha::editor_tabs::Mode* m_buildMode = nullptr;
         alpha::editor_tabs::Mode* m_editMode = nullptr;
         alpha::editor_tabs::Mode* m_deleteMode = nullptr;
@@ -28,6 +27,9 @@ class $modify(ETEditorUI, EditorUI) {
         geode::ScrollLayer* m_editScrollLayer = nullptr;
 
         bool m_initialized = false;
+
+        std::vector<std::shared_ptr<alpha::editor_tabs::Mode>> m_modes{};
+        std::string m_currentMode = "";
 
         ~Fields() {
             s_instance = nullptr;
@@ -72,6 +74,30 @@ class $modify(ETEditorUI, EditorUI) {
     void setupDeleteMode();
     void setupViewMode();
     bool scrollWheel(float y, float x);
+
+    alpha::editor_tabs::Mode* getMode(geode::ZStringView ID);
+    alpha::editor_tabs::Mode* createMode(geode::ZStringView ID);
+    void switchMode(geode::ZStringView ID);
+    void switchMode(alpha::editor_tabs::Mode* mode);
+
+    geode::ZStringView getCurrentModeID();
+    alpha::editor_tabs::Mode* getCurrentMode();
+    std::span<const std::shared_ptr<alpha::editor_tabs::Mode>> getAllModes();
+    std::vector<std::shared_ptr<alpha::editor_tabs::Tab>> getAllTabs();
+
+    geode::ZStringView getCurrentTabID();
+    alpha::editor_tabs::Tab* getCurrentTab();
+
+    void setupModes();
+
+    void removeMode(geode::ZStringView ID);
+    void removeMode(alpha::editor_tabs::Mode* mode);
+
+    alpha::editor_tabs::Tab* getTab(geode::ZStringView ID);
+    alpha::editor_tabs::Tab* getTabByNode(alpha::editor_tabs::EditorTab* node);
+
+    void reloadAllModes();
+    void reloadAllModeSizes(int rows, int columns);
 
     static constexpr std::array<std::string_view, 14> TabIDs {
         "block",

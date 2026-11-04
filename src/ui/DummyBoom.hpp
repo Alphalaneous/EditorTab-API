@@ -12,8 +12,8 @@ public:
 protected:
     bool init();
 
-    Ref<ExtendedLayer> m_extendedLayerRef;
-    Ref<CCArray> m_pagesRef;
+    Ref<ExtendedLayer> m_extendedLayerRef = nullptr;
+    Ref<CCArray> m_pagesRef = nullptr;
 };
 
 };

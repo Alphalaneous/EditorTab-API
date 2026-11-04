@@ -2,8 +2,8 @@
 
 #include <Geode/loader/Dispatch.hpp>
 #include <Geode/binding/EditButtonBar.hpp>
-#include "Tab.hpp"
-#include "ZImpl.hpp"
+#include "../api/Tab.hpp"
+#include "../api/ZImpl.hpp"
 
 #define MY_MOD_ID "alphalaneous.editortab_api"
 
@@ -80,7 +80,7 @@ public:
     GEODE_EVENT_EXPORT_MEMBER(EditorTab, void, setVerticalButtonAlignment, (geode::AxisAlignment alignment), (this, alignment));
     GEODE_EVENT_EXPORT_MEMBER(EditorTab, geode::AxisAlignment, getVerticalButtonAlignment, (), (this));
 
-    GEODE_EVENT_EXPORT_MEMBER(EditorTab, void, reloadItems, (), (this));
+    GEODE_EVENT_EXPORT_MEMBER(EditorTab, void, reloadAllItems, (), (this));
     GEODE_EVENT_EXPORT_MEMBER(EditorTab, void, updateItemSize, (int rows, int columns), (this, rows, columns));
 
     GEODE_EVENT_EXPORT_MEMBER_STATIC(cocos2d::CCSize, getMaxSize, (), ());
@@ -101,7 +101,7 @@ public:
             getButtons()->removeObject(item);
         }
 
-        reloadItems();
+        reloadAllItems();
     }
 
     template<class T>
@@ -132,7 +132,7 @@ public:
         }
 
         if (inserted) {
-            reloadItems();
+            reloadAllItems();
         }
     }
 

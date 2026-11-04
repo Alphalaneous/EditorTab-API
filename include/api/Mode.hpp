@@ -11,6 +11,7 @@
 namespace alpha::editor_tabs {
 
 class Tab;
+class EditorTab;
 
 class Mode {
 public:
@@ -38,7 +39,7 @@ public:
 
     GEODE_EVENT_EXPORT_MEMBER(Mode, Tab*, getTab, (geode::ZStringView ID), (this, ID));
 
-    GEODE_EVENT_EXPORT_MEMBER(Mode, Tab*, getTabByNode, (EditButtonBar* node), (this, node));
+    GEODE_EVENT_EXPORT_MEMBER(Mode, Tab*, getTabByNode, (alpha::editor_tabs::EditorTab* node), (this, node));
 
     GEODE_EVENT_EXPORT_MEMBER(Mode, Tab*, getTabByIndex, (unsigned int index), (this, index));
 
@@ -48,9 +49,9 @@ public:
 
     GEODE_EVENT_EXPORT_MEMBER(Mode, std::span<const std::shared_ptr<Tab>>, getAllTabs, (), (this));
 
-    GEODE_EVENT_EXPORT_MEMBER(Mode, Tab*, createTab, (geode::ZStringView ID, EditButtonBar* node, cocos2d::CCNode* icon), (this, ID, node, icon));
+    GEODE_EVENT_EXPORT_MEMBER(Mode, Tab*, createTab, (geode::ZStringView ID, alpha::editor_tabs::EditorTab* node, cocos2d::CCNode* icon), (this, ID, node, icon));
 
-    GEODE_EVENT_EXPORT_MEMBER(Mode, Tab*, createTab, (geode::ZStringView ID, EditButtonBar* node, cocos2d::CCNode* icon, int priority), (this, ID, node, icon, priority));
+    GEODE_EVENT_EXPORT_MEMBER(Mode, Tab*, createTab, (geode::ZStringView ID, alpha::editor_tabs::EditorTab* node, cocos2d::CCNode* icon, int priority), (this, ID, node, icon, priority));
 
     GEODE_EVENT_EXPORT_MEMBER(Mode, void, removeTab, (geode::ZStringView ID), (this, ID));
 

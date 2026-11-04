@@ -1,5 +1,5 @@
 #include "EditorPauseLayer.hpp"
-#include "ModeHandler.hpp"
+#include "EditorUI.hpp"
 
 void MyEditorPauseLayer::onResume(CCObject* sender) {
     auto editorUI = m_editorLayer->m_editorUI;
@@ -24,7 +24,7 @@ void MyEditorPauseLayer::onResume(CCObject* sender) {
         editorUI->createMoveMenu();
         auto rows = GameManager::get()->getIntGameVariable(GameVar::EditorButtonRows);
         auto cols = GameManager::get()->getIntGameVariable(GameVar::EditorButtonsPerRow);
-        ModeHandler::get()->reloadAllModeSizes(rows, cols);
+        ETEditorUI::get()->reloadAllModeSizes(rows, cols);
         editorUI->updateButtons();
     }
 }

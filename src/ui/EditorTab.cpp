@@ -34,8 +34,8 @@ struct EditorTab::Impl : public ZImpl<EditorTab::Impl> {
 
     alpha::editor_tabs::Tab::TabAlignment m_tabAlignment = alpha::editor_tabs::Tab::TabAlignment::Top;
 
-    geode::AxisAlignment m_horizontalButtonAlignment = geode::AxisAlignment::Start;
-    geode::AxisAlignment m_verticalButtonAlignment = geode::AxisAlignment::End;
+    geode::AxisAlignment m_horizontalItemAlignment = geode::AxisAlignment::Start;
+    geode::AxisAlignment m_verticalItemAlignment = geode::AxisAlignment::End;
 
     geode::Padding m_padding = {8.f, 0.f, 8.f, 0.f};
     float m_dotScale = 1.f;
@@ -280,7 +280,7 @@ void EditorTab::setItemless(bool itemless) {
     updateUI();
 }
 
-CCArray* EditorTab::getButtons() {
+CCArray* EditorTab::getItems() {
     if (m_impl->get()->m_tab && m_impl->get()->m_tab->getMode() && m_impl->get()->m_tab->getMode()->getID() == alpha::editor_tabs::Edit && m_impl->get()->m_tab->getID() == "edit") {
         auto ret = ETEditorUI::get()->getEditButtons();
         if (!ret) return CCArray::create();
@@ -290,7 +290,7 @@ CCArray* EditorTab::getButtons() {
     return m_buttonArray;
 }
 
-CCArray* EditorTab::getAllButtons() {
+CCArray* EditorTab::getAllItems() {
     if (m_impl->get()->m_tab && m_impl->get()->m_tab->getMode() && m_impl->get()->m_tab->getMode()->getID() == alpha::editor_tabs::Edit && m_impl->get()->m_tab->getID() == "edit") {
         auto allButtons = m_buttonArray->shallowCopy();
 
@@ -455,8 +455,8 @@ void EditorTab::reloadAllItems() {
     loadFromItems_(m_buttonArray, m_impl->get()->m_columns, m_impl->get()->m_rows, true);
 }
 
-void EditorTab::updateItemSize(int rows, int columns) {
-    auto allButtons = getAllButtons();
+void EditorTab::updateTabSize(int rows, int columns) {
+    auto allButtons = getAllItems();
 
     auto noOverride = m_impl->get()->m_disableSizeOverrideIfExceeded && allButtons->count() > (m_impl->get()->m_rows * m_impl->get()->m_columns);
 
@@ -474,7 +474,7 @@ void EditorTab::loadFromItems_(CCArray* items, int columns, int rows, bool prese
         m_buttonArray = m_impl->get()->m_buttonArrayRef;
     }
 
-    auto allButtons = getAllButtons();
+    auto allButtons = getAllItems();
 
     auto noOverride = m_impl->get()->m_disableSizeOverrideIfExceeded && allButtons->count() > (m_impl->get()->m_rows * m_impl->get()->m_columns);
 
@@ -577,7 +577,7 @@ void EditorTab::goToPage_(int page) {
     m_impl->get()->m_itemContainer->setContentSize({width, height});
     m_impl->get()->m_itemContainer->setScale(scale);
 
-    auto allButtons = getAllButtons();
+    auto allButtons = getAllItems();
 
     for (int i = start; i < end && i < allButtons->count(); i++) {
         auto item = static_cast<CCNode*>(allButtons->objectAtIndex(i));
@@ -590,8 +590,8 @@ void EditorTab::goToPage_(int page) {
         m_impl->get()->m_itemContainer->addChild(static_cast<CCNode*>(allButtons->objectAtIndex(i)));
     }
 
-    m_impl->get()->m_itemLayout->setAxisAlignment(m_impl->get()->m_horizontalButtonAlignment);
-    m_impl->get()->m_itemLayout->setCrossAxisAlignment(m_impl->get()->m_verticalButtonAlignment);
+    m_impl->get()->m_itemLayout->setAxisAlignment(m_impl->get()->m_horizontalItemAlignment);
+    m_impl->get()->m_itemLayout->setCrossAxisAlignment(m_impl->get()->m_verticalItemAlignment);
 
     m_impl->get()->m_itemContainer->updateLayout();
     m_impl->get()->m_navigationMenu->setPosition({getContentWidth() / 2.f, m_impl->get()->m_itemContainer->boundingBox().getMidY()});
@@ -664,9 +664,9 @@ void EditorTab::removeItem(cocos2d::CCNode* item) {
 
 void EditorTab::removeItemByID(geode::ZStringView ID) {
     int idx = 0;
-    for (auto item : getButtons()->asExt<CCNode>()) {
+    for (auto item : getItems()->asExt<CCNode>()) {
         if (item->getID() == ID) {
-            getButtons()->removeObjectAtIndex(idx);
+            getItems()->removeObjectAtIndex(idx);
             reloadAllItems();
             return;
         }
@@ -676,9 +676,9 @@ void EditorTab::removeItemByID(geode::ZStringView ID) {
 
 void EditorTab::removeItemByTag(int tag) {
     int idx = 0;
-    for (auto item : getButtons()->asExt<CCNode>()) {
+    for (auto item : getItems()->asExt<CCNode>()) {
         if (item->getTag() == tag) {
-            getButtons()->removeObjectAtIndex(idx);
+            getItems()->removeObjectAtIndex(idx);
             reloadAllItems();
             return;
         }
@@ -688,10 +688,10 @@ void EditorTab::removeItemByTag(int tag) {
 
 void EditorTab::removeItemByObjectID(int objectID) {
     int idx = 0;
-    for (auto item : getButtons()->asExt<CCNode>()) {
+    for (auto item : getItems()->asExt<CCNode>()) {
         auto cmi = typeinfo_cast<CreateMenuItem*>(item);
         if (cmi && cmi->m_objectID == objectID) {
-            getButtons()->removeObjectAtIndex(idx);
+            getItems()->removeObjectAtIndex(idx);
             reloadAllItems();
             return;
         }
@@ -720,7 +720,7 @@ void EditorTab::insertItemBefore(CreateMenuItem* item, int objectID) {
 }
 
 cocos2d::CCNode* EditorTab::findItemByID(geode::ZStringView ID) {
-    for (auto node : getButtons()->asExt<CCNode>()) {
+    for (auto node : getItems()->asExt<CCNode>()) {
         if (node->getID() == ID) return node;
     }
 
@@ -728,7 +728,7 @@ cocos2d::CCNode* EditorTab::findItemByID(geode::ZStringView ID) {
 }
 
 cocos2d::CCNode* EditorTab::findItemByTag(int tag) {
-    for (auto node : getButtons()->asExt<CCNode>()) {
+    for (auto node : getItems()->asExt<CCNode>()) {
         if (node->getTag() == tag) return node;
     }
 
@@ -738,7 +738,7 @@ cocos2d::CCNode* EditorTab::findItemByTag(int tag) {
 CreateMenuItem* EditorTab::findItemByObjectID(int objectID) {
     if (!m_hasCreateItems) return nullptr;
 
-    for (auto node : getButtons()->asExt<CreateMenuItem>()) {
+    for (auto node : getItems()->asExt<CreateMenuItem>()) {
         if (node->m_objectID == objectID) return node;
     }
 
@@ -754,20 +754,20 @@ alpha::editor_tabs::Tab::TabAlignment EditorTab::getTabAlignment() {
     return m_impl->get()->m_tabAlignment;
 }
 
-void EditorTab::setHorizontalButtonAlignment(geode::AxisAlignment alignment) {
-    m_impl->get()->m_horizontalButtonAlignment = alignment;
+void EditorTab::setHorizontalItemAlignment(geode::AxisAlignment alignment) {
+    m_impl->get()->m_horizontalItemAlignment = alignment;
 }
 
-geode::AxisAlignment EditorTab::getHorizontalButtonAlignment() {
-    return m_impl->get()->m_horizontalButtonAlignment;
+geode::AxisAlignment EditorTab::getHorizontalItemAlignment() {
+    return m_impl->get()->m_horizontalItemAlignment;
 }
 
-void EditorTab::setVerticalButtonAlignment(geode::AxisAlignment alignment) {
-    m_impl->get()->m_verticalButtonAlignment = alignment;
+void EditorTab::setVerticalItemAlignment(geode::AxisAlignment alignment) {
+    m_impl->get()->m_verticalItemAlignment = alignment;
 }
 
-geode::AxisAlignment EditorTab::getVerticalButtonAlignment() {
-    return m_impl->get()->m_verticalButtonAlignment;
+geode::AxisAlignment EditorTab::getVerticalItemAlignment() {
+    return m_impl->get()->m_verticalItemAlignment;
 }
 
 void EditorTab::setPadding(geode::Padding padding) {

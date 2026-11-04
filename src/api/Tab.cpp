@@ -15,7 +15,6 @@ namespace alpha::editor_tabs {
 struct Tab::Impl : public ZImpl<Impl> {
     std::string m_id = "";
     Ref<EditorTab> m_node = nullptr;
-    Ref<CCNode> m_icon = nullptr;
     alpha::editor_tabs::Mode* m_mode = nullptr;
     Ref<alpha::editor_tabs::TabToggler> m_toggler = nullptr;
 
@@ -26,7 +25,6 @@ void Tab::construct(geode::ZStringView ID, alpha::editor_tabs::EditorTab* node, 
     m_impl = std::make_unique<Impl>();
     m_impl->get()->m_id = ID;
     m_impl->get()->m_node = node;
-    m_impl->get()->m_icon = icon;
 
     m_impl->get()->m_toggler = TabToggler::create(this, icon);
     m_impl->get()->m_toggler->setTag(node->m_tabIndex);
@@ -45,10 +43,6 @@ void Tab::show() {
 
 alpha::editor_tabs::EditorTab* Tab::getNode() {
     return m_impl->get()->m_node;
-}
-
-CCNode* Tab::getIcon() {
-    return m_impl->get()->m_icon;
 }
 
 void Tab::setPriority(int priority) {
@@ -70,7 +64,7 @@ alpha::editor_tabs::Mode* Tab::getMode() {
     return m_impl->get()->m_mode;
 }
 
-CCMenuItemToggler* Tab::getTabToggle() {
+alpha::editor_tabs::TabToggler* Tab::getTabToggler() {
     return m_impl->get()->m_toggler;
 }
 

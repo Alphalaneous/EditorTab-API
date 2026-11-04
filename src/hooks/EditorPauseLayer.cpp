@@ -24,7 +24,7 @@ void MyEditorPauseLayer::onResume(CCObject* sender) {
         editorUI->createMoveMenu();
         auto rows = GameManager::get()->getIntGameVariable(GameVar::EditorButtonRows);
         auto cols = GameManager::get()->getIntGameVariable(GameVar::EditorButtonsPerRow);
-        ETEditorUI::get()->reloadAllModeSizes(rows, cols);
+        ETEditorUI::get()->updateTabSizes(rows, cols);
         editorUI->updateButtons();
     }
 }

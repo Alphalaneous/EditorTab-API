@@ -10,7 +10,7 @@ using namespace geode::prelude;
 namespace alpha::editor_tabs {
 
 struct TabToggler::Impl : public ZImpl<TabToggler::Impl> {
-    CCNode* m_icon = nullptr;
+    Ref<CCNode> m_icon = nullptr;
     alpha::editor_tabs::Tab* m_tab = nullptr;
     CCSprite* m_tabOff = nullptr;
     CCSprite* m_tabOn = nullptr;
@@ -94,7 +94,7 @@ void TabToggler::setIcon(CCNode* icon) {
     icon->setScale(scale);
     icon->setZOrder(1);
 
-    auto rgba = typeinfo_cast<CCRGBAProtocol*>(m_impl->get()->m_icon);
+    auto rgba = typeinfo_cast<CCRGBAProtocol*>(m_impl->get()->m_icon.data());
     if (rgba) {
         rgba->setOpacity(isToggled() ? 255 : 150);
     }
@@ -118,7 +118,7 @@ void TabToggler::toggleTab(bool on) {
 
     m_impl->get()->m_icon->removeFromParent();
 
-    auto rgba = typeinfo_cast<CCRGBAProtocol*>(m_impl->get()->m_icon);
+    auto rgba = typeinfo_cast<CCRGBAProtocol*>(m_impl->get()->m_icon.data());
     if (rgba) {
         rgba->setOpacity(on ? 255 : 150);
     }

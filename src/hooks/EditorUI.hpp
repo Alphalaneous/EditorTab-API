@@ -97,7 +97,7 @@ class $modify(ETEditorUI, EditorUI) {
     alpha::editor_tabs::Tab* getTabByNode(alpha::editor_tabs::EditorTab* node);
 
     void reloadAllModes();
-    void reloadAllModeSizes(int rows, int columns);
+    void updateTabSizes(int rows, int columns);
 
     static constexpr std::array<std::string_view, 14> TabIDs {
         "block",

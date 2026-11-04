@@ -527,13 +527,6 @@ bool ETEditorUI::init(LevelEditorLayer* editorLayer) {
         tab->getNode()->goToPage(m_editorLayer->m_level->m_lastBuildPage);
     }
 
-    auto editTab = fields->m_editMode->getTab("edit");
-
-    auto btn = getSpriteButton("hideBtn_001.png", menu_selector(EditorUI::onShowUIBtn), nullptr, 1.f, 1.f, {0.f, 0.f}, 52.f);
-    btn->setID("TEST_BUTTON");
-
-    editTab->getNode()->addItem(btn);
-
     return true;
 }
 
@@ -1079,6 +1072,8 @@ void ETEditorUI::setupEditMode() {
         fields->m_editScrollLayer = geode::ScrollLayer::create({editButtons->getContentSize()});
         fields->m_editScrollLayer->setID("edit-button-scroll-layer"_spr);
         fields->m_editScrollLayer->setStealingTouches(true);
+        fields->m_editScrollLayer->m_peekLimitBottom = 0.f;
+        fields->m_editScrollLayer->m_peekLimitTop = 0.f;
         fields->m_editScrollLayer->ignoreAnchorPointForPosition(false);
         fields->m_editScrollLayer->m_contentLayer->addChild(editButtons);
 
@@ -1102,9 +1097,10 @@ void ETEditorUI::setupEditMode() {
             readjustDpadMenu(node, node->getContentWidth());
         });
 
-        m_dpadMoveNode->addEventListener(alpha::editor_tabs::Tab::TabLoadedEvent(tab), [this] (alpha::editor_tabs::EditorTab* node) {
+        m_dpadMoveNode->addEventListener(alpha::editor_tabs::Tab::TabLoadedEvent(tab), [this, fields] (alpha::editor_tabs::EditorTab* node) {
             updateDpadMenuButtons();
             readjustDpadMenu(node, node->getContentWidth());
+            fields->m_editScrollLayer->scrollToTop();
         });
 
         editTab->setContentWidth(alpha::editor_tabs::EditorTab::getAvailableSize().width);
@@ -1380,11 +1376,11 @@ void ETEditorUI::reloadAllModes() {
     switchMode(fields->m_currentMode);
 }
 
-void ETEditorUI::reloadAllModeSizes(int rows, int columns) {
+void ETEditorUI::updateTabSizes(int rows, int columns) {
     auto fields = m_fields.self();
 
     for (const auto& mode : fields->m_modes) {
-        mode.get()->reloadAllTabSizes(rows, columns);
+        mode.get()->updateTabSizes(rows, columns);
     }
     switchMode(fields->m_currentMode);
 }
@@ -1406,21 +1402,3 @@ alpha::editor_tabs::Tab* ETEditorUI::getTabByNode(alpha::editor_tabs::EditorTab*
     
     return nullptr;
 }
-
-#include <Geode/modify/CCScrollLayerExt.hpp>
-
-class $modify(CCScrollLayerExt) {
-
-    bool touchInsideClip(cocos2d::CCPoint const& p0) {
-        if (auto scroll = typeinfo_cast<geode::ScrollLayer*>(this)) {
-            auto nodeSpace = scroll->convertToNodeSpace(p0);
-            auto rect = cocos2d::CCRect(0, 0, scroll->getContentWidth(), scroll->getContentHeight());
-
-            auto contains = rect.containsPoint(nodeSpace);
-
-            return contains;
-        }
-
-        return CCScrollLayerExt::touchInsideClip(p0);
-    }
-};

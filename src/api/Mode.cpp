@@ -31,13 +31,9 @@ void Mode::show() {
     ETEditorUI::get()->switchMode(this);
 }
 
-alpha::editor_tabs::Tab* Mode::createTab(geode::ZStringView ID, alpha::editor_tabs::EditorTab* node, cocos2d::CCNode* icon) {
-    return createTab(ID, node, icon, 0);
-}
-
 alpha::editor_tabs::Tab* Mode::createTab(geode::ZStringView ID, alpha::editor_tabs::EditorTab* node, cocos2d::CCNode* icon, int priority) {
     auto tab = m_impl->get()->m_tabs.emplace_back(std::make_shared<Tab>(ID, node, icon, priority));
-    static_cast<Tab*>(tab.get())->setMode(this);
+    tab.get()->setMode(this);
 
     auto editor = ETEditorUI::get();
 
@@ -45,7 +41,7 @@ alpha::editor_tabs::Tab* Mode::createTab(geode::ZStringView ID, alpha::editor_ta
     node->setVisible(false);
     node->setID(fmt::format("{}-tab-bar", ID));
 
-    auto toggle = static_cast<TabToggler*>(tab->getTabToggle());
+    auto toggle = tab->getTabToggler();
     toggle->setID(fmt::format("{}-tab", ID));
 
     auto editorTab = typeinfo_cast<alpha::editor_tabs::EditorTab*>(node);
@@ -67,6 +63,12 @@ alpha::editor_tabs::Tab* Mode::createTab(geode::ZStringView ID, alpha::editor_ta
 
         bool isActive = editor->getCurrentMode() == this;
         node->setVisible(isActive && m_impl->get()->m_currentTab == ID && !editor->m_uiHidden);
+
+        if (editor->getCurrentMode() == this) {
+            editor->m_tabsArray->addObject(toggle);
+            editor->m_tabsMenu->addChild(toggle);
+            editor->m_tabsMenu->updateLayout();
+        }
     }
 
     return tab.get();
@@ -86,7 +88,7 @@ void Mode::removeTab(alpha::editor_tabs::Tab* tab) {
     }
 
     tab->getNode()->removeFromParent();
-    tab->getTabToggle()->removeFromParent();
+    tab->getTabToggler()->removeFromParent();
 
     editor->m_tabsMenu->updateLayout();
 
@@ -179,7 +181,7 @@ void Mode::switchTab(alpha::editor_tabs::Tab* tab) {
 
     for (const auto& tab : m_impl->get()->m_tabs) {
         tab->getNode()->setVisible(false);
-        static_cast<TabToggler*>(tab->getTabToggle())->toggleTab(false);
+        tab->getTabToggler()->toggleTab(false);
     }
 
     auto oldTab = getCurrentTab();
@@ -196,7 +198,7 @@ void Mode::switchTab(alpha::editor_tabs::Tab* tab) {
         }
 
         tab->getNode()->setVisible(isActive);
-        static_cast<TabToggler*>(tab->getTabToggle())->toggleTab(true);
+        tab->getTabToggler()->toggleTab(true);
 
         if (m_impl->get()->m_id == alpha::editor_tabs::Build) {
             editor->m_createButtonBar = tab->getNode();
@@ -220,7 +222,7 @@ void Mode::hideMode() {
     for (const auto& tab : m_impl->get()->m_tabs) {
         tab->getNode()->setVisible(false);
 
-        auto toggle = static_cast<TabToggler*>(tab->getTabToggle());
+        auto toggle = tab->getTabToggler();
         toggle->toggleTab(false);
         toggle->removeFromParent();
         editor->m_tabsArray->removeObject(toggle);
@@ -235,7 +237,7 @@ void Mode::showMode() {
     for (const auto& tab : m_impl->get()->m_tabs) {
         tab->getNode()->setVisible(false);
 
-        auto toggle = static_cast<TabToggler*>(tab->getTabToggle());
+        auto toggle = tab->getTabToggler();
         toggle->toggleTab(false);
         toggle->removeFromParent();
         editor->m_tabsMenu->addChild(toggle);
@@ -246,7 +248,7 @@ void Mode::showMode() {
 
     if (tab) {
         tab->getNode()->setVisible(!editor->m_uiHidden);
-        static_cast<TabToggler*>(tab->getTabToggle())->toggleTab(true);
+        tab->getTabToggler()->toggleTab(true);
     }
 
     editor->m_selectedTab = getTabIndex(tab).unwrapOrDefault();
@@ -256,12 +258,12 @@ void Mode::showMode() {
 
 void Mode::updateToggles() {
     for (const auto& tab : m_impl->get()->m_tabs) {
-        static_cast<TabToggler*>(tab->getTabToggle())->toggleTab(false);
+        tab->getTabToggler()->toggleTab(false);
     }
 
     auto tab = getCurrentTab();
     if (tab) {
-        static_cast<TabToggler*>(tab->getTabToggle())->toggleTab(true);
+        tab->getTabToggler()->toggleTab(true);
     }
 }
 
@@ -284,7 +286,7 @@ void Mode::removeAllTabs() {
     
     for (const auto& tab : m_impl->get()->m_tabs) {
         tab->getNode()->removeFromParent();
-        tab->getTabToggle()->removeFromParent();
+        tab->getTabToggler()->removeFromParent();
     }
 
     m_impl->get()->m_tabs.clear();
@@ -296,9 +298,9 @@ void Mode::reloadAllTabs() {
     }
 }
 
-void Mode::reloadAllTabSizes(int rows, int columns) {
+void Mode::updateTabSizes(int rows, int columns) {
     for (const auto& tab : m_impl->get()->m_tabs) {
-        tab->getNode()->updateItemSize(rows, columns);
+        tab->getNode()->updateTabSize(rows, columns);
     }
 }
 

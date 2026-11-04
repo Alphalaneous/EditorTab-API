@@ -60,7 +60,7 @@ alpha::editor_tabs::Tab* Mode::createTab(geode::ZStringView ID, alpha::editor_ta
 
         editor->addChild(node);
 
-        node->setContentSize(alpha::editor_tabs::EditorTab::getMaxSize());
+        node->setContentSize(alpha::editor_tabs::EditorTab::getAvailableSize());
         node->reloadAllItems();
         
         Tab::TabInitializedEvent(tab.get()).send();
@@ -270,7 +270,7 @@ void Mode::setupTabs() {
 
     for (const auto& tab : m_impl->get()->m_tabs) {
         auto node = tab->getNode();
-        node->setContentSize(alpha::editor_tabs::EditorTab::getFullMaxSize());
+        node->setContentSize(alpha::editor_tabs::EditorTab::getAvailableSize());
 
         editor->addChild(node);
 

@@ -37,6 +37,9 @@ struct EditorTab::Impl : public ZImpl<EditorTab::Impl> {
     geode::AxisAlignment m_horizontalButtonAlignment = geode::AxisAlignment::Start;
     geode::AxisAlignment m_verticalButtonAlignment = geode::AxisAlignment::End;
 
+    geode::Padding m_padding = {8.f, 0.f, 8.f, 0.f};
+    float m_dotScale = 1.f;
+
     int m_rows = 0;
     int m_columns = 0;
 
@@ -231,18 +234,6 @@ bool EditorTab::init(CCArray* items, int tab, bool hasCreateItems) {
     return true;
 }
 
-void EditorTab::updateTabUIEvent() {
-    auto winSize = CCDirector::get()->getWinSize();
-    auto maxSize = getMaxSize();
-
-    float scaleX = getContentWidth() / maxSize.width;
-    float scaleY = getContentHeight() / maxSize.height;
-
-    float scale = std::min(scaleX, scaleY);
-
-    alpha::editor_tabs::Tab::UpdateTabUIEvent(m_impl->get()->m_tab).send(this);
-}
-
 void EditorTab::setContentSize(const CCSize& contentSize) {
     CCNode::setContentSize(contentSize);
     if (!m_impl->get()->m_initialized) return;
@@ -345,11 +336,7 @@ int EditorTab::getColumns() {
     return m_impl->get()->m_columns;
 }
 
-CCSize EditorTab::getMaxSize() {
-    return getFullMaxSize() - CCSize{16.f, 0.f};
-}
-
-CCSize EditorTab::getFullMaxSize() {
+CCSize EditorTab::getAvailableSize() {
     auto editor = ETEditorUI::get();
 
     if (!editor) return {};
@@ -371,11 +358,11 @@ CCSize EditorTab::getFullMaxSize() {
 
 void EditorTab::updateUI() {
     auto winSize = CCDirector::get()->getWinSize();
-    auto maxSize = getMaxSize();
+    auto maxSize = getAvailablePaddedSize();
 
     if (m_impl->get()->m_hasAutoScale) {
-        float scaleX = getRealWidth() / maxSize.width;
-        float scaleY = getContentHeight() / maxSize.height;
+        float scaleX = getPaddedSize().width / maxSize.width;
+        float scaleY = getPaddedSize().height / maxSize.height;
 
         float scale = std::min(scaleX, scaleY);
         m_impl->get()->m_container->setScale(scale);
@@ -386,7 +373,7 @@ void EditorTab::updateUI() {
 
     m_impl->get()->m_container->setPosition(getContentSize() / 2.f);
     
-    m_impl->get()->m_dotContainer->setContentSize({getRealWidth(), 6.f});
+    m_impl->get()->m_dotContainer->setContentSize({getPaddedSize().width, 6.f});
     m_impl->get()->m_dotContainer->setPosition({getContentWidth() / 2.f, 0.75f});
 
     updatePages();
@@ -396,26 +383,27 @@ void EditorTab::updateUI() {
     float y = 0.f;
     if (m_impl->get()->m_tabAlignment == alpha::editor_tabs::Tab::TabAlignment::Center) {
         m_impl->get()->m_itemContainer->setAnchorPoint({0.5f, 0.5f});
-        y = getContentHeight() / 2.f + m_impl->get()->m_dotContainer->getContentHeight() / 2.f + m_impl->get()->m_dotContainer->getPositionY();
+        y = getPaddedSize().height / 2.f + m_impl->get()->m_dotContainer->getContentHeight() / 2.f + m_impl->get()->m_dotContainer->getPositionY();
     }
     else {
         m_impl->get()->m_itemContainer->setAnchorPoint({0.5f, 1.f});
-        y = getContentHeight() - 5.f;
+        y = getPaddedSize().height - 5.f;
     }
     
     m_impl->get()->m_itemContainer->setPosition({getContentWidth() / 2.f, y});
-    m_impl->get()->m_navigationMenu->setPosition({getContentWidth() / 2.f, m_impl->get()->m_itemContainer->boundingBox().getMidY()});
-}
 
-float EditorTab::getRealWidth() {
-    return getContentWidth() - 16.f;
-}
-
-void EditorTab::updateNavMenu() {
-    m_impl->get()->m_navigationMenu->setContentSize({getRealWidth(), m_impl->get()->m_itemContainer->getScaledContentHeight()});
-    m_impl->get()->m_navigationMenu->setPosition({getContentWidth() / 2.f, m_impl->get()->m_itemContainer->boundingBox().getMidY()});
-
+    m_impl->get()->m_navigationMenu->setContentSize({getPaddedSize().width, m_impl->get()->m_itemContainer->getScaledContentHeight()});
     m_impl->get()->m_navigationMenu->updateLayout();
+}
+
+cocos2d::CCSize EditorTab::getPaddedSize() {
+    auto p = m_impl->get()->m_padding;
+    return getContentSize() - CCSize{p.left + p.right, p.top + p.bottom};
+}
+
+cocos2d::CCSize EditorTab::getAvailablePaddedSize() {
+    auto p = m_impl->get()->m_padding;
+    return getAvailableSize() - CCSize{p.left + p.right, p.top + p.bottom};
 }
 
 void EditorTab::updateDots() {
@@ -431,6 +419,7 @@ void EditorTab::updatePages() {
     for (int i = 0; i < m_impl->get()->m_pageCount; i++) {
         auto dot = createDot(i);
         dot->setEnabled(true);
+        dot->setScale(m_impl->get()->m_dotScale);
         m_impl->get()->m_dots.push_back(dot);
         m_impl->get()->m_dotContainer->addChild(dot);
     }
@@ -530,7 +519,7 @@ void EditorTab::loadFromItems_(CCArray* items, int columns, int rows, bool prese
         return;
     }
 
-    m_impl->get()->m_dotContainer->setContentSize({getRealWidth(), 6.f});
+    m_impl->get()->m_dotContainer->setContentSize({getPaddedSize().width, 6.f});
     m_impl->get()->m_dotContainer->setLayout(SimpleRowLayout::create()
         ->setGap(12.8f)
         ->setMainAxisScaling(AxisScaling::ScaleDownGaps)
@@ -576,8 +565,8 @@ void EditorTab::goToPage_(int page) {
     }
 
     auto size = CCSize{
-        getRealWidth() - widthOffset, 
-        getContentHeight() - 14.f
+        getPaddedSize().width - widthOffset, 
+        getPaddedSize().height - 14.f
     };
 
     float scaleX = size.width / width;
@@ -605,9 +594,9 @@ void EditorTab::goToPage_(int page) {
     m_impl->get()->m_itemLayout->setCrossAxisAlignment(m_impl->get()->m_verticalButtonAlignment);
 
     m_impl->get()->m_itemContainer->updateLayout();
+    m_impl->get()->m_navigationMenu->setPosition({getContentWidth() / 2.f, m_impl->get()->m_itemContainer->boundingBox().getMidY()});
 
     updateDots();
-    updateNavMenu();
 
     m_scrollLayer->m_page = m_impl->get()->m_page;
 
@@ -779,6 +768,26 @@ void EditorTab::setVerticalButtonAlignment(geode::AxisAlignment alignment) {
 
 geode::AxisAlignment EditorTab::getVerticalButtonAlignment() {
     return m_impl->get()->m_verticalButtonAlignment;
+}
+
+void EditorTab::setPadding(geode::Padding padding) {
+    m_impl->get()->m_padding = padding;
+    updateUI();
+}
+
+geode::Padding EditorTab::getPadding() {
+    return m_impl->get()->m_padding;
+}
+
+void EditorTab::setDotScale(float scale) {
+    m_impl->get()->m_dotScale = scale;
+    for (const auto& dot : m_impl->get()->m_dots) {
+        dot->setScale(scale);
+    }
+}
+
+float EditorTab::getDotScale() {
+    return m_impl->get()->m_dotScale;
 }
 
 }

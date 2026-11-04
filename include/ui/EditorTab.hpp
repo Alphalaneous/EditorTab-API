@@ -2,6 +2,7 @@
 
 #include <Geode/loader/Dispatch.hpp>
 #include <Geode/binding/EditButtonBar.hpp>
+#include <Geode/ui/Layout.hpp>
 #include "../api/Tab.hpp"
 #include "../api/ZImpl.hpp"
 
@@ -31,8 +32,6 @@ public:
 
     GEODE_EVENT_EXPORT_MEMBER(EditorTab, int, getRows, (), (this));
     GEODE_EVENT_EXPORT_MEMBER(EditorTab, int, getColumns, (), (this));
-
-    GEODE_EVENT_EXPORT_MEMBER(EditorTab, void, updateTabUIEvent, (), (this));
 
     GEODE_EVENT_EXPORT_MEMBER(EditorTab, void, setContentSize, (const cocos2d::CCSize& contentSize), (this, contentSize));
     GEODE_EVENT_EXPORT_MEMBER(EditorTab, void, setPosition, (const cocos2d::CCPoint& position), (this, position));
@@ -83,8 +82,16 @@ public:
     GEODE_EVENT_EXPORT_MEMBER(EditorTab, void, reloadAllItems, (), (this));
     GEODE_EVENT_EXPORT_MEMBER(EditorTab, void, updateItemSize, (int rows, int columns), (this, rows, columns));
 
-    GEODE_EVENT_EXPORT_MEMBER_STATIC(cocos2d::CCSize, getMaxSize, (), ());
-    GEODE_EVENT_EXPORT_MEMBER_STATIC(cocos2d::CCSize, getFullMaxSize, (), ());
+    GEODE_EVENT_EXPORT_MEMBER(EditorTab, void, setPadding, (geode::Padding padding), (this, padding));
+    GEODE_EVENT_EXPORT_MEMBER(EditorTab, geode::Padding, getPadding, (), (this));
+
+    GEODE_EVENT_EXPORT_MEMBER(EditorTab, cocos2d::CCSize, getPaddedSize, (), (this));
+    GEODE_EVENT_EXPORT_MEMBER(EditorTab, cocos2d::CCSize, getAvailablePaddedSize, (), (this));
+
+    GEODE_EVENT_EXPORT_MEMBER(EditorTab, void, setDotScale, (float scale), (this, scale));
+    GEODE_EVENT_EXPORT_MEMBER(EditorTab, float, getDotScale, (), (this));
+
+    GEODE_EVENT_EXPORT_MEMBER_STATIC(cocos2d::CCSize, getAvailableSize, (), ());
 
     template<class T>
     requires std::convertible_to<T, cocos2d::CCNode*>
@@ -193,12 +200,9 @@ protected:
     GEODE_EVENT_EXPORT_MEMBER(EditorTab, bool, init, (cocos2d::CCArray* items, int tab, bool hasCreateItems), (this, items, tab, hasCreateItems));
     GEODE_EVENT_EXPORT_MEMBER(EditorTab, bool, init, (), (this));
 
-    GEODE_EVENT_EXPORT_MEMBER(EditorTab, void, updateNavMenu, (), (this));
     GEODE_EVENT_EXPORT_MEMBER(EditorTab, void, updateDots, (), (this));
     GEODE_EVENT_EXPORT_MEMBER(EditorTab, void, updateUI, (), (this));
     GEODE_EVENT_EXPORT_MEMBER(EditorTab, void, updatePages, (), (this));
-
-    GEODE_EVENT_EXPORT_MEMBER(EditorTab, float, getRealWidth, (), (this));
 
     GEODE_EVENT_EXPORT_MEMBER(EditorTab, void, goToPage_, (int page), (this, page));
     GEODE_EVENT_EXPORT_MEMBER(EditorTab, void, onLeft_, (cocos2d::CCObject* sender), (this, sender));

@@ -49,7 +49,7 @@ class $modify(ETEditorUI, EditorUI) {
 
     void toggleMode(cocos2d::CCObject* sender);
     void updateModeToggles(int mode);
-    void readjustDpadMenu(EditButtonBar* node, float availableWidth);
+    void readjustDpadMenu(alpha::editor_tabs::EditorTab* node, float availableWidth);
     void setDpadStep(int p0);
 
     void fixButtonWidths();

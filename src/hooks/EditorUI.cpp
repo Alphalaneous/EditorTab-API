@@ -871,7 +871,7 @@ void ETEditorUI::setupBuildMode() {
 }
 
 // this is ugly cuz rob did it ugly and I am replicating his ugliness
-void ETEditorUI::readjustDpadMenu(EditButtonBar* node, float availableWidth) {
+void ETEditorUI::readjustDpadMenu(alpha::editor_tabs::EditorTab* node, float availableWidth) {
     constexpr float toolbarHeight = 90.f;
     constexpr float labelScale = 0.45f;
     constexpr float buttonPadding = 8.f;
@@ -1094,20 +1094,20 @@ void ETEditorUI::setupEditMode() {
         auto editTab = alpha::editor_tabs::EditorTab::create();
         tab = fields->m_editMode->createTab("edit", editTab, CCSprite::createWithSpriteFrameName("GJ_hammerIcon_001.png"), -1000);
     
-        m_dpadMoveNode->addEventListener(alpha::editor_tabs::Tab::UpdateTabVisibilityEvent(tab), [this] (EditButtonBar* node, bool visible) {
+        m_dpadMoveNode->addEventListener(alpha::editor_tabs::Tab::UpdateTabVisibilityEvent(tab), [this] (alpha::editor_tabs::EditorTab* node, bool visible) {
             m_dpadMoveNode->setVisible(node->isVisible());
         });
 
-        m_dpadMoveNode->addEventListener(alpha::editor_tabs::Tab::UpdateTabUIEvent(tab), [this] (EditButtonBar* node) {
+        m_dpadMoveNode->addEventListener(alpha::editor_tabs::Tab::UpdateTabUIEvent(tab), [this] (alpha::editor_tabs::EditorTab* node) {
             readjustDpadMenu(node, node->getContentWidth());
         });
 
-        m_dpadMoveNode->addEventListener(alpha::editor_tabs::Tab::TabLoadedEvent(tab), [this] (EditButtonBar* node) {
+        m_dpadMoveNode->addEventListener(alpha::editor_tabs::Tab::TabLoadedEvent(tab), [this] (alpha::editor_tabs::EditorTab* node) {
             updateDpadMenuButtons();
             readjustDpadMenu(node, node->getContentWidth());
         });
 
-        editTab->setContentWidth(alpha::editor_tabs::EditorTab::getFullMaxSize().width);
+        editTab->setContentWidth(alpha::editor_tabs::EditorTab::getAvailableSize().width);
         readjustDpadMenu(editTab, editTab->getContentWidth());
         fields->m_editScrollLayer->scrollToTop();
     }
@@ -1132,7 +1132,7 @@ void ETEditorUI::setupEditMode() {
         tab = fields->m_editMode->createTab("edit", editTab, CCSprite::createWithSpriteFrameName("GJ_hammerIcon_001.png"), -1000);
         m_editButtonBar = editTab;
 
-        m_editButtonBar->addEventListener(alpha::editor_tabs::Tab::TabLoadedEvent(tab), [this] (EditButtonBar* node) {
+        m_editButtonBar->addEventListener(alpha::editor_tabs::Tab::TabLoadedEvent(tab), [this] (alpha::editor_tabs::EditorTab* node) {
             fixButtonWidths();
         });
 
@@ -1157,16 +1157,16 @@ void ETEditorUI::setupDeleteMode() {
 
     auto tab = fields->m_deleteMode->createTab("delete", deleteTab, CCSprite::create("delete-tab.png"_spr), -1000);
 
-    m_deleteMenu->addEventListener(alpha::editor_tabs::Tab::UpdateTabVisibilityEvent(tab), [this] (EditButtonBar* node, bool visible) {
+    m_deleteMenu->addEventListener(alpha::editor_tabs::Tab::UpdateTabVisibilityEvent(tab), [this] (alpha::editor_tabs::EditorTab* node, bool visible) {
         m_deleteMenu->setVisible(node->isVisible());
     });
 
-    m_deleteMenu->addEventListener(alpha::editor_tabs::Tab::UpdateTabUIEvent(tab), [this, deleteTab] (EditButtonBar* node) {
+    m_deleteMenu->addEventListener(alpha::editor_tabs::Tab::UpdateTabUIEvent(tab), [this, deleteTab] (alpha::editor_tabs::EditorTab* node) {
         auto winSize = CCDirector::get()->getWinSize();
-        auto maxSize = alpha::editor_tabs::EditorTab::getMaxSize();
+        auto maxSize = node->getAvailablePaddedSize();
 
-        float scaleX = node->getContentWidth() / maxSize.width;
-        float scaleY = node->getContentHeight() / maxSize.height;
+        float scaleX = node->getPaddedSize().width / maxSize.width;
+        float scaleY = node->getPaddedSize().height / maxSize.height;
 
         float scale = std::min(scaleX, scaleY);
 

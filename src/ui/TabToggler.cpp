@@ -128,4 +128,8 @@ void TabToggler::toggleTab(bool on) {
     node->addChild(m_impl->get()->m_icon);
 }
 
+alpha::editor_tabs::Tab* TabToggler::getTab() {
+    return m_impl->get()->m_tab;
+}
+
 }

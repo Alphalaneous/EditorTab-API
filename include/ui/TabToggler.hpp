@@ -23,6 +23,8 @@ public:
     GEODE_EVENT_EXPORT_MEMBER(TabToggler, void, onPress, (CCObject* sender), (this, sender));
     GEODE_EVENT_EXPORT_MEMBER(TabToggler, cocos2d::CCNode*, getIcon, (), (this));
     GEODE_EVENT_EXPORT_MEMBER(TabToggler, void, setIcon, (cocos2d::CCNode* icon), (this, icon));
+    GEODE_EVENT_EXPORT_MEMBER(TabToggler, alpha::editor_tabs::Tab*, getTab, (), (this));
+
 
 protected:
     GEODE_EVENT_EXPORT_MEMBER(TabToggler, bool, init, (alpha::editor_tabs::Tab* tab, CCNode* icon), (this, tab, icon));

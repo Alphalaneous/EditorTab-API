@@ -72,4 +72,9 @@ class AllTabsInitializedEvent : public geode::Event<AllTabsInitializedEvent, boo
     using Event::Event;
 };
 
+/// Event sent when the move menu is setup
+class SetupMoveMenuEvent : public geode::Event<SetupMoveMenuEvent, bool(alpha::editor_tabs::Tab* editTab)> {
+    using Event::Event;
+};
+
 }

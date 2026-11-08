@@ -16,7 +16,9 @@
 	},
 	"api": {
         "include": [
-            "include/*.hpp"
+            "include/*.hpp",
+            "include/api/*.hpp",
+            "include/ui/*.hpp"
         ]
     },
 	"tags": [

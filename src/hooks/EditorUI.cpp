@@ -628,9 +628,12 @@ void ETEditorUI::setupCreateMenu() {
 
 void ETEditorUI::createMoveMenu() {
     m_fields->m_editMode->removeTab("edit");
+    auto toolbarHeight = m_toolbarHeight;
+    m_toolbarHeight = 90.f;
 
     EditorUI::createMoveMenu();
-
+    m_toolbarHeight = toolbarHeight;
+    
     setupEditMode();
 }
 
@@ -1049,7 +1052,13 @@ void ETEditorUI::fixButtonWidths() {
 void ETEditorUI::setupEditMode() {
     auto fields = m_fields.self();
 
-    fields->m_editMode->removeTab("edit");
+    auto oldEditTab = fields->m_editMode->getTab("edit");
+    Ref<alpha::editor_tabs::EditorTab> origEdit = nullptr;
+    if (oldEditTab) {
+        origEdit = oldEditTab->getNode();
+    }
+
+    fields->m_editMode->removeTab(oldEditTab);
 
     fields->m_editScrollLayer = nullptr;
     alpha::editor_tabs::Tab* tab = nullptr;
@@ -1104,6 +1113,13 @@ void ETEditorUI::setupEditMode() {
         });
 
         editTab->setContentWidth(alpha::editor_tabs::EditorTab::getAvailableSize().width);
+
+        if (origEdit) {
+            editTab->setScale(origEdit->getScale());
+            editTab->setContentSize(origEdit->getContentSize());
+            editTab->setPosition(origEdit->getPosition());
+        }
+
         readjustDpadMenu(editTab, editTab->getContentWidth());
         fields->m_editScrollLayer->scrollToTop();
     }
@@ -1133,6 +1149,12 @@ void ETEditorUI::setupEditMode() {
         });
 
         fixButtonWidths();
+
+        if (origEdit) {
+            editTab->setScale(origEdit->getScale());
+            editTab->setContentSize(origEdit->getContentSize());
+            editTab->setPosition(origEdit->getPosition());
+        }
     }
 
     m_editButtonDict->removeAllObjects();
@@ -1144,6 +1166,8 @@ void ETEditorUI::setupEditMode() {
     for (const auto& [k, v] : fields->m_editButtonDict->asExt()) {
         m_editButtonDict->setObject(v, std::string(k));
     }
+
+    alpha::editor_tabs::SetupMoveMenuEvent().send(tab);
 }
 
 void ETEditorUI::setupDeleteMode() {

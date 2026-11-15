@@ -57,6 +57,8 @@ class $modify(ETEditorUI, EditorUI) {
     CreateMenuItem* getCreateBtn(int id, int bg);
     void setupCreateMenu();
     void createMoveMenu();
+    void setupViewMenu();
+    void setupDeleteMenu();
     void updateCreateMenu(bool selectTab);
     void selectBuildTab(int tab);
     void showUI(bool show);

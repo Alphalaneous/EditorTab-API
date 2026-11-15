@@ -5,7 +5,7 @@
 #include <Geode/binding/CreateMenuItem.hpp>
 #include <Geode/binding/EditButtonBar.hpp>
 #include <Geode/utils/ZStringView.hpp>
-#include <Geode/loader/Dispatch.hpp>
+#include <Geode/loader/EventExport.hpp>
 #include "ZImpl.hpp"
 
 #define MY_MOD_ID "alphalaneous.editortab_api"

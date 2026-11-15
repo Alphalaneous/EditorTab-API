@@ -25,24 +25,19 @@ class $modify(MyEditorUI, EditorUI) {
     bool init(LevelEditorLayer* editorLayer) {
         if (!EditorUI::init(editorLayer)) return false;
 
-        auto buildMode = alpha::editor_tabs::getMode(alpha::editor_tabs::Build);
+        auto editMode = alpha::editor_tabs::getMode(alpha::editor_tabs::Edit);
         auto viewMode = alpha::editor_tabs::getMode(alpha::editor_tabs::View);
 
-        std::vector<CCNode*> btns{};
-        btns.push_back(
-            getSpriteButton(
-                "hideBtn_001.png", 
-                menu_selector(EditorUI::onShowUIBtn), 
-                nullptr, 
-                1.f, 
-                1, 
-                {0.f, 0.f}, 
-                40.f
-            )
+        auto btn = alpha::editor_tabs::createEditButton(
+            CCSprite::createWithSpriteFrameName("hideBtn_001.png"),
+            1, // Button Type ("GJ_button_0{}.png")
+            [this] (CCMenuItemSpriteExtra* sender) {
+                onShowUIBtn(sender);
+            }
         );
 
-        auto newTab = alpha::editor_tabs::EditorTab::create(btns);
-        buildMode->createTab("my-tab"_spr, newTab, CCSprite::createWithSpriteFrameName("hideBtn_001.png"));
+        auto editTab = editMode->getTab("edit");
+        editTab->getNode()->addItem(btn);
 
         auto meowTabNode = alpha::editor_tabs::EditorTab::create();
         meowTabNode->addChild(geode::Label::create("Meow", "bigFont.fnt"));

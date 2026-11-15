@@ -504,9 +504,6 @@ bool ETEditorUI::init(LevelEditorLayer* editorLayer) {
     addChild(m_tabsMenu);
     m_uiItems->addObject(m_tabsMenu);
 
-    setupDeleteMode();
-    setupViewMode();
-
     setupModes();
     fields->m_initialized = true;
 
@@ -802,6 +799,16 @@ void ETEditorUI::updateCreateMenu(bool selectTab) {
             m_createButtonBar->goToPage(item->m_pageIndex);
         }
     }
+}
+
+void ETEditorUI::setupViewMenu() {
+    EditorUI::setupViewMenu();
+    setupViewMode();
+}
+
+void ETEditorUI::setupDeleteMenu() {
+    EditorUI::setupDeleteMenu();
+    setupDeleteMode();
 }
 
 CCNode* ETEditorUI::iconForIdx(int idx) {

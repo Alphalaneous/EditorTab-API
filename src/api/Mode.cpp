@@ -64,7 +64,7 @@ alpha::editor_tabs::Tab* Mode::createTab(geode::ZStringView ID, alpha::editor_ta
         bool isActive = editor->getCurrentMode() == this;
         node->setVisible(isActive && m_impl->get()->m_currentTab == ID && !editor->m_uiHidden);
 
-        if (editor->getCurrentMode() == this) {
+        if (isActive) {
             editor->m_tabsArray->addObject(toggle);
             editor->m_tabsMenu->addChild(toggle);
             editor->m_tabsMenu->updateLayout();

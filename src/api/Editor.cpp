@@ -72,4 +72,22 @@ void switchMode(alpha::editor_tabs::Mode* mode) {
     ETEditorUI::get()->switchMode(mode);
 }
 
+CCMenuItemSpriteExtra* createEditButton(cocos2d::CCSprite* sprite, int bgType, geode::Function<void(CCMenuItemSpriteExtra* sender)> callback, cocos2d::CCPoint offset) {
+    std::string background = fmt::format("GJ_button_0{}.png", bgType);
+
+    CCSize size = sprite->getContentSize();
+    float fit = std::min(std::min(32.f / size.width, 32.f / size.height), 1.f);
+
+    auto buttonSprite = ButtonSprite::create(sprite, 40, 0, 40.f, fit, true, background.c_str(), false, 40.f);
+
+    auto button = CCMenuItemExt::createSpriteExtra(buttonSprite, std::move(callback));
+    button->setScale(0.9f);
+    button->m_baseScale = 0.9f;
+
+    buttonSprite->m_spritePosition = offset;
+    buttonSprite->updateSpriteBGSize();
+
+    return button;
+}
+
 }

@@ -1,10 +1,12 @@
 #pragma once
 
+#include <Geode/utils/function.hpp>
 #include <Geode/Result.hpp>
+#include <Geode/binding/CCMenuItemSpriteExtra.hpp>
 #include <Geode/binding/EditButtonBar.hpp>
 #include <Geode/binding/CCMenuItemToggler.hpp>
 #include <Geode/loader/Event.hpp>
-#include <Geode/loader/Dispatch.hpp>
+#include <Geode/loader/EventExport.hpp>
 #include <Geode/utils/ZStringView.hpp>
 #include <span>
 
@@ -66,6 +68,9 @@ GEODE_EVENT_EXPORT(void, switchMode, (Mode* mode), (mode));
 
 /// Switch to a mode by ID
 GEODE_EVENT_EXPORT(void, switchMode, (geode::ZStringView ID), (ID));
+
+/// Create an edit button that auto sizes properly for both the new Edit mode and Legacy
+GEODE_EVENT_EXPORT(CCMenuItemSpriteExtra*, createEditButton, (cocos2d::CCSprite* sprite, int bgType, geode::Function<void(CCMenuItemSpriteExtra* sender)> callback, cocos2d::CCPoint offset = {0.f, 0.f}), (sprite, bgType, std::move(callback), offset));
 
 /// Event sent when all tabs are finished initializing in EditorUI::init
 class AllTabsInitializedEvent : public geode::Event<AllTabsInitializedEvent, bool()> {

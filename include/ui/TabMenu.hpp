@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Geode/loader/Dispatch.hpp>
+#include <Geode/loader/EventExport.hpp>
 #include <Geode/cocos/menu_nodes/CCMenu.h>
 #include "../api/ZImpl.hpp"
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Geode/loader/Dispatch.hpp>
+#include <Geode/loader/EventExport.hpp>
 #include "../api/ZImpl.hpp"
 
 #define MY_MOD_ID "alphalaneous.editortab_api"

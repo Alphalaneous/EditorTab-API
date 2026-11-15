@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Geode/loader/Dispatch.hpp>
+#include <Geode/loader/EventExport.hpp>
 #include <Geode/binding/EditButtonBar.hpp>
 #include <Geode/ui/Layout.hpp>
 #include "../api/Tab.hpp"
@@ -159,8 +159,12 @@ public:
     /// Get the page dot scale
     GEODE_EVENT_EXPORT_MEMBER(EditorTab, float, getDotScale, (), (this));
 
+    /// Get all the items (specifically for handling the Edit tab)
+    GEODE_EVENT_EXPORT_MEMBER(EditorTab, cocos2d::CCArray*, getAllItems, (), (this));
+
     /// Get the total available size in the editor for any EditorTab
     GEODE_EVENT_EXPORT_MEMBER_STATIC(cocos2d::CCSize, getAvailableSize, (), ());
+
 
     /// Add items
     template<class T>
@@ -295,7 +299,6 @@ protected:
     GEODE_EVENT_EXPORT_MEMBER(EditorTab, CCMenuItemSpriteExtra*, createDot, (int page), (this, page));
 
     GEODE_EVENT_EXPORT_MEMBER(EditorTab, void, loadFromItems_, (cocos2d::CCArray* items, int columns, int rows, bool preserve), (this, items, columns, rows, preserve));
-    GEODE_EVENT_EXPORT_MEMBER(EditorTab, cocos2d::CCArray*, getAllItems, (), (this));
 
     friend class ::ETEditButtonBar;
     friend class Mode;

@@ -2,7 +2,7 @@
 
 #include <Geode/binding/EditButtonBar.hpp>
 #include <Geode/utils/ZStringView.hpp>
-#include <Geode/loader/Dispatch.hpp>
+#include <Geode/loader/EventExport.hpp>
 
 #include "ZImpl.hpp"
 

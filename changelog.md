@@ -1,5 +1,6 @@
 # 3.0.0-beta.1
 - Rewrite the mod for 2.209
+- Currently iOS is not supported
 
 # 2.1.13
 - Fix toolbar scale

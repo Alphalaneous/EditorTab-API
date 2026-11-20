@@ -1,4 +1,4 @@
-# 3.0.0
+# 3.0.0-beta.1
 - Rewrite the mod for 2.209
 
 # 2.1.13

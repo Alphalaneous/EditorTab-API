@@ -1,3 +1,6 @@
+# 3.0.0-beta.3
+- Fix safe area on iOS
+
 # 3.0.0-beta.2
 - Add back iOS support
 - Maybe fix a crash on Android

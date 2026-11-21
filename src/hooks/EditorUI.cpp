@@ -485,9 +485,6 @@ bool ETEditorUI::init(LevelEditorLayer* editorLayer) {
 
     if (!EditorUI::init(editorLayer)) return false;
 
-    auto spacerLeft = getChildByID("spacer-line-left");
-    spacerLeft->setPositionX(96.f);
-
     auto winSize = CCDirector::get()->getWinSize();
 
     auto newTabMenu = alpha::editor_tabs::TabMenu::create();

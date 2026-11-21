@@ -343,7 +343,7 @@ CCSize EditorTab::getAvailableSize() {
     auto spacerRight = editor->getChildByID("spacer-line-right");
     
     if (!spacerLeft || !spacerRight) {
-        return {(CCDirector::get()->getScreenRight() - 90.f) - (CCDirector::get()->getScreenLeft() + 90.f), 90.f};
+        return {(CCDirector::get()->getScreenRight() - 90.f) - (CCDirector::get()->getScreenLeft() + 90.f) GEODE_IOS(- geode::utils::getSafeAreaRect().getMinX()), 90.f};
     }
 
     auto rightSpace = winSize.width - spacerRight->getPositionX();

@@ -1,3 +1,6 @@
+# 3.0.0-beta.2
+- Add back iOS support
+
 # 3.0.0-beta.1
 - Rewrite the mod for 2.209
 - Currently iOS is not supported

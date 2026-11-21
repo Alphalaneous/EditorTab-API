@@ -1,5 +1,6 @@
 # 3.0.0-beta.2
 - Add back iOS support
+- Maybe fix a crash on Android
 
 # 3.0.0-beta.1
 - Rewrite the mod for 2.209

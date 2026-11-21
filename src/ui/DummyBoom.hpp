@@ -8,6 +8,8 @@ namespace alpha::editor_tabs {
 
 class DummyBoom : public BoomScrollLayer {
 public: 
+    DummyBoom();
+
     static DummyBoom* create();
 protected:
     bool init();

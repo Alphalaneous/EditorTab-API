@@ -70,10 +70,6 @@ void EditorTab::construct() {
     m_bInverseDirty = true;
     m_bVisible = true;
 
-    auto obj = new CCObject();
-    m_uID = obj->m_uID;
-    obj->release();
-
     m_pComponentContainer = new CCComponentContainer(ZeroConstructor);
     m_pComponentContainer->m_pComponents = nullptr;
     m_pComponentContainer->m_pOwner = this;

@@ -1043,13 +1043,19 @@ void ETEditorUI::updateDpadMenuButtons() {
 }
 
 void ETEditorUI::fixButtonWidths() {
-    for (auto item : m_fields->m_editButtons->asExt<CCNode>()) {
+    auto fields = m_fields.self();
+    for (auto item : fields->m_editButtons->asExt<CCNode>()) {
         auto btnSprite = item->getChildByType<ButtonSprite>();
         if (!btnSprite) continue;
 
         btnSprite->m_width = 32.f;
         btnSprite->m_minWidth = 32.f;
         btnSprite->updateSpriteBGSize();
+    }
+
+    auto buttonsMenu = m_editButtonBar->getChildByID("button-menu");
+    if (buttonsMenu) {
+        buttonsMenu->updateLayout();
     }
 }
 

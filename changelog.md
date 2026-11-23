@@ -1,3 +1,6 @@
+# 3.0.0-beta.4
+- Fix the edit buttons layout not updating when the button widths are restored
+
 # 3.0.0-beta.3
 - Fix safe area on iOS
 

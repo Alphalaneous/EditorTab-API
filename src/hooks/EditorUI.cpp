@@ -617,6 +617,10 @@ void ETEditorUI::setupCreateMenu() {
         auto bar = alpha::editor_tabs::EditorTab::create(buttons, createTab.index, true);
         m_createButtonBars->addObject(bar);
         fields->m_buildMode->createTab(createTab.id, bar, iconForIdx(bar->m_tabIndex), startPrio + 1000 * createTab.index);
+
+        if (createTab.index == 13) {
+            m_customTabBar = bar;
+        }
     }
 }
 
@@ -840,34 +844,6 @@ Result<std::string_view> ETEditorUI::idForBuildTabIndex(unsigned int index) {
         return Err("Index too high");
     }
     return Ok(TabIDs[index]);
-}
-
-void ETEditorUI::setupBuildMode() {
-    auto fields = m_fields.self();
-
-    int prio = -1000 * m_createButtonBars->count();
-
-    auto barsCopy = m_createButtonBars->shallowCopy();
-    m_createButtonBars->removeAllObjects();
-
-    for (auto bar : barsCopy->asExt<EditButtonBar>()) {
-        bar->removeFromParent();
-
-        auto tabID = std::string(idForBuildTabIndex(bar->m_tabIndex).unwrapOrDefault());
-
-        for (auto item : bar->m_buttonArray->asExt<CCNode>()) {
-            item->removeFromParent();
-        }
-
-        auto newBar = alpha::editor_tabs::EditorTab::create(bar->m_buttonArray, bar->m_tabIndex, bar->m_hasCreateItems);
-        fields->m_buildMode->createTab(tabID, newBar, iconForIdx(bar->m_tabIndex), prio);
-
-        if (bar->m_tabIndex == 13) {
-            m_customTabBar = newBar;
-        }
-
-        prio += 1000;
-    }
 }
 
 // this is ugly cuz rob did it ugly and I am replicating his ugliness

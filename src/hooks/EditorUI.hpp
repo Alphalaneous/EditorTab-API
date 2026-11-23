@@ -71,7 +71,6 @@ class $modify(ETEditorUI, EditorUI) {
     CCNode* iconForIdx(int idx);
     Result<std::string_view> idForBuildTabIndex(unsigned int index);
 
-    void setupBuildMode();
     void setupEditMode();
     void setupDeleteMode();
     void setupViewMode();

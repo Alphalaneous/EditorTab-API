@@ -1,3 +1,6 @@
+# 3.0.0-beta.5
+- Fix m_selectedMode not being set properly
+
 # 3.0.0-beta.4
 - Fix the edit buttons layout not updating when the button widths are restored
 - Fix a crash when adding and deleting custom items

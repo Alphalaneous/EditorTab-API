@@ -689,6 +689,7 @@ void ETEditorUI::toggleMode(cocos2d::CCObject* sender) {
             }
         }
 
+        m_selectedMode = mode;
         resetUI();
         switchMode(modeID);
     }
